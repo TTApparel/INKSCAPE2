@@ -36,7 +36,12 @@ using Inkscape::UI::Syntax::SyntaxMode;
 
 void SPAttributeTable::EntryWidget::set_text(const Glib::ustring& text) {
     if (_entry) {
+        // Save cursor position
+        int pos = _entry->get_position();
         _entry->set_text(text);
+        
+        // Restore cursor position
+        _entry->set_position(pos);
     }
     else {
         _text_view->get_buffer()->set_text(text);
@@ -115,8 +120,16 @@ void SPAttributeTable::create(const std::vector<Glib::ustring>& labels, const st
             ee->set_margin_bottom(YPAD);
             table->attach(*ee, 1, i, 1, 1);
 
-            ee->signal_changed().connect([i, this](){
-                attribute_table_entry_changed(i);
+            ee->signal_changed().connect([i, ee, this](){
+                if (!blocked) {
+                    // Save cursor position
+                    int pos = ee->get_position();
+
+                    attribute_table_entry_changed(i);
+                    
+                    // Restore cursor position
+                    ee->set_position(pos);
+                }
             });
         }
 
