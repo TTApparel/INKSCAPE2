@@ -78,7 +78,7 @@ bool URIReference::_acceptObject(SPObject *obj) const
     if (!owner || lpobj)
         return true;
     
-    while (owner->cloned) {
+    while (owner->_cloned) {
         if(!owner->clone_original)//happens when the clone is existing and linking to something, even before the original objects exists.
                                   //for instance, it can happen when you paste a filtered object in a already cloned group: The construction of the 
                                   //clone representation of the filtered object will finish before the original object, so the cloned repr will
@@ -228,12 +228,12 @@ void URIReference::_setObject(SPObject *obj)
     _obj = obj;
 
     _release_connection.disconnect();
-    if (_obj && (!_owner || !_owner->cloned)) {
+    if (_obj && (!_owner || !_owner->_cloned)) {
         _obj->hrefObject(_owner);
         _release_connection = _obj->connectRelease(sigc::mem_fun(*this, &URIReference::_release));
     }
     _changed_signal.emit(old_obj, _obj);
-    if (old_obj && (!_owner || !_owner->cloned)) {
+    if (old_obj && (!_owner || !_owner->_cloned)) {
         /* release the old object _after_ the signal emission */
         old_obj->unhrefObject(_owner);
     }

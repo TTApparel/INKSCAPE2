@@ -69,7 +69,7 @@ static void sp_offset_quit_listening(SPOffset *offset);
 static void sp_offset_href_changed(SPObject *old_ref, SPObject *ref, SPOffset *offset);
 static void sp_offset_move_compensate(Geom::Affine const *mp, SPItem *original, SPOffset *self);
 static void sp_offset_delete_self(SPObject *deleted, SPOffset *self);
-static void sp_offset_source_modified (SPObject *iSource, guint flags, SPItem *item);
+static void sp_offset_source_modified(void* sender, SPObject *iSource, guint flags, SPItem *item);
 
 
 // slow= source path->polygon->offset of polygon->polygon->path
@@ -955,7 +955,7 @@ static void sp_offset_start_listening(SPOffset *offset, SPItem *to)
 
     offset->_delete_connection = to->connectDelete(sigc::bind(sigc::ptr_fun(&sp_offset_delete_self), offset));
     offset->_transformed_connection = to->connectTransformed(sigc::bind(sigc::ptr_fun(&sp_offset_move_compensate), offset));
-    offset->_modified_connection = to->connectModified(sigc::bind<2>(sigc::ptr_fun(&sp_offset_source_modified), offset));
+    offset->_modified_connection = to->connectModified(sigc::bind<3>(sigc::ptr_fun(&sp_offset_source_modified), offset));
 }
 
 static void sp_offset_quit_listening(SPOffset *offset)
@@ -1048,8 +1048,7 @@ sp_offset_delete_self(SPObject */*deleted*/, SPOffset *offset)
     }
 }
 
-static void
-sp_offset_source_modified (SPObject */*iSource*/, guint flags, SPItem *item)
+static void sp_offset_source_modified(void* sender, SPObject */*iSource*/, guint flags, SPItem *item)
 {
     auto offset = cast<SPOffset>(item);
     offset->sourceDirty=true;

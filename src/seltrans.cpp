@@ -1021,7 +1021,7 @@ void Inkscape::SelTrans::_selChanged(Inkscape::Selection *selection)
     }
 }
 
-void Inkscape::SelTrans::_selModified(Inkscape::Selection */*selection*/, guint /*flags*/)
+void Inkscape::SelTrans::_selModified(void* sender, Inkscape::Selection */*selection*/, guint /*flags*/)
 {
     if (!_grabbed) {
         _updateVolatileState();

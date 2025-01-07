@@ -86,7 +86,7 @@ private:
     void _sensitize();
 
     void _selectionChanged(Selection *selection);
-    void _selectionModified(Selection *selection, unsigned flags);
+    void _selectionModified(void* sender, Selection *selection, unsigned flags);
     sigc::connection _selection_changed_conn;
     sigc::connection _selection_modified_conn;
 };

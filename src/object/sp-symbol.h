@@ -36,7 +36,7 @@ public:
     void unSymbol();
 	Inkscape::XML::Node* write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr, unsigned int flags) override;
 
-	void modified(unsigned int flags) override;
+	void modified(void* sender, unsigned int flags) override;
 	void child_added(Inkscape::XML::Node* child, Inkscape::XML::Node* ref) override;
 
     std::optional<Geom::PathVector> documentExactBounds() const override;

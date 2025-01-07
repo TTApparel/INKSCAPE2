@@ -128,7 +128,8 @@ void SPLPEItem::set(SPAttr key, gchar const* value) {
                     if ( path_effect_ref->lpeobject && path_effect_ref->lpeobject->get_lpe() ) {
                         // connect modified-listener
                         lpe_modified_connection_list.emplace_back(
-                            path_effect_ref->lpeobject->connectModified(sigc::bind(&lpeobject_ref_modified, this)));
+                            path_effect_ref->lpeobject->connectModified([this](auto, auto object, auto flags) {
+                                lpeobject_ref_modified(object, flags, this); }));
                     } else {
                         // on clipboard we fix refs so in middle time of the operation, in LPE with multiples path
                         // effects can result middle updata and fire a warning, so we silent it
@@ -160,7 +161,7 @@ void SPLPEItem::update(SPCtx* ctx, unsigned int flags) {
     // TODO: re-add for the new node tool
 }
 
-void SPLPEItem::modified(unsigned int flags) {
+void SPLPEItem::modified(void* sender, unsigned int flags) {
     //stop update when modified and make the effect update on the LPE transform method if the effect require it
     //if (is<SPGroup>(this) && (flags & SP_OBJECT_MODIFIED_FLAG) && (flags & SP_OBJECT_USER_MODIFIED_FLAG_B)) {
     //  sp_lpe_item_update_patheffect(this, true, false);

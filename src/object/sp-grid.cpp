@@ -455,7 +455,7 @@ void SPGrid::_recreateViews()
 }
 
 // update internal state on XML change
-void SPGrid::modified(unsigned int flags)
+void SPGrid::modified(void* sender, unsigned int flags)
 {
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         updateRepr();

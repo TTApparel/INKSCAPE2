@@ -69,7 +69,7 @@ public:
 
     void documentReplaced() final;
     void selectionChanged(Selection *selection) final;
-    void selectionModified(Selection *selection, guint flags) final;
+    void selectionModified(void* sender, Selection* selection, unsigned int flags) final;
 
 protected:
     /**

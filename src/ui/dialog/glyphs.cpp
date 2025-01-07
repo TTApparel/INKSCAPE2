@@ -541,7 +541,7 @@ void GlyphsPanel::selectionChanged(Selection *selection)
     readSelection(true, true);
 }
 
-void GlyphsPanel::selectionModified(Selection *selection, guint flags)
+void GlyphsPanel::selectionModified(void* sender, Selection *selection, unsigned int flags)
 {
     bool style = ((flags & ( SP_OBJECT_CHILD_MODIFIED_FLAG |
                              SP_OBJECT_STYLE_MODIFIED_FLAG  )) != 0 );

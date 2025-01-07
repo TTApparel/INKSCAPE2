@@ -20,7 +20,7 @@ public:
     int tag() const override { return tag_of<decltype(*this)>; }
 
 protected:
-    void modified(unsigned flags) override;
+    void modified(void* sender, unsigned int flags) override;
 
     void child_added(Inkscape::XML::Node *child, Inkscape::XML::Node *ref) override;
     void remove_child(Inkscape::XML::Node *child) override;

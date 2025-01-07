@@ -98,7 +98,7 @@ void PaintServersDialog::documentReplaced()
     _regenerateAll();
 
     if (auto const defs = document->getDefs()) {
-        _defs_changed = defs->connectModified([this] (SPObject *, unsigned) -> void {
+        _defs_changed = defs->connectModified([this] (auto sender, SPObject *, unsigned) -> void {
             _loadFromCurrentDocument();
             _regenerateAll();
         });

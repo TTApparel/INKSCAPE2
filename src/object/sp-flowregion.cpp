@@ -69,7 +69,7 @@ void SPFlowregion::update(SPCtx *ctx, unsigned int flags) {
         g_assert(child != nullptr);
         auto item = cast<SPItem>(child);
 
-        if (childflags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (childflags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             if (item) {
                 SPItem const &chi = *item;
                 cctx.i2doc = chi.transform * ictx->i2doc;
@@ -98,7 +98,7 @@ void SPFlowregion::updateComputed()
     }
 }
 
-void SPFlowregion::modified(guint flags) {
+void SPFlowregion::modified(void* sender, unsigned int flags) {
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
     }
@@ -115,8 +115,8 @@ void SPFlowregion::modified(guint flags) {
     for (auto child:l) {
         g_assert(child != nullptr);
 
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
 
         sp_object_unref(child);
@@ -205,7 +205,7 @@ void SPFlowregionExclude::update(SPCtx *ctx, unsigned int flags) {
     for(auto child:l) {
         g_assert(child != nullptr);
 
-        if (flags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (flags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             auto item = cast<SPItem>(child);
             if (item) {
                 SPItem const &chi = *item;
@@ -233,7 +233,7 @@ void SPFlowregionExclude::_updateComputed()
     }
 }
 
-void SPFlowregionExclude::modified(guint flags) {
+void SPFlowregionExclude::modified(void* sender, unsigned int flags) {
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
     }
@@ -250,8 +250,8 @@ void SPFlowregionExclude::modified(guint flags) {
     for (auto child:l) {
         g_assert(child != nullptr);
 
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
 
         sp_object_unref(child);

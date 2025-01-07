@@ -48,7 +48,7 @@ private:
 protected:
     void build(SPDocument *doc, Inkscape::XML::Node *repr) override;
     void set(SPAttr key, char const *value) override;
-    void modified(unsigned flags) override;
+    void modified(void* sender, unsigned int flags) override;
     Inkscape::XML::Node *write(Inkscape::XML::Document *doc, Inkscape::XML::Node *repr, unsigned flags) override;
 
     void child_added(Inkscape::XML::Node *child, Inkscape::XML::Node *ref) override;

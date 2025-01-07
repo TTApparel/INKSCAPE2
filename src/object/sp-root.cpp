@@ -266,7 +266,7 @@ void SPRoot::update(SPCtx *ctx, guint flags)
     }
 
     // Calculate x, y, width, height from parent/initial viewport
-    this->calcDimsFromParentViewport(ictx, false, cloned ? cast<SPUse>(parent) : nullptr);
+    this->calcDimsFromParentViewport(ictx, false, _cloned ? cast<SPUse>(parent) : nullptr);
 
     // std::cout << "SPRoot::update: final:"
     //           << " x: " << x.computed
@@ -290,16 +290,15 @@ void SPRoot::update(SPCtx *ctx, guint flags)
     }
 }
 
-void SPRoot::modified(unsigned int flags)
+void SPRoot::modified(void* sender, unsigned int flags)
 {
-    SPGroup::modified(flags);
+    SPGroup::modified(sender, flags);
 
     if (!this->parent && (flags & SP_OBJECT_VIEWPORT_MODIFIED_FLAG)) {
         // Size of viewport has changed.
         document->getNamedView()->updateViewPort();
     }
 }
-
 
 Inkscape::XML::Node *SPRoot::write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr, guint flags)
 {

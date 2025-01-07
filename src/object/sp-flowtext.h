@@ -89,7 +89,7 @@ public:
 	Geom::Affine set_transform(Geom::Affine const& xform) override;
 
 	void update(SPCtx* ctx, unsigned int flags) override;
-	void modified(unsigned int flags) override;
+	void modified(void* sender, unsigned int flags) override;
     void fix_overflow_flowregion(bool inverse);
 
 	Inkscape::XML::Node* write(Inkscape::XML::Document* doc, Inkscape::XML::Node* repr, unsigned int flags) override;

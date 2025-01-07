@@ -2000,7 +2000,7 @@ GridWidget::GridWidget(SPGrid *grid)
 
     left_col->attach(*_no_of_lines, 0, row++, 2);
 
-    _modified_signal = grid->connectModified([this, grid](SPObject const * /*obj*/, unsigned /*flags*/) {
+    _modified_signal = grid->connectModified([this, grid](void* sender, SPObject const * /*obj*/, unsigned /*flags*/) {
         update();
     });
     update();

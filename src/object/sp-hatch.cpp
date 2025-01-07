@@ -289,7 +289,7 @@ void SPHatch::update(SPCtx* ctx, unsigned int flags)
             child->setStripExtents(v.key, strip_extents);
         }
 
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->updateDisplay(ctx, flags);
         }
 
@@ -301,7 +301,7 @@ void SPHatch::update(SPCtx* ctx, unsigned int flags)
     }
 }
 
-void SPHatch::modified(unsigned int flags)
+void SPHatch::modified(void* sender, unsigned int flags)
 {
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
@@ -314,8 +314,8 @@ void SPHatch::modified(unsigned int flags)
     for (auto child : children) {
         sp_object_ref(child, nullptr);
 
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
 
         sp_object_unref(child, nullptr);
@@ -368,12 +368,12 @@ void SPHatch::_onRefChanged(SPObject *old_ref, SPObject *ref)
         }
     }
 
-    _onRefModified(ref, 0);
+    _onRefModified(nullptr, ref, 0);
 }
 
-void SPHatch::_onRefModified(SPObject */*ref*/, guint /*flags*/)
+void SPHatch::_onRefModified(void* sender, SPObject */*ref*/, guint /*flags*/)
 {
-    requestModified(SP_OBJECT_MODIFIED_FLAG);
+    requestModified(sender, SP_OBJECT_MODIFIED_FLAG);
     // Conditional to avoid causing infinite loop if there's a cycle in the href chain.
 }
 

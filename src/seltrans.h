@@ -115,7 +115,7 @@ private:
     void _updateHandles();
     void _updateVolatileState();
     void _selChanged(Inkscape::Selection *selection);
-    void _selModified(Inkscape::Selection *selection, unsigned int flags);
+    void _selModified(void* sender, Inkscape::Selection *selection, unsigned int flags);
     void _boundingBoxPrefsChanged(int prefs_bbox);
     void _makeHandles();
     void _showHandles(SPSelTransType type);

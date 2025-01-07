@@ -44,7 +44,7 @@ public:
 
     Geom::PathVector flip_coordinate_system(SPFont* spfont, Geom::PathVector pathv);
     void render_glyph_path(cairo_t* cr, Geom::PathVector* pathv);
-    void glyph_modified(SPObject *, unsigned int);
+    void glyph_modified(void* sender, SPObject *, unsigned int);
 
 private:
     SPFont* font;

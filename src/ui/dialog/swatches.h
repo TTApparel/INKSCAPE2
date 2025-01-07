@@ -73,7 +73,7 @@ private:
     void documentReplaced() final;
     void desktopReplaced() final;
     void selectionChanged(Selection *selection) final;
-    void selectionModified(Selection *selection, guint flags) final;
+    void selectionModified(void* sender, Selection* selection, unsigned int flags) final;
 
     unsigned _tick_callback = 0;
     void _scheduleUpdate();

@@ -466,7 +466,7 @@ static void sp_anchor_render(SPAnchor const *a, CairoRenderContext *ctx, SPItem 
 
 static void sp_symbol_render(SPSymbol const *symbol, CairoRenderContext *ctx, SPItem const *origin, SPPage const *page)
 {
-    if (!symbol->cloned) {
+    if (!symbol->_cloned) {
         return;
     }
 

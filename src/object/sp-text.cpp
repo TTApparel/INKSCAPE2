@@ -159,7 +159,7 @@ void SPText::update(SPCtx *ctx, guint flags) {
     }
 
     for (auto child:l) {
-        if (childflags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (childflags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             /* fixme: Do we need transform? */
             child->updateDisplay(ctx, childflags);
         }
@@ -213,7 +213,7 @@ void SPText::update(SPCtx *ctx, guint flags) {
     }
 }
 
-void SPText::modified(guint flags) {
+void SPText::modified(void* sender, unsigned int flags) {
 //	SPItem::onModified(flags);
 
     guint cflags = (flags & SP_OBJECT_MODIFIED_CASCADE);
@@ -247,7 +247,7 @@ void SPText::modified(guint flags) {
     }
 
     for (auto child:l) {
-        if (cflags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (cflags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->emitModified(cflags);
         }
         sp_object_unref(child, this);

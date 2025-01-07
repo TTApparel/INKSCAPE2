@@ -197,7 +197,7 @@ void SPNamedView::set_desk_color(SPDesktop* desktop) {
     }
 }
 
-void SPNamedView::modified(unsigned int flags)
+void SPNamedView::modified(void* sender, unsigned int flags)
 {
     // Copy the page style for the default viewport attributes
     auto &page_manager = document->getPageManager();
@@ -227,7 +227,7 @@ void SPNamedView::modified(unsigned int flags)
     }
 
     for (auto child : this->childList(false)) {
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->emitModified(flags & SP_OBJECT_MODIFIED_CASCADE);
         }
     }
@@ -245,7 +245,7 @@ void SPNamedView::update(SPCtx *ctx, guint flags)
     flags &= SP_OBJECT_MODIFIED_CASCADE;
 
     for (auto child : this->childList(false)) {
-        if (flags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (flags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->updateDisplay(ctx, flags);
         }
     }

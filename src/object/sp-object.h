@@ -15,6 +15,7 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
+#include <cstdint>
 #include <set>
 #include <glibmm/ustring.h>
 #include "util/const_char_ptr.h"
@@ -163,10 +164,8 @@ public:
     ~SPObject() override;
     virtual int tag() const { return tag_of<decltype(*this)>; }
 
-    unsigned int cloned : 1;
+    bool _cloned = false;
     SPObject *clone_original{nullptr};
-    unsigned int uflags : 8;
-    unsigned int mflags : 8;
     SPIXmlSpace xml_space;
     Glib::ustring lang;
     unsigned int hrefcount{0};        /* number of xlink:href references */
@@ -174,7 +173,12 @@ public:
     SPDocument *document{nullptr};    /* Document we are part of */
     SPObject *parent{nullptr};        /* Our parent (only one allowed) */
 
+    unsigned int get_modified_flags() const { return _mflags; }
+    unsigned int get_display_update_flags() const { return _uflags; }
 private:
+    uint8_t _uflags = 0;
+    uint8_t _mflags = 0;
+    void* _sender = nullptr;
     char *id{nullptr};                  /* Our very own unique id */
     Inkscape::XML::Node *repr{nullptr}; /* Our xml representation */
 
@@ -668,7 +672,10 @@ public:
      * flags set during this pass...
      *
      * @param flags flags indicating what has been modified
+     * @param sender pointer to identify sender that modified this object
      */
+    void requestModified(void* sender, unsigned int flags);
+    // as above, but with unknown sender
     void requestModified(unsigned int flags);
 
     /**
@@ -678,7 +685,10 @@ public:
      *  need to be stored any longer.
      *
      * @param flags indicating what has been modified.
+     * @param sender pointer to identify sender that modified this object
      */
+    void emitModified(void* sender, unsigned int flags);
+    // as above but with sender recorded in this object (_sender) if any, or null
     void emitModified(unsigned int flags);
 
     /**
@@ -689,7 +699,7 @@ public:
      * @return the connection formed thereby
      */
     sigc::connection connectModified(
-      sigc::slot<void (SPObject *, unsigned int)> slot
+      sigc::slot<void (void*, SPObject *, unsigned int)> slot
     ) {
         return _modified_signal.connect(slot);
     }
@@ -712,7 +722,7 @@ public:
     sigc::signal<void (SPObject *)> _release_signal;
     sigc::signal<void (SPObject *)> _delete_signal;
     sigc::signal<void (SPObject *)> _position_changed_signal;
-    sigc::signal<void (SPObject *, unsigned int)> _modified_signal;
+    sigc::signal<void (void*, SPObject *, unsigned int)> _modified_signal;
     SPObject *_successor{nullptr};
     SPObject *_tmpsuccessor{nullptr};
     CollectionPolicy _collection_policy{SPObject::COLLECT_WITH_PARENT};
@@ -745,7 +755,7 @@ public:
      */
     SPObject *get_child_by_repr(Inkscape::XML::Node *repr);
 
-    void invoke_build(SPDocument *document, Inkscape::XML::Node *repr, unsigned int cloned);
+    void invoke_build(SPDocument *document, Inkscape::XML::Node *repr, bool cloned);
 
     int getIntAttribute(char const *key, int def);
 
@@ -875,7 +885,7 @@ protected:
     virtual void set(SPAttr key, const char *value);
 
     virtual void update(SPCtx *ctx, unsigned int flags);
-    virtual void modified(unsigned int flags);
+    virtual void modified(void* sender, unsigned int flags);
 
     virtual Inkscape::XML::Node *write(Inkscape::XML::Document *doc, Inkscape::XML::Node *repr, unsigned int flags);
 

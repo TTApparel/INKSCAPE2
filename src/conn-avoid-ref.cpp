@@ -73,7 +73,7 @@ SPAvoidRef::~SPAvoidRef()
 void SPAvoidRef::setAvoid(char const *value)
 {
     // Don't keep avoidance information for cloned objects.
-    if ( !item->cloned ) {
+    if ( !item->_cloned ) {
         new_setting = false;
         if (value && (strcmp(value, "true") == 0)) {
             new_setting = true;

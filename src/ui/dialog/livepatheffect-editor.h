@@ -90,7 +90,7 @@ private:
 
     void clear_lpe_list();
     void selectionChanged (Inkscape::Selection *selection                ) final;
-    void selectionModified(Inkscape::Selection *selection, unsigned flags) final;
+    void selectionModified(void* sender, Inkscape::Selection *selection, unsigned int flags) final;
     void onSelectionChanged(Inkscape::Selection *selection);
     void expanded_notify(Gtk::Expander *expander);
     void onAdd(Inkscape::LivePathEffect::EffectType etype);

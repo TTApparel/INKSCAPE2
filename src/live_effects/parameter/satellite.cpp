@@ -169,7 +169,8 @@ void SatelliteParam::start_listening(SPObject *to)
     auto item = cast<SPItem>(to);
     if (item) {
         linked_released_connection = item->connectRelease(sigc::mem_fun(*this, &SatelliteParam::linked_released));
-        linked_modified_connection = item->connectModified(sigc::mem_fun(*this, &SatelliteParam::linked_modified));
+        linked_modified_connection = item->connectModified([this](auto, auto object, auto flags) {
+            linked_modified(object, flags); });
         linked_transformed_connection =
             item->connectTransformed(sigc::mem_fun(*this, &SatelliteParam::linked_transformed));
         if (!param_effect->is_load) {

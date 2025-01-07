@@ -66,7 +66,7 @@ void SPStop::set(SPAttr key, const gchar* value) {
     }
 }
 
-void SPStop::modified(guint flags)
+void SPStop::modified(void* sender, unsigned int flags)
 {
     if (parent && !(flags & SP_OBJECT_PARENT_MODIFIED_FLAG)) {
         parent->requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_STYLE_MODIFIED_FLAG);

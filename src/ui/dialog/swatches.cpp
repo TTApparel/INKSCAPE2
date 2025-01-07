@@ -286,7 +286,7 @@ void SwatchesPanel::track_gradients()
     // Subscribe to child modifications of the defs section. We will use this to monitor
     // each gradient for whether its isSwatch() status changes.
     conn_defs.disconnect();
-    conn_defs = doc->getDefs()->connectModified([this] (SPObject*, unsigned flags) {
+    conn_defs = doc->getDefs()->connectModified([this] (void*, SPObject*, unsigned flags) {
         if (flags & SP_OBJECT_CHILD_MODIFIED_FLAG) {
             defs_changed = true;
             _scheduleUpdate();
@@ -316,7 +316,7 @@ void SwatchesPanel::selectionChanged(Selection*)
     _scheduleUpdate();
 }
 
-void SwatchesPanel::selectionModified(Selection*, guint flags)
+void SwatchesPanel::selectionModified(void* sender, Selection*, unsigned int flags)
 {
     if (flags & SP_OBJECT_STYLE_MODIFIED_FLAG) {
         selection_changed = true;

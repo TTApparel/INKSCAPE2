@@ -70,7 +70,7 @@ private:
     Inkscape::UI::Widget::Scalar *offset_widget;
     FillRule fillrule;
     bool liveknot;
-    void modified(SPObject */*obj*/, guint flags);
+    void modified(SPObject* object, unsigned int flags);
     sigc::connection modified_connection;
     LPEOffset(const LPEOffset&);
     LPEOffset& operator=(const LPEOffset&);

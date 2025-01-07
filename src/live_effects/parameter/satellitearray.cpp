@@ -118,8 +118,8 @@ void SatelliteArrayParam::start_listening()
             if (item) {
                 linked_connections.emplace_back(item->connectRelease(
                     sigc::hide(sigc::mem_fun(*this, &SatelliteArrayParam::updatesignal))));
-                linked_connections.emplace_back(item->connectModified(
-                    sigc::mem_fun(*this, &SatelliteArrayParam::linked_modified)));
+                linked_connections.emplace_back(item->connectModified([this](auto, auto object, auto flags) {
+                    linked_modified(object, flags); }));
                 linked_connections.emplace_back(item->connectTransformed(
                     sigc::hide(sigc::hide(sigc::mem_fun(*this, &SatelliteArrayParam::updatesignal)))));
                 linked_connections.emplace_back(ref->changedSignal().connect(

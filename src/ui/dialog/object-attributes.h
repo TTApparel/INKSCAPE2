@@ -78,7 +78,7 @@ public:
     ~ObjectAttributes() override = default;
 
     void selectionChanged(Selection *selection) override;
-    void selectionModified(Selection *selection, guint flags) override;
+    void selectionModified(void* sender, Selection* selection, unsigned int flags) override;
 
     void desktopReplaced() override;
 

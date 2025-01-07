@@ -46,11 +46,7 @@ SelCue::SelCue(SPDesktop *desktop)
 
     _sel_changed_connection = _selection->connectChanged(sigc::hide(sigc::mem_fun(*this, &SelCue::_newItemBboxes)));
 
-    {
-        void (SelCue::*modifiedSignal)() = &SelCue::_updateItemBboxes;
-        _sel_modified_connection =
-            _selection->connectModified(sigc::hide(sigc::hide(sigc::mem_fun(*this, modifiedSignal))));
-    }
+    _sel_modified_connection = _selection->connectModified([this](auto, auto, auto) { _updateItemBboxes(); });
 
     Preferences *prefs = Preferences::get();
     _updateItemBboxes(prefs);

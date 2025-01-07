@@ -146,7 +146,7 @@ void SPMask::update(SPCtx *ctx, unsigned flags)
     auto const cflags = cascade_flags(flags);
 
     for (auto child : childList(true)) {
-        if (cflags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (cflags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->updateDisplay(ctx, cflags);
         }
         sp_object_unref(child);
@@ -166,12 +166,12 @@ void SPMask::update_view(View &v)
     }
 }
 
-void SPMask::modified(unsigned flags)
+void SPMask::modified(void* sender, unsigned int flags)
 {
     auto const cflags = cascade_flags(flags);
 
     for (auto child : childList(true)) {
-        if (cflags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (cflags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->emitModified(cflags);
         }
         sp_object_unref(child);

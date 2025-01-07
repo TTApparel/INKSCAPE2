@@ -609,13 +609,13 @@ void SPGenericEllipse::snappoints(std::vector<Inkscape::SnapCandidatePoint> &p, 
     }
 }
 
-void SPGenericEllipse::modified(guint flags)
+void SPGenericEllipse::modified(void* sender, unsigned int flags)
 {
     if (flags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_STYLE_MODIFIED_FLAG | SP_OBJECT_VIEWPORT_MODIFIED_FLAG)) {
         this->set_shape();
     }
 
-    SPShape::modified(flags);
+    SPShape::modified(sender, flags);
 }
 
 void SPGenericEllipse::update_patheffect(bool write) {

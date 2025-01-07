@@ -74,7 +74,7 @@ public:
     void order_changed(Inkscape::XML::Node *child, Inkscape::XML::Node *old_ref, Inkscape::XML::Node *new_ref) override;
 
     void update(SPCtx *ctx, unsigned int flags) override;
-    void modified(unsigned int flags) override;
+    void modified(void* sender, unsigned int flags) override;
     void set(SPAttr key, char const* value) override;
 
     Inkscape::XML::Node* write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr, unsigned int flags) override;

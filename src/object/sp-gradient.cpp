@@ -462,7 +462,7 @@ void SPGradient::gradientRefChanged(SPObject *old_ref, SPObject *ref, SPGradient
     if ( is<SPGradient>(ref)
          && ref != gr )
     {
-        gr->modified_connection = ref->connectModified(sigc::bind<2>(sigc::ptr_fun(&SPGradient::gradientRefModified), gr));
+        gr->modified_connection = ref->connectModified(sigc::bind<3>(sigc::ptr_fun(&SPGradient::gradientRefModified), gr));
     }
 
     // Per SVG, all unset attributes must be inherited from linked gradient.
@@ -477,7 +477,7 @@ void SPGradient::gradientRefChanged(SPObject *old_ref, SPObject *ref, SPGradient
     }
 
     /// \todo Fixme: what should the flags (second) argument be? */
-    gradientRefModified(ref, 0, gr);
+    gradientRefModified(nullptr, ref, 0, gr);
 }
 
 /**
@@ -551,7 +551,7 @@ void SPGradient::remove_child(Inkscape::XML::Node *child)
 /**
  * Callback for modified event.
  */
-void SPGradient::modified(guint flags)
+void SPGradient::modified(void* sender, unsigned int flags)
 {
 #ifdef OBJECT_TRACE
     objectTrace( "SPGradient::modified" );
@@ -583,8 +583,8 @@ void SPGradient::modified(guint flags)
     }
  
     for (auto child:l) {
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
         sp_object_unref(child);
     }
@@ -938,7 +938,7 @@ SPGradient::repr_write_vector()
 }
 
 
-void SPGradient::gradientRefModified(SPObject */*href*/, guint /*flags*/, SPGradient *gradient)
+void SPGradient::gradientRefModified(void* sender, SPObject */*href*/, guint /*flags*/, SPGradient *gradient)
 {
     if ( gradient->invalidateVector() ) {
         gradient->requestModified(SP_OBJECT_MODIFIED_FLAG);

@@ -16,6 +16,7 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
+#include "object/sp-object.h"
 #include <cstring>
 #include <string>
 #include <vector>
@@ -109,11 +110,7 @@ public:
 /**
  * Constructor, sets all attributes to default values.
  */
-SPObject::SPObject()
-    : cloned{0}
-    , uflags{0}
-    , mflags{0}
-{
+SPObject::SPObject() {
     debug("id=%p, typename=%s", this, g_type_name_from_instance((GTypeInstance *)this));
 
     SPObjectImpl::setIdNull(this);
@@ -160,7 +157,7 @@ void SPObject::update(SPCtx* /*ctx*/, unsigned int /*flags*/) {
     //throw;
 }
 
-void SPObject::modified(unsigned int /*flags*/) {
+void SPObject::modified(void* sender, unsigned int /*flags*/) {
 #ifdef OBJECT_TRACE
     objectTrace( "SPObject::modified  (default) (empty function)" );
     objectTrace( "SPObject::modified  (default)", false );
@@ -268,7 +265,7 @@ void SPObject::hrefObject(SPObject* owner)
     // if (owner) std::cout << "  owner: " << *owner << std::endl;
 
     // If owner is a clone, do not increase hrefcount, it's already href'ed by original.
-    if (!owner || !owner->cloned) {
+    if (!owner || !owner->_cloned) {
         hrefcount++;
         _updateTotalHRefCount(1);
     }
@@ -279,7 +276,7 @@ void SPObject::hrefObject(SPObject* owner)
 
 void SPObject::unhrefObject(SPObject* owner)
 {
-    if (!owner || !owner->cloned) {
+    if (!owner || !owner->_cloned) {
         g_return_if_fail(hrefcount > 0);
 
         hrefcount--;
@@ -380,7 +377,7 @@ bool sp_object_compare_position_bool(SPObject const *first, SPObject const *seco
 }
 
 SPObject *SPObject::appendChildRepr(Inkscape::XML::Node *repr) {
-    if ( !cloned ) {
+    if ( !_cloned ) {
         getRepr()->appendChild(repr);
         return document->getObjectByRepr(repr);
     } else {
@@ -449,7 +446,7 @@ void SPObject::setLabel(gchar const *label)
 {
     getRepr()->setAttribute("inkscape:label", label);
     // Update anything that's watching the object's label
-    _modified_signal.emit(this, SP_OBJECT_MODIFIED_FLAG);
+    _modified_signal.emit(nullptr, this, SP_OBJECT_MODIFIED_FLAG);
 }
 
 
@@ -725,7 +722,7 @@ void SPObject::child_added(Inkscape::XML::Node *child, Inkscape::XML::Node *ref)
     object->attach(ochild, prev);
     sp_object_unref(ochild, nullptr);
 
-    ochild->invoke_build(object->document, child, object->cloned);
+    ochild->invoke_build(object->document, child, object->_cloned);
 }
 
 void SPObject::release() {
@@ -792,7 +789,7 @@ void SPObject::build(SPDocument *document, Inkscape::XML::Node *repr) {
         lang = object->parent->lang;
     }
 
-    if(object->cloned && (repr->attribute("id")) ) // The cases where this happens are when the "original" has no id. This happens
+    if(object->_cloned && (repr->attribute("id")) ) // The cases where this happens are when the "original" has no id. This happens
                                                    // if it is a SPString (a TextNode, e.g. in a <title>), or when importing
                                                    // stuff externally modified to have no id. 
         object->clone_original = document->getObjectById(repr->attribute("id"));
@@ -811,7 +808,7 @@ void SPObject::build(SPDocument *document, Inkscape::XML::Node *repr) {
 
         object->attach(child, object->lastChild());
         sp_object_unref(child, nullptr);
-        child->invoke_build(document, rchild, object->cloned);
+        child->invoke_build(document, rchild, object->_cloned);
     }
 
 #ifdef OBJECT_TRACE
@@ -819,7 +816,7 @@ void SPObject::build(SPDocument *document, Inkscape::XML::Node *repr) {
 #endif
 }
 
-void SPObject::invoke_build(SPDocument *document, Inkscape::XML::Node *repr, unsigned int cloned)
+void SPObject::invoke_build(SPDocument *document, Inkscape::XML::Node *repr, bool cloned)
 {
 #ifdef OBJECT_TRACE
     objectTrace( "SPObject::invoke_build" );
@@ -840,7 +837,7 @@ void SPObject::invoke_build(SPDocument *document, Inkscape::XML::Node *repr, uns
     if (!cloned) {
         Inkscape::GC::anchor(repr);
     }
-    this->cloned = cloned;
+    _cloned = cloned;
 
     /* Invoke derived methods, if any */
     this->build(document, repr);
@@ -936,7 +933,7 @@ void SPObject::releaseReferences() {
     /* all hrefs should be released by the "release" handlers */
     g_assert(this->hrefcount == 0);
 
-    if (!cloned) {
+    if (!_cloned) {
         if (this->id) {
             this->document->bindObjectToId(this->id, nullptr);
         }
@@ -1015,7 +1012,7 @@ void SPObject::set(SPAttr key, gchar const* value) {
         case SPAttr::ID:
 
             //XML Tree being used here.
-            if ( !object->cloned && object->getRepr()->type() == Inkscape::XML::NodeType::ELEMENT_NODE ) {
+            if ( !object->_cloned && object->getRepr()->type() == Inkscape::XML::NodeType::ELEMENT_NODE ) {
                 SPDocument *document=object->document;
                 SPObject *conflict=nullptr;
 
@@ -1343,7 +1340,7 @@ Inkscape::XML::Node * SPObject::updateRepr(unsigned int flags)
     objectTrace( "SPObject::updateRepr 1" );
 #endif
 
-    if ( !cloned ) {
+    if ( !_cloned ) {
         Inkscape::XML::Node *repr = getRepr();
         if (repr) {
 #ifdef OBJECT_TRACE
@@ -1374,7 +1371,7 @@ Inkscape::XML::Node * SPObject::updateRepr(Inkscape::XML::Document *doc, Inkscap
 
     g_assert(doc != nullptr);
 
-    if (cloned) {
+    if (_cloned) {
         /* cloned objects have no repr */
 #ifdef OBJECT_TRACE
         objectTrace( "SPObject::updateRepr 2", false );
@@ -1420,10 +1417,10 @@ void SPObject::requestDisplayUpdate(unsigned int flags)
     objectTrace( "SPObject::requestDisplayUpdate" );
 #endif
 
-    bool already_propagated = (!(this->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG)));
+    bool already_propagated = (!(_uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG)));
     //https://stackoverflow.com/a/7841333
-    if ((this->uflags & flags) !=  flags ) {
-        this->uflags |= flags;
+    if ((_uflags & flags) !=  flags ) {
+        _uflags |= flags;
     }
     /* If requestModified has already been called on this object or one of its children, then we
      * don't need to set CHILD_MODIFIED on our ancestors because it's already been done.
@@ -1455,15 +1452,15 @@ void SPObject::updateDisplay(SPCtx *ctx, unsigned int flags)
     assert(++(document->update_in_progress));
 
 #ifdef SP_OBJECT_DEBUG_CASCADE
-    g_print("Update %s:%s %x %x %x\n", g_type_name_from_instance((GTypeInstance *) this), getId(), flags, this->uflags, this->mflags);
+    g_print("Update %s:%s %x %x %x\n", g_type_name_from_instance((GTypeInstance *) this), getId(), flags, this->uflags, _mflags);
 #endif
 
     /* Get this flags */
-    flags |= this->uflags;
+    flags |= _uflags;
     /* Copy flags to modified cascade for later processing */
-    this->mflags |= this->uflags;
+    _mflags |= _uflags;
     /* We have to clear flags here to allow rescheduling update */
-    this->uflags = 0;
+    _uflags = 0;
 
     // Merge style if we have good reasons to think that parent style is changed */
     /** \todo
@@ -1502,7 +1499,11 @@ void SPObject::updateDisplay(SPCtx *ctx, unsigned int flags)
 #endif
 }
 
-void SPObject::requestModified(unsigned int flags)
+void SPObject::requestModified(unsigned int flags) {
+    requestModified(nullptr, flags);
+}
+
+void SPObject::requestModified(void* sender, unsigned int flags)
 {
     g_return_if_fail( this->document != nullptr );
 
@@ -1516,9 +1517,10 @@ void SPObject::requestModified(unsigned int flags)
     objectTrace( "SPObject::requestModified" );
 #endif
 
-    bool already_propagated = (!(this->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG)));
+    bool already_propagated = (!(_mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG)));
 
-    this->mflags |= flags;
+    _mflags |= flags;
+    _sender = sender;
 
     /* If requestModified has already been called on this object or one of its children, then we
      * don't need to set CHILD_MODIFIED on our ancestors because it's already been done.
@@ -1535,7 +1537,11 @@ void SPObject::requestModified(unsigned int flags)
 #endif
 }
 
-void SPObject::emitModified(unsigned int flags)
+void SPObject::emitModified(unsigned int flags) {
+    emitModified(nullptr, flags);
+}
+
+void SPObject::emitModified(void* sender, unsigned int flags)
 {
     /* only the MODIFIED_CASCADE flag is legal here */
     g_return_if_fail(!(flags & ~SP_OBJECT_MODIFIED_CASCADE));
@@ -1545,20 +1551,22 @@ void SPObject::emitModified(unsigned int flags)
 #endif
 
 #ifdef SP_OBJECT_DEBUG_CASCADE
-    g_print("Modified %s:%s %x %x %x\n", g_type_name_from_instance((GTypeInstance *) this), getId(), flags, this->uflags, this->mflags);
+    g_print("Modified %s:%s %x %x %x\n", g_type_name_from_instance((GTypeInstance *) this), getId(), flags, this->uflags, _mflags);
 #endif
 
-    flags |= this->mflags;
+    flags |= _mflags;
+    if (!sender) sender = _sender;
     /* We have to clear mflags beforehand, as signal handlers may
      * make changes and therefore queue new modification notifications
      * themselves. */
-    this->mflags = 0;
+    _mflags = 0;
+    _sender = nullptr;
 
     sp_object_ref(this);
 
-    this->modified(flags);
+    modified(sender, flags);
 
-    _modified_signal.emit(this, flags);
+    _modified_signal.emit(sender, this, flags);
     sp_object_unref(this);
 
 #ifdef OBJECT_TRACE
@@ -1839,7 +1847,7 @@ void SPObject::recursivePrintTree( unsigned level )
         std::cout << "  ";
     }
     std::cout << (getId()?getId():"No object id")
-              << " clone: " << std::boolalpha << (bool)cloned
+              << " clone: " << std::boolalpha << (bool)_cloned
               << " hrefcount: " << hrefcount << std::endl;
     for (auto& child: children) {
         child.recursivePrintTree(level + 1);
@@ -1879,7 +1887,7 @@ void SPObject::objectTrace( std::string const &text, bool in, unsigned flags ) {
 std::ostream &operator<<(std::ostream &out, const SPObject &o)
 {
     out << (o.getId()?o.getId():"No ID")
-        << " cloned: " << std::boolalpha << (bool)o.cloned
+        << " cloned: " << std::boolalpha << (bool)o._cloned
         << " ref: " << o.refCount
         << " href: " << o.hrefcount
         << " total href: " << o._total_hrefcount;

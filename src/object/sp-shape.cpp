@@ -438,9 +438,9 @@ sp_shape_update_marker_view(SPShape *shape, Inkscape::DrawingItem *ai)
     }
 }
 
-void SPShape::modified(unsigned int flags) {
+void SPShape::modified(void* sender, unsigned int flags) {
     // std::cout << "SPShape::modified(): " << (getId()?getId():"null") << std::endl; 
-    SPLPEItem::modified(flags);
+    SPLPEItem::modified(sender, flags);
 
     if (flags & SP_OBJECT_STYLE_MODIFIED_FLAG) {
         for (auto &v : views) {
@@ -1064,7 +1064,7 @@ sp_shape_marker_release(SPObject *marker, SPShape *shape)
 /**
  * No-op.  Exists for handling 'modified' messages
  */
-static void sp_shape_marker_modified (SPObject* marker, guint flags, SPItem* item) {
+static void sp_shape_marker_modified(void* sender, SPObject* marker, guint flags, SPItem* item) {
     if ((flags & SP_OBJECT_MODIFIED_FLAG) && item && marker) {
         // changing marker can impact object's visual bounding box, so request update on this object itself
         item->requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
@@ -1106,7 +1106,7 @@ void SPShape::set_marker(unsigned key, char const *value)
             _marker[key] = marker;
             _marker[key]->hrefObject(this);
             _release_connect[key] = marker->connectRelease(sigc::bind<1>(sigc::ptr_fun(&sp_shape_marker_release), this));
-            _modified_connect[key] = marker->connectModified(sigc::bind<2>(sigc::ptr_fun(&sp_shape_marker_modified), this));
+            _modified_connect[key] = marker->connectModified(sigc::bind<3>(sigc::ptr_fun(&sp_shape_marker_modified), this));
         }
     }
 }

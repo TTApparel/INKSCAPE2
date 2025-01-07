@@ -96,7 +96,7 @@ private:
 
     void value_changed(Glib::ustring const &name, Glib::RefPtr<Gtk::Adjustment> const &adj);
     void sel_changed(Selection *selection);
-    void sel_modified(Selection *selection, unsigned flags);
+    void sel_modified(void* sender, Selection *selection, unsigned flags);
     void coord_changed(ControlPointSelection* selected_nodes);
     void edit_add();
     void edit_add_min_x();

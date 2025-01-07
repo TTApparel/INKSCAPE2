@@ -86,7 +86,7 @@ private:
 
     void mode_changed(int mode);
     void unit_changed(int not_used);
-    void sel_modified(Inkscape::Selection *selection, guint flags);
+    void sel_modified(void* sender, Inkscape::Selection *selection, guint flags);
     void sel_changed(Inkscape::Selection *selection);
     void change_line_segment_type(int mode);
 

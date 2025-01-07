@@ -338,13 +338,13 @@ bool SPRect::set_rect_path_attribute(Inkscape::XML::Node *repr)
     return true;
 }
 
-void SPRect::modified(guint flags)
+void SPRect::modified(void* sender, unsigned int flags)
 {
     if (flags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_STYLE_MODIFIED_FLAG | SP_OBJECT_VIEWPORT_MODIFIED_FLAG)) {
         this->set_shape();
     }
 
-    SPShape::modified(flags);
+    SPShape::modified(sender, flags);
 }
 
 /* fixme: Think (Lauris) */
@@ -379,7 +379,7 @@ void SPRect::setRy(bool set, gdouble value) {
 }
 
 void SPRect::update_patheffect(bool write) {
-    if (type != SP_GENERIC_PATH && !cloned && hasPathEffectOnClipOrMaskRecursive(this)) {
+    if (type != SP_GENERIC_PATH && !_cloned && hasPathEffectOnClipOrMaskRecursive(this)) {
         SPRect::write(document->getReprDoc(), getRepr(), SP_OBJECT_MODIFIED_FLAG);
     }
     SPShape::update_patheffect(write);

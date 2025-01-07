@@ -83,7 +83,9 @@ void StyleSubject::Selection::_afterDesktopSwitch(SPDesktop *desktop) {
         Inkscape::Selection *selection = desktop->getSelection();
         if (selection) {
             _sel_changed = selection->connectChanged(sigc::hide(sigc::mem_fun(*this, &Selection::_emitChanged)));
-            _sel_modified = selection->connectModified(sigc::mem_fun(*this, &Selection::_emitModified));
+            _sel_modified = selection->connectModified([this](auto sender, auto selection, auto flags) {
+                _emitModified(selection, flags);
+            });
         }
     }
 }

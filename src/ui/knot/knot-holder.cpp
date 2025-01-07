@@ -472,7 +472,7 @@ void KnotHolder::install_modification_watch() {
     g_assert(item); 
 
     if (auto pattern = cast<SPPattern>(item->style->getFillPaintServer())) {
-        _watch_fill = pattern->connectModified([this] (SPObject *, unsigned) {
+        _watch_fill = pattern->connectModified([this] (void*, SPObject *, unsigned) {
             update_knots();
         });
     }
@@ -481,7 +481,7 @@ void KnotHolder::install_modification_watch() {
     }
 
     if (auto pattern = cast<SPPattern>(item->style->getStrokePaintServer())) {
-        _watch_stroke = pattern->connectModified([this] (SPObject *, unsigned) {
+        _watch_stroke = pattern->connectModified([this] (void*, SPObject *, unsigned) {
             update_knots();
         });
     }

@@ -48,14 +48,14 @@ void SPDefs::update(SPCtx *ctx, guint flags) {
     flags &= SP_OBJECT_MODIFIED_CASCADE;
     std::vector<SPObject*> l(this->childList(true));
     for(auto child : l){
-        if (flags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (flags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->updateDisplay(ctx, flags);
         }
         sp_object_unref(child);
     }
 }
 
-void SPDefs::modified(unsigned int flags) {
+void SPDefs::modified(void* sender, unsigned int flags) {
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
     }
@@ -68,8 +68,8 @@ void SPDefs::modified(unsigned int flags) {
     }
 
     for (auto child:l) {
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
         sp_object_unref(child);
     }

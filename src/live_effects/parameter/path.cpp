@@ -413,7 +413,7 @@ PathParam::start_listening(SPObject * to)
     }
     quit_listening();
     linked_deleted_connection = to->connectDelete(sigc::mem_fun(*this, &PathParam::linked_deleted));
-    linked_modified_connection = to->connectModified(sigc::mem_fun(*this, &PathParam::linked_modified));
+    linked_modified_connection = to->connectModified([this](auto, auto object, auto flags){ linked_modified(object, flags); });
     if (is<SPItem>(to)) {
         linked_transformed_connection = cast<SPItem>(to)->connectTransformed(sigc::mem_fun(*this, &PathParam::linked_transformed));
     }

@@ -461,7 +461,7 @@ void MarkerComboBox::setDocument(SPDocument *document)
         _document = document;
 
         if (_document) {
-            modified_connection = _document->getDefs()->connectModified([this](SPObject*, unsigned int){
+            modified_connection = _document->getDefs()->connectModified([this](void*, SPObject*, unsigned int){
                 refresh_after_markers_modified();
             });
         }

@@ -71,7 +71,7 @@ public:
 
     void snappoints(std::vector<Inkscape::SnapCandidatePoint> &p, Inkscape::SnapPreferences const *snapprefs) const override;
 
-    void modified(unsigned int flags) override;
+    void modified(void* sender, unsigned int flags) override;
 
     /**
      * @brief Makes sure that start and end lie between 0 and 2 * PI.

@@ -671,7 +671,7 @@ void SPItem::clip_ref_changed(SPObject *old_clip, SPObject *clip)
             auto ai = clipPath->show(v.drawingitem->drawing(), clip_key, bbox);
             v.drawingitem->setClip(ai);
         }
-        clip_ref->modified_connection = clipPath->connectModified([this] (auto, unsigned flags) {
+        clip_ref->modified_connection = clipPath->connectModified([this] (auto, auto, unsigned flags) {
             if (flags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG)) {
                 requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
             }
@@ -698,7 +698,7 @@ void SPItem::mask_ref_changed(SPObject *old_mask, SPObject *mask)
             auto ai = maskItem->show(v.drawingitem->drawing(), mask_key, bbox);
             v.drawingitem->setMask(ai);
         }
-        mask_ref->modified_connection = maskItem->connectModified([this] (auto, unsigned flags) {
+        mask_ref->modified_connection = maskItem->connectModified([this] (auto, auto, unsigned flags) {
             if (flags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG)) {
                 requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
             }
@@ -827,7 +827,7 @@ void SPItem::update(SPCtx *ctx, unsigned flags)
     }
 }
 
-void SPItem::modified(unsigned int /*flags*/)
+void SPItem::modified(void* sender, unsigned int /*flags*/)
 {
 #ifdef OBJECT_TRACE
     objectTrace( "SPItem::modified" );

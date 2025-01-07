@@ -102,8 +102,7 @@ ss_selection_changed (Inkscape::Selection *, gpointer data)
     ss->update();
 }
 
-static void
-ss_selection_modified( Inkscape::Selection *selection, guint flags, gpointer data )
+static void ss_selection_modified(void* sender, Inkscape::Selection *selection, guint flags, gpointer data)
 {
     // Don't update the style when dragging or doing non-style related changes
     if (flags & (SP_OBJECT_STYLE_MODIFIED_FLAG)) {

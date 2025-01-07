@@ -242,7 +242,7 @@ void IconPreviewPanel::queueRefreshIfAutoRefreshEnabled()
     }
 }
 
-void IconPreviewPanel::selectionModified(Selection *selection, guint flags)
+void IconPreviewPanel::selectionModified(void* sender, Selection *selection, unsigned int flags)
 {
     queueRefreshIfAutoRefreshEnabled();
 }

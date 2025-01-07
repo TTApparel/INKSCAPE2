@@ -90,7 +90,7 @@ private:
     void rebuild_stats();
     details::Statistics collect_statistics();
     void end_editing(const Glib::ustring& path, const Glib::ustring& new_text);
-    void selectionModified(Inkscape::Selection *selection, unsigned flags) override;
+    void selectionModified(void* sender, Inkscape::Selection *selection, unsigned int flags) override;
     void update_buttons();
     std::shared_ptr<details::ResourceItem> selected_item();
     void clear_stores();

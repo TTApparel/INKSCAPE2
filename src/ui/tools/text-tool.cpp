@@ -1379,7 +1379,7 @@ void TextTool::_selectionChanged(Selection *selection)
     _updateTextSelection();
 }
 
-void TextTool::_selectionModified(Selection */*selection*/, unsigned /*flags*/)
+void TextTool::_selectionModified(void* sender, Selection */*selection*/, unsigned /*flags*/)
 {
     bool scroll = !shape_editor->has_knotholder() ||
                   !shape_editor->knotholder->is_dragging();

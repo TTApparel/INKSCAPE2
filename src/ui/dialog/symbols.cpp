@@ -785,7 +785,7 @@ void SymbolsDialog::documentReplaced()
     _doc_resource_changed.disconnect();
 
     if (auto document = getDocument()) {
-        _defs_modified = document->getDefs()->connectModified([this](SPObject* ob, guint flags) {
+        _defs_modified = document->getDefs()->connectModified([this](auto sender, SPObject* ob, guint flags) {
             refresh_on_idle();
         });
         _doc_resource_changed = document->connectResourcesChanged("symbol", [this](){

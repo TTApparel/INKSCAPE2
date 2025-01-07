@@ -258,10 +258,10 @@ void MeshToolbar::setDesktop(SPDesktop *desktop)
         auto document = desktop->getDocument();
 
         c_selection_changed = sel->connectChanged([this] (auto) { selection_changed(); });
-        c_selection_modified = sel->connectModified([this] (auto, auto) { selection_changed(); });
+        c_selection_modified = sel->connectModified([this] (auto, auto, auto) { selection_changed(); });
 
         c_defs_release = document->getDefs()->connectRelease([this] (auto) { selection_changed(); });
-        c_defs_modified = document->getDefs()->connectModified([this] (auto, auto) { selection_changed(); });
+        c_defs_modified = document->getDefs()->connectModified([this] (auto, auto, auto) { selection_changed(); });
         selection_changed();
     }
 }

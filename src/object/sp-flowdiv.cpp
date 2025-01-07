@@ -41,7 +41,7 @@ void SPFlowdiv::update(SPCtx *ctx, unsigned int flags) {
     }
 
     for(auto child:l) {
-        if (childflags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (childflags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             if (is<SPItem>(child)) {
                 SPItem const &chi = *cast<SPItem>(child);
                 cctx.i2doc = chi.transform * ictx->i2doc;
@@ -58,8 +58,8 @@ void SPFlowdiv::update(SPCtx *ctx, unsigned int flags) {
     SPItem::update(ctx, flags);
 }
 
-void SPFlowdiv::modified(unsigned int flags) {
-    SPItem::modified(flags);
+void SPFlowdiv::modified(void* sender, unsigned int flags) {
+    SPItem::modified(sender, flags);
 
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
@@ -74,8 +74,8 @@ void SPFlowdiv::modified(unsigned int flags) {
     }
 
     for(auto child:l) {
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
         sp_object_unref(child);
     }
@@ -167,7 +167,7 @@ void SPFlowtspan::update(SPCtx *ctx, unsigned int flags) {
     }
 
     for(auto child:l) {
-        if (childflags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (childflags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             if (is<SPItem>(child)) {
                 SPItem const &chi = *cast<SPItem>(child);
                 cctx.i2doc = chi.transform * ictx->i2doc;
@@ -184,8 +184,8 @@ void SPFlowtspan::update(SPCtx *ctx, unsigned int flags) {
     SPItem::update(ctx, flags);
 }
 
-void SPFlowtspan::modified(unsigned int flags) {
-    SPItem::modified(flags);
+void SPFlowtspan::modified(void* sender, unsigned int flags) {
+    SPItem::modified(sender, flags);
 
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
@@ -199,8 +199,8 @@ void SPFlowtspan::modified(unsigned int flags) {
     }
 
     for(auto child:l) {
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
         sp_object_unref(child);
     }
@@ -291,7 +291,7 @@ void SPFlowpara::update(SPCtx *ctx, unsigned int flags) {
     }
 
     for(auto child:l) {
-        if (flags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (flags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             if (is<SPItem>(child)) {
                 SPItem const &chi = *cast<SPItem>(child);
                 cctx.i2doc = chi.transform * ictx->i2doc;
@@ -305,8 +305,8 @@ void SPFlowpara::update(SPCtx *ctx, unsigned int flags) {
     }
 }
 
-void SPFlowpara::modified(unsigned int flags) {
-    SPItem::modified(flags);
+void SPFlowpara::modified(void* sender, unsigned int flags) {
+    SPItem::modified(sender, flags);
 
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
@@ -321,8 +321,8 @@ void SPFlowpara::modified(unsigned int flags) {
     }
 
     for(auto child:l) {
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
         sp_object_unref(child);
     }
@@ -396,8 +396,8 @@ void SPFlowline::release() {
 	SPObject::release();
 }
 
-void SPFlowline::modified(unsigned int flags) {
-	SPObject::modified(flags);
+void SPFlowline::modified(void* sender, unsigned int flags) {
+	SPObject::modified(sender, flags);
 
 	if (flags & SP_OBJECT_MODIFIED_FLAG) {
 		flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
@@ -432,8 +432,8 @@ void SPFlowregionbreak::release() {
 	SPObject::release();
 }
 
-void SPFlowregionbreak::modified(unsigned int flags) {
-	SPObject::modified(flags);
+void SPFlowregionbreak::modified(void* sender, unsigned int flags) {
+	SPObject::modified(sender, flags);
 
 	if (flags & SP_OBJECT_MODIFIED_FLAG) {
 		flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;

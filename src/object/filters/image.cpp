@@ -218,7 +218,7 @@ void SPFeImage::reread_href()
     // Connect to modification signals.
     _href_changed_connection = elemref->changedSignal().connect([this] (SPObject*, SPObject *to) { on_href_changed(to); });
     if (type == ELEM) {
-        _href_modified_connection = elemref->getObject()->connectModified([this] (SPObject*, unsigned) { on_href_modified(); });
+        _href_modified_connection = elemref->getObject()->connectModified([this] (void* sender, SPObject*, unsigned) { on_href_modified(); });
     }
 }
 
@@ -257,7 +257,7 @@ void SPFeImage::on_href_changed(SPObject *new_obj)
     }
 
     if (type == ELEM) {
-        _href_modified_connection = elem->connectModified([this] (SPObject*, unsigned) { on_href_modified(); });
+        _href_modified_connection = elem->connectModified([this] (void* sender, SPObject*, unsigned) { on_href_modified(); });
     }
 
     requestModified(SP_OBJECT_MODIFIED_FLAG);

@@ -94,7 +94,7 @@ public:
 private:
     void documentReplaced() override;
     void selectionChanged(Inkscape::Selection *selection) override;
-    void selectionModified(Inkscape::Selection *selection, guint flags) override;
+    void selectionModified(void* sender, Inkscape::Selection* selection, unsigned int flags) override;
 
     sigc::scoped_connection _resource_changed;
 

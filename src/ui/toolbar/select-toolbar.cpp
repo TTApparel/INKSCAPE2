@@ -341,7 +341,7 @@ void SelectToolbar::_selectionChanged(Selection *selection)
     _sensitize();
 }
 
-void SelectToolbar::_selectionModified(Selection *selection, unsigned flags)
+void SelectToolbar::_selectionModified(void* sender, Selection *selection, unsigned flags)
 {
     assert(_desktop->getSelection() == selection);
     if (flags & (SP_OBJECT_MODIFIED_FLAG        |

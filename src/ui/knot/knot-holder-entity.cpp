@@ -521,7 +521,7 @@ void BlurKnotHolderEntity::update_knot()
     if (auto blur = _blur()) {
         knot->show();
         // This watcher makes sure anything outside that modifies the blur changes the knot.
-        _watch_blur = blur->connectModified([this] (auto item, unsigned flags) {
+        _watch_blur = blur->connectModified([this] (auto sender, auto item, unsigned flags) {
             KnotHolderEntity::update_knot();
         });
     } else {

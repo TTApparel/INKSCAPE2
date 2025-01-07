@@ -415,7 +415,7 @@ SPStyle::SPStyle(SPDocument *document_in, SPObject *object_in) :
         release_connection =
             object->connectRelease(sigc::bind<1>(sigc::ptr_fun(&sp_style_object_release), this));
 
-        cloned = object->cloned;
+        cloned = object->_cloned;
 
     } else {
         document = document_in;
@@ -559,7 +559,7 @@ SPStyle::read( SPObject *object, Inkscape::XML::Node *repr ) {
         document = object->document;
     }
 
-    if (object && object->cloned) {
+    if (object && object->_cloned) {
         cloned = true;
     }
 
@@ -1125,7 +1125,7 @@ sp_style_object_release(SPObject *object, SPStyle *style)
 /**
  * Emit style modified signal on style's object if the filter changed.
  */
-static void sp_style_filter_ref_modified(SPObject *obj, unsigned flags, SPStyle *style)
+static void sp_style_filter_ref_modified(void* sender, SPObject *obj, unsigned flags, SPStyle *style)
 {
     auto filter = static_cast<SPFilter*>(obj);
 
@@ -1159,14 +1159,14 @@ void sp_style_filter_ref_changed(SPObject *old_ref, SPObject *ref, SPStyle *styl
     }
 
     style->signal_filter_changed.emit(old_ref, ref);
-    sp_style_filter_ref_modified(ref, SP_OBJECT_FLAGS_ALL, style);
+    sp_style_filter_ref_modified(nullptr, ref, SP_OBJECT_FLAGS_ALL, style);
 }
 
 /**
  * Emit style modified signal on style's object if server is style's fill
  * or stroke paint server.
  */
-static void sp_style_paint_server_ref_modified(SPObject *obj, unsigned /*flags*/, SPStyle *style)
+static void sp_style_paint_server_ref_modified(void* sender, SPObject *obj, unsigned /*flags*/, SPStyle *style)
 {
     // todo: use flags
     auto server = static_cast<SPPaintServer*>(obj);
@@ -1203,7 +1203,7 @@ void sp_style_fill_paint_server_ref_changed(SPObject *old_ref, SPObject *ref, SP
     }
 
     style->signal_fill_ps_changed.emit(old_ref, ref);
-    sp_style_paint_server_ref_modified(ref, 0, style);
+    sp_style_paint_server_ref_modified(nullptr, ref, 0, style);
 }
 
 /**
@@ -1220,7 +1220,7 @@ void sp_style_stroke_paint_server_ref_changed(SPObject *old_ref, SPObject *ref, 
     }
 
     style->signal_stroke_ps_changed.emit(old_ref, ref);
-    sp_style_paint_server_ref_modified(ref, 0, style);
+    sp_style_paint_server_ref_modified(nullptr, ref, 0, style);
 }
 
 static CRSelEng *

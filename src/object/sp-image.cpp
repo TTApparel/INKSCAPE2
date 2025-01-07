@@ -362,7 +362,7 @@ void SPImage::update(SPCtx *ctx, unsigned int flags) {
     this->prev_height = this->pixbuf->height();
 }
 
-void SPImage::modified(unsigned int flags) {
+void SPImage::modified(void* sender, unsigned int flags) {
 //  SPItem::onModified(flags);
 
     if (flags & SP_OBJECT_STYLE_MODIFIED_FLAG) {

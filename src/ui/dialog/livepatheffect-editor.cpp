@@ -131,7 +131,7 @@ void LivePathEffectEditor::selectionChanged(Inkscape::Selection * selection)
     clearMenu();
 }
 
-void LivePathEffectEditor::selectionModified(Inkscape::Selection * selection, guint flags)
+void LivePathEffectEditor::selectionModified(void* sender, Inkscape::Selection* selection, unsigned int flags)
 {
     current_lpeitem = cast<SPLPEItem>(selection->singleItem());
     _current_use = cast<SPUse>(selection->singleItem());

@@ -493,13 +493,13 @@ void GradientToolbar::setDesktop(SPDesktop *desktop)
 
         // connect to selection modified and changed signals
         _connection_changed = sel->connectChanged([this] (auto) { _update(); });
-        _connection_modified = sel->connectModified([this] (auto, auto) { _update(); });
+        _connection_modified = sel->connectModified([this] (auto, auto, auto) { _update(); });
         _connection_subselection_changed = desktop->connect_gradient_stop_selected([this] (auto) { _update(); });
         _update();
 
         // connect to release and modified signals of the defs (i.e. when someone changes gradient)
         _connection_defs_release = document->getDefs()->connectRelease([this] (auto) { _update(); });
-        _connection_defs_modified = document->getDefs()->connectModified([this] (auto, auto) { _update(); });
+        _connection_defs_modified = document->getDefs()->connectModified([this] (auto, auto, auto) { _update(); });
     }
 }
 

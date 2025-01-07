@@ -117,7 +117,7 @@ private:
     void _showCurrUnichar();
 
     void _selectionChanged(Selection *selection);
-    void _selectionModified(Selection *selection, unsigned flags);
+    void _selectionModified(void* sender, Selection *selection, unsigned flags);
     bool _styleSet(SPCSSAttr const *css);
     int _styleQueried(SPStyle *style, int property);
 };

@@ -75,7 +75,7 @@ void SPMeshrow::set(SPAttr /*key*/, const gchar* /*value*/) {
 /**
  * modified
  */
-void SPMeshrow::modified(unsigned int flags) {
+void SPMeshrow::modified(void* sender, unsigned int flags) {
 
     flags &= SP_OBJECT_MODIFIED_CASCADE;
     std::vector<SPObject *> l;
@@ -85,8 +85,8 @@ void SPMeshrow::modified(unsigned int flags) {
     }
 
     for (auto child:l) {
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
         sp_object_unref(child);
     }

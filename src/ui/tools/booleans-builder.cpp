@@ -55,7 +55,7 @@ BooleanBuilder::BooleanBuilder(ObjectSet *set, bool flatten)
         }
 
         auto nv = _set->desktop()->getNamedView();
-        desk_modified_connection = nv->connectModified([this](SPObject *obj, guint flags) {
+        desk_modified_connection = nv->connectModified([this](auto sender, SPObject *obj, guint flags) {
             redraw_items();
         });
         redraw_items();

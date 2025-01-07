@@ -60,7 +60,7 @@ public:
 
 	void set(SPAttr key, char const *value) override;
 	void update(SPCtx* ctx, unsigned int flags) override;
-  void modified(unsigned int flags) override;
+  void modified(void* sender, unsigned int flags) override;
   bool set_rect_path_attribute(Inkscape::XML::Node *repr);
 
   Inkscape::XML::Node* write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr, unsigned int flags) override;

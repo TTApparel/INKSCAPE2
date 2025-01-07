@@ -66,7 +66,7 @@ FreehandBase::FreehandBase(SPDesktop *desktop, std::string &&prefs_path, std::st
 
     // Connect signals to track selection changes
     sel_changed_connection = selection->connectChanged([=, this](Selection *) { _attachSelection(); });
-    sel_modified_connection = selection->connectModified([=, this](Selection *, unsigned) { onSelectionModified(); });
+    sel_modified_connection = selection->connectModified([=, this](void*, Selection *, unsigned) { onSelectionModified(); });
 
     // Create red bpath
     red_bpath = make_canvasitem<CanvasItemBpath>(desktop->getCanvasSketch());

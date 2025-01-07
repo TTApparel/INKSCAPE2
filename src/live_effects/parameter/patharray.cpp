@@ -379,8 +379,8 @@ void PathArrayParam::linked_changed(SPObject * /*old_obj*/, SPObject *new_obj, P
             to->linked_release_connection.disconnect();
             to->linked_release_connection = new_obj->connectRelease(
                 sigc::bind(sigc::mem_fun(*this, &PathArrayParam::linked_release), to));
-            to->linked_modified_connection = new_obj->connectModified(
-                sigc::bind(sigc::mem_fun(*this, &PathArrayParam::linked_modified), to));
+            to->linked_modified_connection = new_obj->connectModified([this, to](auto, auto object, auto flags) {
+                linked_modified(object, flags, to); });
 
             linked_modified(new_obj, SP_OBJECT_MODIFIED_FLAG, to);
         } else if (to->linked_release_connection.connected()){

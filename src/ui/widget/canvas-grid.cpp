@@ -301,7 +301,7 @@ void CanvasGrid::updateRulers()
         _sel_modified_connection.disconnect();
         _sel_changed_connection .disconnect();
         if (sel) {
-            _sel_modified_connection = sel->connectModified([this](Inkscape::Selection const *, int) { updateRulers(); });
+            _sel_modified_connection = sel->connectModified([this](void*, Inkscape::Selection const *, int) { updateRulers(); });
             _sel_changed_connection  = sel->connectChanged ([this](Inkscape::Selection const *     ) { updateRulers(); });
         }
     }

@@ -83,7 +83,7 @@ private:
     void documentReplaced() override;
     void desktopReplaced() override;
     void selectionChanged(Inkscape::Selection *selection) override;
-    void selectionModified(Inkscape::Selection *selection, unsigned flags) override;
+    void selectionModified(void* sender, Inkscape::Selection *selection, unsigned int flags) override;
 
 public:
     static std::string absolutizePath(SPDocument *doc, const std::string &filename);

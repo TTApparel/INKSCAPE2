@@ -360,7 +360,7 @@ bool PageManager::selectPage(SPPage *page)
             // Modified signal for when the attributes themselves are modified.
             _page_modified_connection.disconnect();
             if (page) {
-                _page_modified_connection = page->connectModified([this](SPObject *, unsigned int) {
+                _page_modified_connection = page->connectModified([this](void*, SPObject *, unsigned int) {
                     _page_modified_signal.emit(_selected_page);
                 });
             }

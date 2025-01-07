@@ -917,7 +917,7 @@ void DocumentResources::refresh_current_page() {
     }
 }
 
-void DocumentResources::selectionModified(Inkscape::Selection* selection, unsigned flags)
+void DocumentResources::selectionModified(void* sender, Inkscape::Selection* selection, unsigned int flags)
 {
     // no op so far
 }

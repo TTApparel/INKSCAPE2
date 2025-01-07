@@ -37,7 +37,7 @@ protected:
     };
 
   private:
-    void on_shape_modified(SPObject *, unsigned flags);
+    void on_shape_modified(void* sender, SPObject *, unsigned flags);
 
     sigc::connection _shape_modified_connection;
     sigc::connection _owner_release_connection;

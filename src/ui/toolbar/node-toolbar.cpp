@@ -270,7 +270,7 @@ void NodeToolbar::sel_changed(Selection *selection)
     }
 }
 
-void NodeToolbar::sel_modified(Selection *selection, guint /*flags*/)
+void NodeToolbar::sel_modified(void* sender, Selection *selection, guint /*flags*/)
 {
     sel_changed(selection);
 }

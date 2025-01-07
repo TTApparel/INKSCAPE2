@@ -148,9 +148,9 @@ void SPGroup::update(SPCtx *ctx, unsigned int flags) {
       childflags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
     }
     childflags &= SP_OBJECT_MODIFIED_CASCADE;
-    std::vector<SPObject*> l=this->childList(true, SPObject::ActionUpdate);
-    for(auto child : l){
-        if (childflags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+    std::vector<SPObject*> l = this->childList(true, SPObject::ActionUpdate);
+    for (auto child : l) {
+        if (childflags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             auto item = cast<SPItem>(child);
             if (item) {
                 cctx.i2doc = item->transform * ictx->i2doc;
@@ -181,9 +181,9 @@ void SPGroup::update(SPCtx *ctx, unsigned int flags) {
     }
 }
 
-void SPGroup::modified(guint flags) {
+void SPGroup::modified(void* sender, unsigned int flags) {
     //std::cout << "SPGroup::modified(): " << (getId()?getId():"null") << std::endl;
-    SPLPEItem::modified(flags);
+    SPLPEItem::modified(sender, flags);
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
     }
@@ -199,8 +199,8 @@ void SPGroup::modified(guint flags) {
 
     std::vector<SPObject*> l=this->childList(true);
     for(auto child : l){
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
 
         sp_object_unref(child);
@@ -399,7 +399,7 @@ void SPGroup::snappoints(std::vector<Inkscape::SnapCandidatePoint> &p, Inkscape:
 static void _ungroup_compensate_source_transform(SPItem *item, SPItem const *const expected_source,
                                                  Geom::Affine const &source_transform)
 {
-    if (!item || item->cloned) {
+    if (!item || item->_cloned) {
         return;
     }
 

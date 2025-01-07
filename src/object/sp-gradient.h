@@ -194,7 +194,7 @@ public:
 
     bool isSolid() const;
 
-    static void gradientRefModified(SPObject *href, unsigned int flags, SPGradient *gradient);
+    static void gradientRefModified(void* sender, SPObject *href, unsigned int flags, SPGradient *gradient);
     static void gradientRefChanged(SPObject *old_ref, SPObject *ref, SPGradient *gr);
 
     /* Gradient repr methods */
@@ -220,7 +220,7 @@ private:
 protected:
     void build(SPDocument *document, Inkscape::XML::Node *repr) override;
     void release() override;
-    void modified(unsigned int flags) override;
+    void modified(void* sender, unsigned int flags) override;
     Inkscape::XML::Node* write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr, unsigned int flags) override;
 
     void child_added(Inkscape::XML::Node *child, Inkscape::XML::Node *ref) override;

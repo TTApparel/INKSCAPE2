@@ -177,7 +177,8 @@ void Transformation::selectionChanged(Inkscape::Selection *selection)
 {
     updateSelection((Inkscape::UI::Dialog::Transformation::PageType)getCurrentPage(), selection);
 }
-void Transformation::selectionModified(Inkscape::Selection *selection, guint flags)
+
+void Transformation::selectionModified(void* sender, Inkscape::Selection *selection, unsigned int flags)
 {
     selectionChanged(selection);
 }

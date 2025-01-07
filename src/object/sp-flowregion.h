@@ -27,7 +27,7 @@ public:
     void child_added(Inkscape::XML::Node *child, Inkscape::XML::Node *ref) override;
     void remove_child(Inkscape::XML::Node *child) override;
     void update(SPCtx *ctx, unsigned int flags) override;
-    void modified(guint flags) override;
+    void modified(void* sender, unsigned int flags) override;
     Inkscape::XML::Node *write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr,
                                unsigned int flags) override;
     const char *typeName() const override;
@@ -44,7 +44,7 @@ public:
     void child_added(Inkscape::XML::Node *child, Inkscape::XML::Node *ref) override;
     void remove_child(Inkscape::XML::Node *child) override;
     void update(SPCtx *ctx, unsigned int flags) override;
-    void modified(guint flags) override;
+    void modified(void* sender, unsigned int flags) override;
     Inkscape::XML::Node *write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr,
                                unsigned int flags) override;
     const char *typeName() const override;

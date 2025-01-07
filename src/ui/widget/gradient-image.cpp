@@ -53,7 +53,8 @@ GradientImage::set_gradient(SPGradient *gradient)
 
     if (gradient) {
         _release_connection = gradient->connectRelease(sigc::mem_fun(*this, &GradientImage::gradient_release));
-        _modified_connection = gradient->connectModified(sigc::mem_fun(*this, &GradientImage::gradient_modified));
+        _modified_connection = gradient->connectModified([this](auto sender, auto object, auto flags) {
+            gradient_modified(object, flags); });
     }
 
     queue_draw();

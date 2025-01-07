@@ -1431,8 +1431,8 @@ bool
 SPDocument::_updateDocument(int update_flags)
 {
     /* Process updates */
-    if (this->root->uflags || this->root->mflags) {
-        if (this->root->uflags) {
+    if (this->root->get_display_update_flags() || this->root->get_modified_flags()) {
+        if (this->root->get_display_update_flags()) {
             SPItemCtx ctx;
             setupViewport(&ctx);
 
@@ -1443,7 +1443,7 @@ SPDocument::_updateDocument(int update_flags)
         this->_emitModified();
     }
 
-    return !(this->root->uflags || this->root->mflags);
+    return !(this->root->get_display_update_flags() || this->root->get_modified_flags());
 }
 
 /**
@@ -1830,7 +1830,7 @@ bool SPDocument::addResource(gchar const *key, SPObject *object)
 
     bool result = false;
 
-    if ( !object->cloned ) {
+    if ( !object->_cloned ) {
         std::vector<SPObject *> rlist = resources[key];
         g_return_val_if_fail(std::find(rlist.begin(),rlist.end(),object) == rlist.end(), false);
         resources[key].insert(resources[key].begin(),object);
@@ -1863,7 +1863,7 @@ bool SPDocument::removeResource(gchar const *key, SPObject *object)
 
     bool result = false;
 
-    if ( !object->cloned ) {
+    if ( !object->_cloned ) {
         std::vector<SPObject *> rlist = resources[key];
         g_return_val_if_fail(!rlist.empty(), false);
         std::vector<SPObject*>::iterator it = std::find(resources[key].begin(),resources[key].end(),object);

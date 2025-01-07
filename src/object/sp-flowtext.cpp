@@ -89,7 +89,7 @@ void SPFlowtext::update(SPCtx* ctx, unsigned int flags) {
     for (auto child:l) {
         g_assert(child != nullptr);
 
-        if (childflags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (childflags || (child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             auto item = cast<SPItem>(child);
             if (item) {
                 SPItem const &chi = *item;
@@ -121,7 +121,7 @@ void SPFlowtext::update(SPCtx* ctx, unsigned int flags) {
     }
 }
 
-void SPFlowtext::modified(unsigned int flags) {
+void SPFlowtext::modified(void* sender, unsigned int flags) {
     SPObject *region = nullptr;
 
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
@@ -152,7 +152,7 @@ void SPFlowtext::modified(unsigned int flags) {
     }
 
     if (region) {
-        if (flags || (region->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (flags || (region->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             region->emitModified(flags); // pass down to the region only
         }
     }

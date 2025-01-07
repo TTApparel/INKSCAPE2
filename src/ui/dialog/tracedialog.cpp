@@ -84,7 +84,7 @@ public:
     ~TraceDialogImpl() override;
 
 protected:
-    void selectionModified(Selection *selection, unsigned flags) override;
+    void selectionModified(void* sender, Selection* selection, unsigned flags) override;
     void selectionChanged(Selection *selection) override;
 
 private:
@@ -235,7 +235,7 @@ void TraceDialogImpl::selectionChanged(Inkscape::Selection *selection)
     updatePreview();
 }
 
-void TraceDialogImpl::selectionModified(Selection *selection, unsigned flags)
+void TraceDialogImpl::selectionModified(void* sender, Selection *selection, unsigned int flags)
 {
     auto mask = SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_PARENT_MODIFIED_FLAG | SP_OBJECT_STYLE_MODIFIED_FLAG;
     if ((flags & mask) == mask) {

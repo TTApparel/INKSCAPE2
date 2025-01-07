@@ -500,7 +500,7 @@ Geom::Translate SPUse::get_xy_offset() const {
 void SPUse::move_compensate(Geom::Affine const *mp) {
     // the clone is orphaned; or this is not a real use, but a clone of another use;
     // we skip it, otherwise duplicate compensation will occur
-    if (this->cloned) {
+    if (this->_cloned) {
         return;
     }
 
@@ -676,7 +676,7 @@ void SPUse::update(SPCtx *ctx, unsigned flags) {
     if (this->child) {
         sp_object_ref(this->child);
 
-        if (childflags || (this->child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (childflags || (this->child->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             g_assert(child);
             cctx.i2doc = child->transform * ictx->i2doc;
             cctx.i2vp = child->transform * ictx->i2vp;
@@ -704,7 +704,7 @@ void SPUse::update(SPCtx *ctx, unsigned flags) {
     }
 }
 
-void SPUse::modified(unsigned flags)
+void SPUse::modified(void* sender, unsigned int flags)
 {
     // std::cout << "SPUse::modified: " << (getId()?getId():"null") << std::endl;
     flags = cascade_flags(flags);
@@ -720,8 +720,8 @@ void SPUse::modified(unsigned flags)
     if (child) {
         sp_object_ref(child);
 
-        if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            child->emitModified(sender, flags);
         }
 
         sp_object_unref(child);

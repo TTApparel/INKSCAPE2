@@ -256,7 +256,7 @@ void sp_conn_end_href_changed(SPObject */*old_ref*/, SPObject */*ref*/, SPConnEn
     if (connEnd->href) {
         if (auto refobj = connEnd->ref.getObject()) {
             connEnd->_delete_connection = refobj->connectDelete(sigc::bind(sigc::ptr_fun(&sp_conn_end_deleted), path, handle_ix));
-            connEnd->_transformed_connection = refobj->connectModified([path] (SPObject *, unsigned) {
+            connEnd->_transformed_connection = refobj->connectModified([path] (void*, SPObject *, unsigned) {
                 sp_conn_end_shape_modified(path);
             });
         }

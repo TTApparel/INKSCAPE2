@@ -47,7 +47,7 @@ ColorProfileLink::ColorProfileLink(DocumentCMS *man, ColorProfile *elem)
     : tracker(man)
     , cp(elem)
 {
-    _modified_connection = cp->connectModified([this](SPObject *obj, guint flags) {
+    _modified_connection = cp->connectModified([this](auto sender, SPObject *obj, guint flags) {
         if (space ? updateSpace() : generateSpace()) {
             tracker->_modified_signal.emit(space);
         }

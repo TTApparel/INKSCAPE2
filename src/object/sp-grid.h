@@ -121,7 +121,7 @@ protected:
     void build(SPDocument *doc, Inkscape::XML::Node *repr) override;
     void set(SPAttr key, const char *value) override;
     void release() override;
-    void modified(unsigned int flags) override;
+    void modified(void* sender, unsigned int flags) override;
     void update(SPCtx *ctx, unsigned int flags) override;
 
 private:

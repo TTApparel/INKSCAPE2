@@ -456,7 +456,7 @@ void SPDesktopWidget::desktopChangedTitle(SPDesktop *desktop)
 void SPDesktopWidget::_updateNamedview()
 {
     // Listen on namedview modification
-    modified_connection = _desktop->getNamedView()->connectModified([this] (auto, unsigned flags) {
+    modified_connection = _desktop->getNamedView()->connectModified([this] (auto, auto, unsigned flags) {
         if (flags & SP_OBJECT_MODIFIED_FLAG) {
             _updateUnit();
 

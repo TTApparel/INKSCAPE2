@@ -179,7 +179,7 @@ fix_ref(IdReference const &idref, SPObject *to_obj, const char *old_id) {
  */
 static void find_references(SPObject *elem, refmap_type &refmap, bool from_clipboard)
 {
-    if (elem->cloned) return;
+    if (elem->_cloned) return;
     Inkscape::XML::Node *repr_elem = elem->getRepr();
     if (!repr_elem) return;
     if (repr_elem->type() != Inkscape::XML::NodeType::ELEMENT_NODE) return;

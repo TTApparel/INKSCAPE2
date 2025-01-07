@@ -117,7 +117,7 @@ SingleExport::SingleExport(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Buil
 }
 
 // Inkscape Selection Modified CallBack
-void SingleExport::selectionModified(Inkscape::Selection *selection, guint flags)
+void SingleExport::selectionModified(void* sender, Inkscape::Selection *selection, unsigned int flags)
 {
     if (!_desktop || _desktop->getSelection() != selection) {
         return;

@@ -136,7 +136,7 @@ void SPTRef::update(SPCtx *ctx, guint flags) {
     SPObject *child = this->stringChild;
     
     if (child) {
-        if ( childflags || ( child->uflags & SP_OBJECT_MODIFIED_FLAG )) {
+        if ( childflags || ( child->get_display_update_flags() & SP_OBJECT_MODIFIED_FLAG )) {
             child->updateDisplay(ctx, childflags);
         }
     }
@@ -144,7 +144,7 @@ void SPTRef::update(SPCtx *ctx, guint flags) {
     SPItem::update(ctx, flags);
 }
 
-void SPTRef::modified(unsigned int flags) {
+void SPTRef::modified(void* sender, unsigned int flags) {
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
         flags |= SP_OBJECT_PARENT_MODIFIED_FLAG;
     }
@@ -156,8 +156,8 @@ void SPTRef::modified(unsigned int flags) {
     if (child) {
         sp_object_ref(child);
         
-        if (flags || (child->mflags & SP_OBJECT_MODIFIED_FLAG)) {
-            child->emitModified(flags);
+        if (flags || (child->get_modified_flags() & SP_OBJECT_MODIFIED_FLAG)) {
+            child->emitModified(sender, flags);
         }
         
         sp_object_unref(child);

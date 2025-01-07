@@ -55,7 +55,7 @@ public:
     void set(SPAttr key, char const* value) override;
     void update(SPCtx *ctx, unsigned int flags) override;
     Inkscape::XML::Node* write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr, unsigned int flags) override;
-    void modified(unsigned int flags) override;
+    void modified(void* sender, unsigned int flags) override;
 
     Geom::OptRect bbox(Geom::Affine const &transform, SPItem::BBoxType type) const override;
     void print(SPPrintContext *ctx) override;

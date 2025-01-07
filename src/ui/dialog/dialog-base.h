@@ -101,7 +101,7 @@ private:
     virtual void desktopReplaced() {}
     virtual void documentReplaced() {}
     virtual void selectionChanged(Inkscape::Selection *selection) {};
-    virtual void selectionModified(Inkscape::Selection *selection, guint flags) {};
+    virtual void selectionModified(void* sender, Inkscape::Selection *selection, guint flags) {};
 
     sigc::connection _desktop_destroyed;
     sigc::connection _doc_replaced;
@@ -109,6 +109,7 @@ private:
     sigc::connection _select_modified;
 
     int _modified_flags = 0;
+    void* _sender = nullptr;
     bool _modified_while_hidden = false;
     bool _changed_while_hidden = false;
 

@@ -108,7 +108,7 @@ void SPClipPath::update(SPCtx *ctx, unsigned flags)
     auto const cflags = cascade_flags(flags);
 
     for (auto c : childList(true)) {
-        if (cflags || (c->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (cflags || (c->get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             c->updateDisplay(ctx, cflags);
         }
         sp_object_unref(c);
@@ -128,13 +128,13 @@ void SPClipPath::update_view(View &v)
     }
 }
 
-void SPClipPath::modified(unsigned flags)
+void SPClipPath::modified(void* sender, unsigned flags)
 {
     auto const cflags = cascade_flags(flags);
 
     for (auto c : childList(true)) {
-        if (cflags || (c->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            c->emitModified(cflags);
+        if (cflags || (c->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            c->emitModified(sender, cflags);
         }
         sp_object_unref(c);
     }

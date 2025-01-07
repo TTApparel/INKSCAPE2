@@ -22,6 +22,7 @@
 #include "selection.h"
 
 #include <cmath>
+#include <glibmm/main.h>
 
 #include "desktop.h"
 #include "document-undo.h"
@@ -50,40 +51,38 @@ Selection::Selection(SPDocument *document)
 {}
 
 Selection::~Selection() {
-    if (_idle) {
-        g_source_remove(_idle);
-        _idle = 0;
-    }
 }
 
 /* Handler for selected objects "modified" signal */
 
-void Selection::_schedule_modified(SPObject */*obj*/, guint flags) {
-    if (!this->_idle) {
-        /* Request handling to be run in _idle loop */
-        this->_idle = g_idle_add_full(SP_SELECTION_UPDATE_PRIORITY, GSourceFunc(&Selection::_emit_modified), this, nullptr);
+void Selection::_schedule_modified(void* sender, SPObject */*obj*/, guint flags) {
+    if (!_idle) {
+        // Request handling to be run in _idle loop
+        _idle = Glib::signal_idle().connect([this](){
+            delayed_emit_modified();
+            // drop this handler
+            return false;
+        }, SP_SELECTION_UPDATE_PRIORITY);
     }
 
     /* Collect all flags */
-    this->_flags |= flags;
+    _flags |= flags;
+    //TODO: last one wins; far from ideal
+    _sender = sender;
 }
 
-gboolean Selection::_emit_modified(Selection *selection)
-{
+void Selection::delayed_emit_modified() {
     /* force new handler to be created if requested before we return */
-    selection->_idle = 0;
-    guint flags = selection->_flags;
-    selection->_flags = 0;
-
-    selection->_emitModified(flags);
-
-    /* drop this handler */
-    return FALSE;
+    auto flags = _flags;
+    _flags = 0;
+    auto sender = _sender;
+    _sender = nullptr;
+    _emitModified(sender, flags);
 }
 
-void Selection::_emitModified(guint flags)
+void Selection::_emitModified(void* sender, unsigned int flags)
 {
-    _modified_signal.emit(this, flags);
+    _modified_signal.emit(sender, this, flags);
 
     if (!_desktop || isEmpty()) {
         return;
@@ -189,7 +188,7 @@ void Selection::setAnchor(double x, double y, bool set)
     if (Geom::LInfty(anchor - pt) > epsilon || set != has_anchor) {
         anchor = pt;
         has_anchor = set;
-        _emitModified(SP_OBJECT_MODIFIED_FLAG);
+        _emitModified(nullptr, SP_OBJECT_MODIFIED_FLAG);
     }
 }
 

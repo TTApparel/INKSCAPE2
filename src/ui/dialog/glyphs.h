@@ -45,7 +45,7 @@ public:
     ~GlyphsPanel() final;
 
     void selectionChanged (Selection *selection                ) final;
-    void selectionModified(Selection *selection, unsigned flags) final;
+    void selectionModified(void* sender, Selection* selection, unsigned flags) final;
 
 private:
     static GlyphColumns *getColumns();

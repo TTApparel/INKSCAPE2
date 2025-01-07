@@ -13,7 +13,7 @@
 
 static void persp3dreference_href_changed(SPObject *old_ref, SPObject *ref, Persp3DReference *persp3dref);
 static void persp3dreference_delete_self(SPObject *deleted, Persp3DReference *persp3dref);
-static void persp3dreference_source_modified(SPObject *iSource, guint flags, Persp3DReference *persp3dref);
+static void persp3dreference_source_modified(void*, SPObject *iSource, guint flags, Persp3DReference *persp3dref);
 
 Persp3DReference::Persp3DReference(SPObject* i_owner) : URIReference(i_owner)
 {
@@ -58,7 +58,7 @@ Persp3DReference::start_listening(Persp3D* to)
     persp = to;
     persp_repr = to->getRepr();
     _delete_connection = to->connectDelete(sigc::bind(sigc::ptr_fun(&persp3dreference_delete_self), this));
-    _modified_connection = to->connectModified(sigc::bind<2>(sigc::ptr_fun(&persp3dreference_source_modified), this));
+    _modified_connection = to->connectModified(sigc::bind<3>(sigc::ptr_fun(&persp3dreference_source_modified), this));
 }
 
 void
@@ -93,7 +93,7 @@ persp3dreference_delete_self(SPObject */*deleted*/, Persp3DReference *persp3dref
 }
 
 static void
-persp3dreference_source_modified(SPObject */*iSource*/, guint /*flags*/, Persp3DReference *persp3dref)
+persp3dreference_source_modified(void* sender, SPObject */*iSource*/, guint /*flags*/, Persp3DReference *persp3dref)
 {
     persp3dref->owner->requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
 }

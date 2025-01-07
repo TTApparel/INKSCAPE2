@@ -98,7 +98,7 @@ gr_drag_sel_changed(Inkscape::Selection */*selection*/, gpointer data)
     drag->updateLevels ();
 }
 
-static void gr_drag_sel_modified(Inkscape::Selection */*selection*/, guint /*flags*/, gpointer data)
+static void gr_drag_sel_modified(void* sender, Inkscape::Selection */*selection*/, guint /*flags*/, gpointer data)
 {
     GrDrag *drag = (GrDrag *) data;
     if (drag->local_change) {

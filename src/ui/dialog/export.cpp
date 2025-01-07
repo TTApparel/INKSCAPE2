@@ -114,14 +114,14 @@ void Export::selectionChanged(Inkscape::Selection *selection)
         batch_export.selectionChanged(selection);
     }
 }
-void Export::selectionModified(Inkscape::Selection *selection, unsigned flags)
+void Export::selectionModified(void* sender, Inkscape::Selection *selection, unsigned int flags)
 {
     auto current_page = export_notebook.get_current_page();
     if (current_page == pages[SINGLE_IMAGE]) {
-        single_image.selectionModified(selection, flags);
+        single_image.selectionModified(sender, selection, flags);
     }
     if (current_page == pages[BATCH_EXPORT]) {
-        batch_export.selectionModified(selection, flags);
+        batch_export.selectionModified(sender, selection, flags);
     }
 }
 

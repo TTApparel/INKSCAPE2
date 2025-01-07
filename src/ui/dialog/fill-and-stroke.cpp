@@ -96,7 +96,7 @@ void FillAndStroke::selectionChanged(Selection *selection)
     }
 }
 
-void FillAndStroke::selectionModified(Selection *selection, guint flags)
+void FillAndStroke::selectionModified(void* sender, Selection *selection, unsigned int flags)
 {
     changed_fill = true;
     changed_stroke = true;

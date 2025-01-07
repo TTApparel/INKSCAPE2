@@ -61,7 +61,7 @@ BatchItem::BatchItem(SPItem *item, bool isolate_item, std::shared_ptr<PreviewDra
     , _isolate_item{isolate_item}
 {
     init(std::move(drawing));
-    _object_modified_conn = _item->connectModified([=, this](SPObject *obj, unsigned int flags) {
+    _object_modified_conn = _item->connectModified([=, this](auto sender, SPObject *obj, unsigned int flags) {
         update_label();
     });
     update_label();
@@ -71,7 +71,7 @@ BatchItem::BatchItem(SPPage *page, std::shared_ptr<PreviewDrawing> drawing)
     : _page{page}
 {
     init(std::move(drawing));
-    _object_modified_conn = _page->connectModified([=, this](SPObject *obj, unsigned int flags) {
+    _object_modified_conn = _page->connectModified([=, this](auto sender, SPObject *obj, unsigned int flags) {
         update_label();
     });
     update_label();
@@ -360,7 +360,7 @@ BatchExport::BatchExport(BaseObjectType * const cobject, Glib::RefPtr<Gtk::Build
 
 BatchExport::~BatchExport() = default;
 
-void BatchExport::selectionModified(Inkscape::Selection *selection, guint flags)
+void BatchExport::selectionModified(void* sender, Inkscape::Selection *selection, unsigned int flags)
 {
     if (!_desktop || _desktop->getSelection() != selection) {
         return;

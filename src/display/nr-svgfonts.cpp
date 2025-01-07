@@ -277,7 +277,7 @@ SvgFont::render_glyph_path(cairo_t* cr, Geom::PathVector* pathv){
 }
 
 void
-SvgFont::glyph_modified(SPObject* /* blah */, unsigned int /* bleh */){
+SvgFont::glyph_modified(void* sender, SPObject* /* blah */, unsigned int /* bleh */){
     this->refresh();
     //TODO: update rendering on svgfonts preview widget (in the svg fonts dialog)
 }

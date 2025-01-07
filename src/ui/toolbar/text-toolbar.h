@@ -146,7 +146,7 @@ private:
     void rotation_value_changed();
     void fontsize_unit_changed(int not_used);
     void _selectionChanged(Selection *selection);
-    void _selectionModified(Selection *selection, guint flags);
+    void _selectionModified(void* sender, Selection *selection, guint flags);
     void _cursorMoved(Tools::TextTool *texttool);
     void set_sizes(int unit);
     void display_font_collections();

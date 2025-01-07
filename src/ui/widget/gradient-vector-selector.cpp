@@ -140,7 +140,7 @@ GradientVectorSelector::defs_release(SPObject * /*defs*/)
 }
 
 void
-GradientVectorSelector::defs_modified(SPObject *defs, guint flags)
+GradientVectorSelector::defs_modified(void*, SPObject *defs, guint flags)
 {
     /* fixme: We probably have to check some flags here (Lauris) */
     rebuild_gui_full();

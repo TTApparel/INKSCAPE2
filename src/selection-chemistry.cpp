@@ -2186,7 +2186,7 @@ std::vector<SPItem*> sp_get_same_object_type(SPItem *sel, std::vector<SPItem*> &
 
     for (std::vector<SPItem*>::const_reverse_iterator i=src.rbegin();i!=src.rend();++i) {
         SPItem *item = *i;
-        if (item && item_type_match(sel, item) && !item->cloned) {
+        if (item && item_type_match(sel, item) && !item->_cloned) {
             matches.push_back(item);
         }
     }
@@ -2263,7 +2263,7 @@ std::vector<SPItem*> sp_get_same_style(SPItem *sel, std::vector<SPItem*> &src, S
             }
             match_g = match_g && match;
             if (match_g) {
-                while (iter->cloned) iter=cast<SPItem>(iter->parent);
+                while (iter->_cloned) iter=cast<SPItem>(iter->parent);
                 matches.insert(matches.begin(),iter);
             }
         } else {

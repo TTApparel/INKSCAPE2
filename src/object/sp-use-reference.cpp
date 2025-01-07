@@ -34,7 +34,7 @@ bool SPUseReference::_acceptObject(SPObject * const obj) const
 static void sp_usepath_href_changed(SPObject *old_ref, SPObject *ref, SPUsePath *offset);
 static void sp_usepath_move_compensate(Geom::Affine const *mp, SPItem *original, SPUsePath *self);
 static void sp_usepath_delete_self(SPObject *deleted, SPUsePath *offset);
-static void sp_usepath_source_modified(SPObject *iSource, guint flags, SPUsePath *offset);
+static void sp_usepath_source_modified(void* sender, SPObject *iSource, guint flags, SPUsePath *offset);
 
 SPUsePath::SPUsePath(SPObject* i_owner): SPUseReference(i_owner)
     , owner(i_owner)
@@ -91,7 +91,7 @@ void SPUsePath::start_listening(SPItem *to)
     sourceRepr = to->getRepr();
     _delete_connection = to->connectDelete(sigc::bind(sigc::ptr_fun(&sp_usepath_delete_self), this));
     _transformed_connection = to->connectTransformed(sigc::bind(sigc::ptr_fun(&sp_usepath_move_compensate), this));
-    _modified_connection = to->connectModified(sigc::bind<2>(sigc::ptr_fun(&sp_usepath_source_modified), this));
+    _modified_connection = to->connectModified(sigc::bind<3>(sigc::ptr_fun(&sp_usepath_source_modified), this));
 }
 
 void
@@ -179,8 +179,7 @@ sp_usepath_delete_self(SPObject */*deleted*/, SPUsePath *offset)
     }
 }
 
-static void
-sp_usepath_source_modified(SPObject */*iSource*/, guint /*flags*/, SPUsePath *offset)
+static void sp_usepath_source_modified(void* sender, SPObject */*iSource*/, guint /*flags*/, SPUsePath *offset)
 {
     offset->sourceDirty = true;
     offset->owner->requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);

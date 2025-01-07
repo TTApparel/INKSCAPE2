@@ -51,7 +51,7 @@ SPShapeReference::~SPShapeReference()
 /**
  * Slot to connect to the shape's modified signal. Requests display update of the text object.
  */
-void SPShapeReference::on_shape_modified(SPObject *shape_object, unsigned flags)
+void SPShapeReference::on_shape_modified(void* sender, SPObject *shape_object, unsigned flags)
 {
     auto *text_object = getOwner();
 

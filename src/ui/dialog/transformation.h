@@ -101,7 +101,7 @@ public:
 
     void desktopReplaced() final;
     void selectionChanged (Inkscape::Selection *selection                ) final;
-    void selectionModified(Inkscape::Selection *selection, unsigned flags) final;
+    void selectionModified(void* sender, Inkscape::Selection* selection, unsigned int flags) final;
     void updateSelection(PageType page, Inkscape::Selection *selection);
 
 protected:

@@ -604,7 +604,8 @@ void PagesTool::selectionChanged(SPDocument *doc, SPPage *page)
     highlight_item = page;
     if (doc) {
         if (page) {
-            _page_modified_connection = page->connectModified(sigc::mem_fun(*this, &PagesTool::pageModified));
+            _page_modified_connection = page->connectModified([this](auto sender, auto object, auto flags) {
+                pageModified(object, flags); });
             page->setSelected(true);
             pageModified(page, 0);
         } else {

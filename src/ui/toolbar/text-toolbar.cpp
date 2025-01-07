@@ -1786,7 +1786,7 @@ void TextToolbar::_selectionChanged(Selection *selection) // don't bother to upd
     _freeze = false;
 }
 
-void TextToolbar::_selectionModified(Selection *selection, unsigned)
+void TextToolbar::_selectionModified(void* sender, Selection *selection, unsigned)
 {
     _sub_active_item = nullptr;
     _selectionChanged(selection);

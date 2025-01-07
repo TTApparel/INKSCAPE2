@@ -201,10 +201,10 @@ void ObjectAttributes::selectionChanged(Selection* selection) {
     _obj_properties.update_entries();
 }
 
-void ObjectAttributes::selectionModified(Selection* _selection, guint flags) {
+void ObjectAttributes::selectionModified(void* sender, Selection* selection, unsigned int flags) {
     if (_update.pending() || !getDesktop() || !_current_panel) return;
 
-    auto selection = getDesktop()->getSelection();
+    // auto selection = getDesktop()->getSelection();
     if (flags & (SP_OBJECT_MODIFIED_FLAG |
                  SP_OBJECT_PARENT_MODIFIED_FLAG |
                  SP_OBJECT_STYLE_MODIFIED_FLAG)) {

@@ -466,7 +466,7 @@ void PageToolbar::selectionChanged(SPPage *page)
         auto label = Glib::ustring::compose(_("%1/%2"), page->getPagePosition(), page_manager.getPageCount());
         _label_page_pos.set_label(label);
 
-        _page_modified = page->connectModified([this] (SPObject *obj, unsigned flags) {
+        _page_modified = page->connectModified([this] (void*, SPObject *obj, unsigned flags) {
             if (auto page = cast<SPPage>(obj)) {
                 // Make sure we don't 'select' on removal of the page
                 if (flags & SP_OBJECT_MODIFIED_FLAG) {

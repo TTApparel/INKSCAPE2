@@ -201,7 +201,7 @@ std::optional<Geom::PathVector> SPSymbol::documentExactBounds() const
 }
 
 void SPSymbol::update(SPCtx *ctx, guint flags) {
-    if (this->cloned) {
+    if (this->_cloned) {
 
         SPItemCtx *ictx = (SPItemCtx *) ctx;
 
@@ -234,8 +234,8 @@ void SPSymbol::update(SPCtx *ctx, guint flags) {
     }
 }
 
-void SPSymbol::modified(unsigned int flags) {
-	SPGroup::modified(flags);
+void SPSymbol::modified(void* sender, unsigned int flags) {
+	SPGroup::modified(sender, flags);
 }
 
 
@@ -264,7 +264,7 @@ Inkscape::DrawingItem* SPSymbol::show(Inkscape::Drawing &drawing, unsigned int k
 {
     Inkscape::DrawingItem *ai = nullptr;
 
-    if (cloned) {
+    if (_cloned) {
         // Cloned <symbol> is actually renderable
         ai = SPGroup::show(drawing, key, flags);
 
@@ -277,7 +277,7 @@ Inkscape::DrawingItem* SPSymbol::show(Inkscape::Drawing &drawing, unsigned int k
 }
 
 void SPSymbol::hide(unsigned int key) {
-    if (this->cloned) {
+    if (this->_cloned) {
         /* Cloned <symbol> is actually renderable */
         SPGroup::hide(key);
     }
@@ -286,12 +286,12 @@ void SPSymbol::hide(unsigned int key) {
 
 Geom::OptRect SPSymbol::bbox(Geom::Affine const &transform, SPItem::BBoxType type) const
 {
-    Geom::Affine const a = cloned ? c2p * transform : Geom::identity();
+    Geom::Affine const a = _cloned ? c2p * transform : Geom::identity();
     return SPGroup::bbox(a, type);
 }
 
 void SPSymbol::print(SPPrintContext* ctx) {
-    if (this->cloned) {
+    if (this->_cloned) {
         // Cloned <symbol> is actually renderable
 
         ctx->bind(this->c2p, 1.0);

@@ -48,10 +48,8 @@ void SPScript::release() {
 void SPScript::update(SPCtx* /*ctx*/, unsigned int /*flags*/) {
 }
 
-
-void SPScript::modified(unsigned int /*flags*/) {
+void SPScript::modified(void* sender, unsigned int /*flags*/) {
 }
-
 
 void SPScript::set(SPAttr key, const gchar* value) {
     switch (key) {

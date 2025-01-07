@@ -267,7 +267,7 @@ void LPEToolbar::open_lpe_dialog()
     _open_lpe_dialog_btn.set_active(false);
 }
 
-void LPEToolbar::sel_modified(Selection *selection, guint /*flags*/)
+void LPEToolbar::sel_modified(void* sender, Selection *selection, guint /*flags*/)
 {
     auto const tool = selection->desktop()->getTool();
     if (auto const lc = SP_LPETOOL_CONTEXT(tool)) {

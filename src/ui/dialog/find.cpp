@@ -907,7 +907,7 @@ std::vector<SPItem*> &Find::all_items (SPObject *r, std::vector<SPItem*> &l, boo
     auto desktop = getDesktop();
     for (auto& child: r->children) {
         auto item = cast<SPItem>(&child);
-        if (item && !child.cloned && !desktop->layerManager().isLayer(item)) {
+        if (item && !child._cloned && !desktop->layerManager().isLayer(item)) {
             if ((hidden || !desktop->itemIsHidden(item)) && (locked || !item->isLocked())) {
                 l.insert(l.begin(),(SPItem*)&child);
             }
@@ -925,7 +925,7 @@ std::vector<SPItem*> &Find::all_selection_items (Inkscape::Selection *s, std::ve
         SPObject *obj = *i;
         auto item = cast<SPItem>(obj);
         g_assert(item != nullptr);
-        if (item && !item->cloned && !desktop->layerManager().isLayer(item)) {
+        if (item && !item->_cloned && !desktop->layerManager().isLayer(item)) {
             if (!ancestor || ancestor->isAncestorOf(item)) {
                 if ((hidden || !desktop->itemIsHidden(item)) && (locked || !item->isLocked())) {
                     l.push_back(*i);

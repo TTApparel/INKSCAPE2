@@ -50,7 +50,7 @@ class GradientVectorSelector : public Gtk::Box {
 
     void gradient_release(SPObject *obj);
     void defs_release(SPObject *defs);
-    void defs_modified(SPObject *defs, guint flags);
+    void defs_modified(void* sender, SPObject *defs, guint flags);
     void rebuild_gui_full();
 
   public:

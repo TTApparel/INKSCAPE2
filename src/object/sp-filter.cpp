@@ -50,7 +50,7 @@ SPFilter::SPFilter()
         }
 
         if (is<SPFilter>(ref) && ref != this) {
-            modified_connection = ref->connectModified([this] (SPObject*, unsigned) {
+            modified_connection = ref->connectModified([this] (void* sender, SPObject*, unsigned) {
                 requestModified(SP_OBJECT_MODIFIED_FLAG);
             });
         }
@@ -202,7 +202,7 @@ void SPFilter::update(SPCtx *ctx, unsigned flags)
 
     // Update filter primitives in order to update filter primitive area
     for (auto &c : children) {
-        if (cflags || (c.uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (cflags || (c.get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             c.updateDisplay(ctx, cflags);
         }
     }
@@ -210,7 +210,7 @@ void SPFilter::update(SPCtx *ctx, unsigned flags)
     SPObject::update(ctx, flags);
 }
 
-void SPFilter::modified(unsigned flags)
+void SPFilter::modified(void* sender, unsigned int flags)
 {
     auto const cflags = cascade_flags(flags);
 
@@ -220,8 +220,8 @@ void SPFilter::modified(unsigned flags)
     }
 
     for (auto &c : children) {
-        if (cflags || (c.mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
-            c.emitModified(cflags);
+        if (cflags || (c.get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+            c.emitModified(sender, cflags);
         }
     }
 

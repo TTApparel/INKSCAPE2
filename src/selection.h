@@ -139,7 +139,7 @@ public:
     std::vector<Inkscape::SnapCandidatePoint> getSnapPoints(SnapPreferences const *snapprefs) const;
 
     // Fixme: Hack should not exist, but used by live_effects.
-    void emitModified() { _emitModified(_flags); };
+    void emitModified() { _emitModified(nullptr, _flags); };
 
     /**
      * Connects a slot to be notified of selection changes.
@@ -187,14 +187,14 @@ public:
      * @return the resulting connection
      *
      */
-    sigc::connection connectModified(sigc::slot<void (Selection *, unsigned)> slot) {
+    sigc::connection connectModified(sigc::slot<void (void*, Selection *, unsigned int)> slot) {
         return _modified_signal.connect(std::move(slot));
     }
 
     /**
      * Similar to connectModified, but will be run first.
      */
-    sigc::connection connectModifiedFirst(sigc::slot<void (Selection *, unsigned)> slot) {
+    sigc::connection connectModifiedFirst(sigc::slot<void (void*, Selection *, unsigned int)> slot) {
         return _modified_signal.connect_first(std::move(slot));
     }
 
@@ -227,12 +227,12 @@ protected:
 
 private:
     /** Issues modification notification signals. */
-    static int _emit_modified(Selection *selection);
+    void delayed_emit_modified();
     /** Schedules an item modification signal to be sent. */
-    void _schedule_modified(SPObject *obj, unsigned int flags);
+    void _schedule_modified(void* sender, SPObject *obj, unsigned int flags);
 
     /** Issues modified selection signal. */
-    void _emitModified(unsigned int flags);
+    void _emitModified(void* sender, unsigned int flags);
     /** Issues changed selection signal. */
     void _emitChanged(bool persist_selection_context = false) override;
     /** returns the SPObject corresponding to an xml node (if any). */
@@ -242,7 +242,8 @@ private:
 
     SPObject *_selection_context = nullptr;
     unsigned _flags = 0;
-    unsigned _idle = 0;
+    void* _sender = nullptr;
+    sigc::scoped_connection _idle;
     bool _change_layer = true;
     bool _change_page = true;
     std::vector<std::pair<std::string, std::pair<int, int>>> _seldata;
@@ -251,7 +252,7 @@ private:
     sigc::scoped_connection _context_release_connection;
 
     sigc::signal<void (Selection *)> _changed_signal;
-    sigc::signal<void (Selection *, unsigned)> _modified_signal;
+    sigc::signal<void (void*, Selection*, unsigned)> _modified_signal;
 };
 
 } // namespace Inkscape

@@ -32,12 +32,12 @@ class Node;
 } // namespace XML
 } // namespace Inkscape
 
-void SPFeMerge::modified(unsigned flags)
+void SPFeMerge::modified(void* sender, unsigned int flags)
 {
     auto const cflags = cascade_flags(flags);
 
     for (auto &c : children) {
-        if (cflags || (c.mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (cflags || (c.get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             c.emitModified(cflags);
         }
     }

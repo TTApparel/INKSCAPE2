@@ -2910,7 +2910,7 @@ void FilterEffectsDialog::selectionChanged(Inkscape::Selection *selection)
     }
 }
 
-void FilterEffectsDialog::selectionModified(Inkscape::Selection *selection, guint flags)
+void FilterEffectsDialog::selectionModified(void* sender, Inkscape::Selection *selection, unsigned int flags)
 {
     if (flags & (SP_OBJECT_MODIFIED_FLAG |
                  SP_OBJECT_PARENT_MODIFIED_FLAG |

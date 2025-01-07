@@ -180,11 +180,12 @@ void DialogBase::setDesktop(SPDesktop *new_desktop)
                 if (_showing)
                     selectionChanged(selection);
             });
-            _select_modified = selection->connectModified([this](Inkscape::Selection *selection, guint flags) {
+            _select_modified = selection->connectModified([this](void* sender, Inkscape::Selection *selection, unsigned int flags) {
                 _modified_while_hidden = !_showing;
                 _modified_flags = flags;
-                if (_showing)
-                    selectionModified(selection, flags);
+                _sender = sender;
+                // do not refresh hidden dialogs
+                if (_showing) selectionModified(sender, selection, flags);
             });
         }
 
@@ -248,8 +249,9 @@ DialogBase::setShowing(bool showing) {
         _changed_while_hidden = false;
     }
     if (showing && _modified_while_hidden) {
-        selectionModified(getSelection(), _modified_flags);
+        selectionModified(_sender, getSelection(), _modified_flags);
         _modified_while_hidden = false;
+        _sender = nullptr;
     }
 }
 

@@ -140,7 +140,7 @@ void SPAttributeTable::change_object(SPObject *object)
 
     if (object) {
         // Set up object
-        modified_connection = object->connectModified([this](SPObject* object, unsigned int flags){
+        modified_connection = object->connectModified([this](void* sender, SPObject* object, unsigned int flags){
             attribute_table_object_modified(object, flags);
         });
         release_connection  = object->connectRelease([this](SPObject* object){

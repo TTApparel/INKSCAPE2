@@ -397,7 +397,7 @@ void TextEdit::selectionChanged(Selection *selection)
     onReadSelection(true, true);
 }
 
-void TextEdit::selectionModified(Selection *selection, guint flags)
+void TextEdit::selectionModified(void* sender, Selection *selection, unsigned int flags)
 {
     bool style = ((flags & (SP_OBJECT_CHILD_MODIFIED_FLAG |
                             SP_OBJECT_STYLE_MODIFIED_FLAG  )) != 0 );

@@ -71,7 +71,7 @@ public:
     void setDocument(SPDocument *document);
     void setDesktop(SPDesktop *desktop);
     void selectionChanged(Inkscape::Selection *selection);
-    void selectionModified(Inkscape::Selection *selection, guint flags);
+    void selectionModified(void* sender, Inkscape::Selection* selection, unsigned int flags);
     void refresh()
     {
         refreshArea();

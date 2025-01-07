@@ -351,7 +351,7 @@ void ObjectProperties::update_entries()
         _spin_dpi.set_value(dpi);
     }
 
-    if (item && item->cloned) {
+    if (item && item->_cloned) {
         /* ID */
         _entry_id.set_text("");
         _entry_id.set_sensitive(FALSE);

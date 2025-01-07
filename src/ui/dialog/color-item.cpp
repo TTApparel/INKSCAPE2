@@ -108,7 +108,7 @@ ColorItem::ColorItem(SPGradient *gradient, DialogBase *dialog)
         std::get<GradientData>(data).gradient = nullptr;
     }, *this));
 
-    gradient->connectModified(sigc::track_object([this] (SPObject *obj, unsigned flags) {
+    gradient->connectModified(sigc::track_object([this] (auto sender, SPObject *obj, unsigned flags) {
         if (flags & SP_OBJECT_STYLE_MODIFIED_FLAG) {
             cache_dirty = true;
             queue_draw();

@@ -95,7 +95,7 @@ protected:
     void child_added(Inkscape::XML::Node* child, Inkscape::XML::Node* ref) override;
     void set(SPAttr key, const gchar* value) override;
     void update(SPCtx* ctx, unsigned int flags) override;
-    void modified(unsigned int flags) override;
+    void modified(void* sender, unsigned int flags) override;
 
 private:
     using View = ObjectView<Inkscape::DrawingPattern>;
@@ -120,7 +120,7 @@ private:
     /**
      * Gets called when the referenced <hatch> is changed
      */
-    void _onRefModified(SPObject *ref, guint flags);
+    void _onRefModified(void* sender, SPObject *ref, guint flags);
 
     // patternUnits and patternContentUnits attribute
     HatchUnits _hatchUnits : 1;

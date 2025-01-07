@@ -125,12 +125,12 @@ void SPFeSpecularLighting::set(SPAttr key, char const *value)
     }
 }
 
-void SPFeSpecularLighting::modified(unsigned flags)
+void SPFeSpecularLighting::modified(void* sender, unsigned int flags)
 {
     auto const cflags = cascade_flags(flags);
 
     for (auto c : childList(true)) {
-        if (cflags || (c->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (cflags || (c->get_modified_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             c->emitModified(cflags);
         }
         sp_object_unref(c, nullptr);

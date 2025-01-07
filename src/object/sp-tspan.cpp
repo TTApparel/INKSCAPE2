@@ -117,7 +117,7 @@ void SPTSpan::update(SPCtx *ctx, guint flags) {
     childflags &= SP_OBJECT_MODIFIED_CASCADE;
 
     for (auto& ochild: children) {
-        if ( flags || ( ochild.uflags & SP_OBJECT_MODIFIED_FLAG )) {
+        if ( flags || ( ochild.get_display_update_flags() & SP_OBJECT_MODIFIED_FLAG )) {
         	ochild.updateDisplay(ctx, childflags);
         }
     }
@@ -139,7 +139,7 @@ void SPTSpan::update(SPCtx *ctx, guint flags) {
     }
 }
 
-void SPTSpan::modified(unsigned int flags) {
+void SPTSpan::modified(void* sender, unsigned int flags) {
 //    SPItem::onModified(flags);
 
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
@@ -149,7 +149,7 @@ void SPTSpan::modified(unsigned int flags) {
     flags &= SP_OBJECT_MODIFIED_CASCADE;
 
     for (auto& ochild: children) {
-        if (flags || (ochild.mflags & SP_OBJECT_MODIFIED_FLAG)) {
+        if (flags || (ochild.get_modified_flags() & SP_OBJECT_MODIFIED_FLAG)) {
             ochild.emitModified(flags);
         }
     }
@@ -327,7 +327,7 @@ void SPTextPath::update(SPCtx *ctx, guint flags) {
     }
 
     for (auto& ochild: children) {
-        if (childflags || (ochild.uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
+        if (childflags || (ochild.get_display_update_flags() & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             ochild.updateDisplay(ctx, childflags);
         }
     }
@@ -376,7 +376,7 @@ void refresh_textpath_source(SPTextPath* tp)
     }
 }
 
-void SPTextPath::modified(unsigned int flags) {
+void SPTextPath::modified(void* sender, unsigned int flags) {
 //    SPItem::onModified(flags);
 
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
@@ -386,7 +386,7 @@ void SPTextPath::modified(unsigned int flags) {
     flags &= SP_OBJECT_MODIFIED_CASCADE;
 
     for (auto& ochild: children) {
-        if (flags || (ochild.mflags & SP_OBJECT_MODIFIED_FLAG)) {
+        if (flags || (ochild.get_modified_flags() & SP_OBJECT_MODIFIED_FLAG)) {
             ochild.emitModified(flags);
         }
     }

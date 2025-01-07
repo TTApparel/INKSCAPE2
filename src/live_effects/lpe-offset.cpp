@@ -130,8 +130,7 @@ sp_get_fill_rule(SPObject *obj) {
     return val;
 } 
 
-void
-LPEOffset::modified(SPObject *obj, guint flags)
+void LPEOffset::modified(SPObject *obj, guint flags)
 {
     // we check for style changes and apply LPE to get appropiate fill rule on change
     if (flags & SP_OBJECT_STYLE_MODIFIED_FLAG && obj) {
@@ -221,7 +220,7 @@ LPEOffset::doBeforeEffect (SPLPEItem const* lpeitem)
 {
     auto obj = sp_lpe_item;
     if (is_load && obj) {
-        modified_connection = obj->connectModified(sigc::mem_fun(*this, &LPEOffset::modified));
+        modified_connection = obj->connectModified([this](auto, auto object, auto flags) { modified(object, flags); });
     }
     original_bbox(lpeitem);
     auto group = cast<SPGroup>(sp_lpe_item);
