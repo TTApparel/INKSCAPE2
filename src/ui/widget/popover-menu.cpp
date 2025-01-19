@@ -44,7 +44,7 @@ public:
     }
 };
 
-PopoverMenu::PopoverMenu(Gtk::PositionType const position)
+PopoverMenu::PopoverMenu(Gtk::PositionType const position, bool has_arrow)
     : Glib::ObjectBase{"PopoverMenu"}
     , Gtk::Popover{}
     , _scrolled_window{*Gtk::make_managed<Gtk::ScrolledWindow>()}
@@ -54,7 +54,7 @@ PopoverMenu::PopoverMenu(Gtk::PositionType const position)
     add_css_class("menu");
 
     set_position(position);
-    set_has_arrow(false);
+    set_has_arrow(has_arrow);
 
     _scrolled_window.set_propagate_natural_width (true);
     _scrolled_window.set_propagate_natural_height(true);

@@ -177,7 +177,6 @@ SPDesktopWidget::SPDesktopWidget(InkscapeWindow *inkscape_window)
     /* Dialog Container */
     _container = std::make_unique<DialogContainer>(inkscape_window);
     _columns = _container->get_columns();
-    _columns->set_dropzone_sizes(2, -1);
     _tbbox->set_end_child(*_container);
     _tbbox->set_resize_end_child(true);
     _tbbox->set_shrink_end_child(true);

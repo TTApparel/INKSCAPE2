@@ -47,6 +47,7 @@
 #include "ui/widget/canvas.h"  // Target, canvas to world transform.
 #include "ui/widget/desktop-widget.h"
 #include "util/value-utils.h"
+#include "widget/tab-strip.h"
 
 using Inkscape::DocumentUndo;
 using namespace Inkscape::Util;
@@ -371,6 +372,22 @@ void ink_drag_setup(SPDesktopWidget *dtw, Gtk::Widget *widget)
     auto drop_target = Gtk::DropTarget::create(G_TYPE_INVALID, Gdk::DragAction::COPY | Gdk::DragAction::MOVE);
     drop_target->set_gtypes(get_drop_types());
     drop_target->signal_drop().connect(sigc::bind(&on_drop, dtw, drop_target), false);
+
+    // reject tab d&d to let dialog docking system in multipaned handle it
+    drop_target->signal_accept().connect([](const Glib::RefPtr<Gdk::Drop>& drop) {
+        if (auto drag = drop->get_drag()) {
+            if (auto c = drag->get_content()) {
+                Glib::ValueBase value;
+                value.init(UI::Widget::TabStrip::get_dnd_source_type());
+                c->get_value(value);
+                if (G_VALUE_HOLDS(value.gobj(), UI::Widget::TabStrip::get_dnd_source_type())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }, false);
+
     widget->add_controller(drop_target);
 }
 

@@ -2018,6 +2018,8 @@ void InkscapePreferences::initPageUI()
     _win_dialogs_labels_active.init( _("Active"), "/options/notebooklabels/value", PREFS_NOTEBOOK_LABELS_ACTIVE, true, nullptr);
     _win_dialogs_labels_off.init( _("Off"), "/options/notebooklabels/value", PREFS_NOTEBOOK_LABELS_OFF, false, &_win_dialogs_labels_auto);
 
+    _win_dialogs_tab_close_btn.init(_("Show close button in tab"), "/options/notebooktabs/closebutton", true);
+
     {
         Glib::ustring defaultSizeLabels[] = {C_("Window size", "Default"),
                                              C_("Window size", "Small"),
@@ -2066,11 +2068,12 @@ void InkscapePreferences::initPageUI()
 #endif
 
     std::vector<PrefItem> labels = {
-        { _("Automatic"), PREFS_NOTEBOOK_LABELS_AUTO, _("Dialog names will be displayed when there is enough space"), true },
-        { _("Active"), PREFS_NOTEBOOK_LABELS_ACTIVE, _("Only show label on active") },
+        { _("Always"), PREFS_NOTEBOOK_LABELS_AUTO, _("Dialog names will be displayed when there is enough space"), true },
+        { _("Active tab only"), PREFS_NOTEBOOK_LABELS_ACTIVE, _("Only show label on active tab") },
         { _("Off"), PREFS_NOTEBOOK_LABELS_OFF, _("Only show dialog icons") }
     };
-    _page_windows.add_line(true, _("Labels behavior"), *Gtk::make_managed<PrefRadioButtons>(labels, "/options/notebooklabels/value"), "", "", false, reset_icon());
+    _page_windows.add_line(true, _("Tab labels"), *Gtk::make_managed<PrefRadioButtons>(labels, "/options/notebooklabels/value"), "", "", false);
+    _page_windows.add_line(true, "Dialog tabs", _win_dialogs_tab_close_btn, "", _("Show close button in dialog tabs"));
 
     auto const save_dlg = Gtk::make_managed<PrefCheckButton>();
     save_dlg->init(_("Save and restore dialogs' status"), "/options/savedialogposition/value", true);

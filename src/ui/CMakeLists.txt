@@ -275,6 +275,7 @@ set(ui_SRC
 	widget/style-subject.cpp
 	widget/style-swatch.cpp
 	widget/swatch-selector.cpp
+	widget/tab-strip.cpp
 	widget/tabs-widget.cpp
 	widget/template-list.cpp
 	widget/text.cpp
@@ -585,6 +586,7 @@ set(ui_SRC
 	widget/style-subject.h
 	widget/style-swatch.h
 	widget/swatch-selector.h
+	widget/tab-strip.h
 	widget/tabs-widget.h
 	widget/template-list.h
 	widget/text.h
