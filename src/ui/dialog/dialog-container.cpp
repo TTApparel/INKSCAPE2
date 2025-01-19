@@ -81,6 +81,7 @@ DialogContainer::DialogContainer(InkscapeWindow* inkscape_window)
 {
     g_assert(_inkscape_window != nullptr);
 
+    set_name("DialogContainer");
     add_css_class("DialogContainer");
 
     columns = std::make_unique<DialogMultipaned>(Gtk::Orientation::HORIZONTAL);
@@ -1097,6 +1098,118 @@ void DialogContainer::column_empty(DialogMultipaned *column)
             window->close();
         }
     }
+}
+
+DialogMultipaned* DialogContainer::get_create_multipaned(Dock location) {
+    auto main = get_columns();
+
+    // check right panel first
+    if (location == RightTop || location == RightBottom) {
+        auto panel = dynamic_cast<DialogMultipaned*>(columns->get_last_widget());
+        if (panel) {
+            return panel;
+        }
+        auto col = create_column();
+        panel = col.get();
+        columns->append(std::move(col));
+        return panel;
+    }
+
+    // find left panel
+    DialogMultipaned* panel = nullptr;
+    auto& children = main->get_multipaned_children();
+    for (auto& widget : children) {
+        if (dynamic_cast<UI::Widget::CanvasGrid*>(widget.get())) {
+            break;
+        }
+        if (auto multi = dynamic_cast<DialogMultipaned*>(widget.get())) {
+            panel = multi;
+        }
+    }
+    if (!panel) {
+        auto col = create_column();
+        panel = col.get();
+        columns->prepend(std::move(col));
+    }
+
+    return panel;
+}
+
+DialogNotebook* DialogContainer::get_notebook(DialogMultipaned* pane, Dock location) {
+    if (!pane) return nullptr;
+
+    auto& children = pane->get_multipaned_children();
+
+    // find top notebook
+    DialogNotebook* top = nullptr;
+    auto const it = std::find_if(begin(children), end(children), [](auto& w) {
+        return dynamic_cast<DialogNotebook*>(w.get());
+    });
+    if (it != children.end()) {
+        top = dynamic_cast<DialogNotebook*>(it->get());
+    }
+
+    if (location == LeftTop || location == RightTop) {
+        return top;
+    }
+
+    // find bottom notebook
+    DialogNotebook* bottom = nullptr;
+    auto const it2 = std::find_if(rbegin(children), rend(children), [](auto& w) {
+        return dynamic_cast<DialogNotebook*>(w.get());
+    });
+    if (it2 != children.rend()) {
+        bottom = dynamic_cast<DialogNotebook*>(it2->get());
+    }
+    if (bottom && bottom == top) {
+        // there's only one notebook, so there's no bottom one yet
+        bottom = nullptr;
+    }
+
+    return bottom;
+}
+
+// Takes a notebook page from existing docked dialog and docks it at requested place
+bool DialogContainer::dock_dialog(Gtk::Widget& page, Dock location) {
+    DialogMultipaned* panel = get_create_multipaned(location);
+    if (!panel) return false;
+
+    columns->ensure_multipaned_children();
+
+    auto notebook = get_notebook(panel, location);
+    if (notebook) {
+        notebook->move_page(page);
+        notebook->select_page(page);
+        return true;
+    }
+
+    // there's no notebook in requested location; create new notebook and move page
+    auto new_notebook = std::make_unique<DialogNotebook>(this);
+    new_notebook->move_page(page);
+    new_notebook->size_allocate(Gtk::Allocation(0, 0, 300, 300), -1);
+
+    //TODO: clean this mess up:
+    // move_page() takes care of updating dialog lists.
+    INKSCAPE.themecontext->getChangeThemeSignal().emit();
+    INKSCAPE.themecontext->add_gtk_css(true);
+
+    if (location == LeftTop || location == RightTop) {
+        // top
+        panel->prepend(std::move(new_notebook));
+    }
+    else {
+        // if a new notebook is to be added at the bottom, then shrink existing one above it to make more room for it
+        if (auto old = get_notebook(panel, location == LeftBottom ? LeftTop : RightTop)) {
+            auto alloc = old->get_allocation();
+            alloc.set_height(alloc.get_height() / 2);
+            old->size_allocate(alloc, -1);
+        }
+        // bottom
+        panel->append(std::move(new_notebook));
+    }
+    panel->queue_allocate();
+
+    return true;
 }
 
 } // namespace Inkscape::UI::Dialog

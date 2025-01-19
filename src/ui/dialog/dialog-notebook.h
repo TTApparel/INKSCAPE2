@@ -24,6 +24,8 @@
 #include <gtkmm/widget.h>
 
 #include <sigc++/scoped_connection.h>
+
+#include "dialog-container.h"
 #include "ui/widget/popover-menu.h"
 #include "ui/widget/popover-bin.h"
 
@@ -51,7 +53,6 @@ enum class TabsStatus {
     ALL
 };
 
-class DialogContainer;
 class DialogWindow;
 
 /**
@@ -67,6 +68,7 @@ public:
 
     void add_page(Gtk::Widget &page, Gtk::Widget &tab, Glib::ustring label);
     void move_page(Gtk::Widget &page);
+    void select_page(Gtk::Widget& page);
 
     // Getters
     Gtk::Notebook *get_notebook() { return &_notebook; }
@@ -76,6 +78,7 @@ public:
     void close_tab_callback();
     void close_notebook_callback();
     DialogWindow* pop_tab_callback();
+    void dock_current_tab(DialogContainer::Dock location);
     Gtk::ScrolledWindow * get_scrolledwindow(Gtk::Widget &page);
     Gtk::ScrolledWindow * get_current_scrolledwindow(bool skip_scroll_provider);
     void set_requested_height(int height);

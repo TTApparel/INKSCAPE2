@@ -26,8 +26,10 @@
 #include <gtkmm/scrollbar.h>
 #include <gtkmm/separator.h>
 #include <gtkmm/eventcontrollerscroll.h>
+#include <gtkmm/grid.h>
 
 #include "dialog-notebook.h"
+
 #include "enums.h"
 #include "inkscape.h"
 #include "inkscape-window.h"
@@ -99,21 +101,40 @@ DialogNotebook::DialogNotebook(DialogContainer *container)
     new_menu_item = Gtk::make_managed<UI::Widget::PopoverMenuItem>(_("Close Current Tab"));
     _conn.emplace_back(
         new_menu_item->signal_activate().connect(sigc::mem_fun(*this, &DialogNotebook::close_tab_callback)));
-    _menu.attach(*new_menu_item, 0, 2, row, row + 1);
+    _menu.attach(*new_menu_item, 0, 1, row, row + 1);
     row++;
 
     // Close notebook
     new_menu_item = Gtk::make_managed<UI::Widget::PopoverMenuItem>(_("Close Panel"));
     _conn.emplace_back(
         new_menu_item->signal_activate().connect(sigc::mem_fun(*this, &DialogNotebook::close_notebook_callback)));
-    _menu.attach(*new_menu_item, 0, 2, row, row + 1);
-    row++;
+    _menu.attach(*new_menu_item, 0, 1, row, row + 1);
 
+    // Docking
+    auto grid = Gtk::make_managed<Gtk::Grid>();
+    auto dock_lt = Gtk::make_managed<UI::Widget::PopoverMenuItem>("", true, "dock-left-top", Gtk::IconSize::NORMAL);
+    dock_lt->set_tooltip_text(_("Dock current tab at the top left"));
+    _conn.emplace_back(dock_lt->signal_activate().connect([this]{ dock_current_tab(DialogContainer::LeftTop); }));
+    auto dock_rt = Gtk::make_managed<UI::Widget::PopoverMenuItem>("", true, "dock-right-top", Gtk::IconSize::NORMAL);
+    dock_rt->set_tooltip_text(_("Dock current tab at the top right"));
+    _conn.emplace_back(dock_rt->signal_activate().connect([this]{ dock_current_tab(DialogContainer::RightTop); }));
+    auto dock_lb = Gtk::make_managed<UI::Widget::PopoverMenuItem>("", true, "dock-left-bottom", Gtk::IconSize::NORMAL);
+    dock_lb->set_tooltip_text(_("Dock current tab at the bottom left"));
+    _conn.emplace_back(dock_lb->signal_activate().connect([this]{ dock_current_tab(DialogContainer::LeftBottom); }));
+    auto dock_rb = Gtk::make_managed<UI::Widget::PopoverMenuItem>("", true, "dock-right-bottom", Gtk::IconSize::NORMAL);
+    dock_rb->set_tooltip_text(_("Dock current tab at the bottom right"));
+    _conn.emplace_back(dock_rb->signal_activate().connect([this]{ dock_current_tab(DialogContainer::RightBottom); }));
     // Move to new window
-    new_menu_item = Gtk::make_managed<UI::Widget::PopoverMenuItem>(_("Move Tab to New Window"));
-    _conn.emplace_back(
-        new_menu_item->signal_activate().connect([this]{ pop_tab_callback(); }));
-    _menu.attach(*new_menu_item, 0, 2, row, row + 1);
+    auto floating = Gtk::make_managed<UI::Widget::PopoverMenuItem>("", true, "floating-dialog", Gtk::IconSize::NORMAL);
+    floating->set_tooltip_text(_("Move current tab to new window"));
+    floating->set_valign(Gtk::Align::CENTER);
+    _conn.emplace_back(floating->signal_activate().connect([this]{ pop_tab_callback(); }));
+    grid->attach(*dock_lt, 0, 0);
+    grid->attach(*dock_lb, 0, 1);
+    grid->attach(*floating, 1, 0, 1, 2);
+    grid->attach(*dock_rt, 2, 0);
+    grid->attach(*dock_rb, 2, 1);
+    _menu.attach(*grid, 1, 2, row - 1, row + 1);
     row++;
 
     struct Dialog {
@@ -337,6 +358,9 @@ void DialogNotebook::move_page(Gtk::Widget &page)
         std::cerr << "DialogNotebook::move_page: page not in notebook!" << std::endl;
         return;
     }
+    if (old_notebook == &_notebook) {
+        return; // no op
+    }
 
     Gtk::Widget *tab = old_notebook->get_tab_label(page);
     Glib::ustring text = old_notebook->get_menu_label_text(page);
@@ -355,6 +379,11 @@ void DialogNotebook::move_page(Gtk::Widget &page)
     _notebook.set_tab_reorderable(page);
     _notebook.set_tab_detachable(page);
     _reload_context = true;
+}
+
+void DialogNotebook::select_page(Gtk::Widget& page) {
+    auto pos = _notebook.page_num(page);
+    _notebook.set_current_page(pos);
 }
 
 // ============ Notebook callbacks ==============
@@ -442,6 +471,25 @@ DialogWindow* DialogNotebook::pop_tab_callback()
     on_size_allocate_scroll(get_width());
 
     return window;
+}
+
+void DialogNotebook::dock_current_tab(DialogContainer::Dock location) {
+    auto page = _notebook.get_nth_page(_notebook.get_current_page());
+    if (!page) return;
+
+    // we need to get hold of the dialog container in the main window
+    // (this instance may be in a floating dialog window)
+    auto wnd = _container->get_inkscape_window();
+    if (!wnd) return;
+    auto container = wnd->get_desktop()->getContainer();
+    if (!container) return;
+
+    if (container->dock_dialog(*page, location)) {
+        if (_notebook.get_n_pages() == 0) {
+            // notebook's empty now
+            close_notebook_callback();
+        }
+    }
 }
 
 // ========= Signal handlers - notebook =========
