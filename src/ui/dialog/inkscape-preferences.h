@@ -309,6 +309,7 @@ protected:
     UI::Widget::PrefRadioButton _win_dialogs_labels_auto;
     UI::Widget::PrefRadioButton _win_dialogs_labels_active;
     UI::Widget::PrefRadioButton _win_dialogs_labels_off;
+    UI::Widget::PrefCheckButton _win_dialogs_tab_close_btn;
     UI::Widget::PrefRadioButton _win_save_geom_off;
     UI::Widget::PrefRadioButton _win_save_geom;
     UI::Widget::PrefRadioButton _win_save_geom_prefs;

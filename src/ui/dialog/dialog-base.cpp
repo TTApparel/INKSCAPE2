@@ -64,6 +64,7 @@ DialogBase::DialogBase(char const * const prefs_path, Glib::ustring dialog_type)
         remove_first(_name, "...");
         remove_first(_name, "…"  );
         remove_first(_name, "_"  );
+        _icon_name = it->second.icon_name;
     }
 
     set_name(_dialog_type); // Essential for dialog functionality

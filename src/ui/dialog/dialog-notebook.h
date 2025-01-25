@@ -26,8 +26,10 @@
 #include <sigc++/scoped_connection.h>
 
 #include "dialog-container.h"
+#include "preferences.h"
 #include "ui/widget/popover-menu.h"
 #include "ui/widget/popover-bin.h"
+#include "ui/widget/tab-strip.h"
 
 namespace Glib {
 class ValueBase;
@@ -66,7 +68,7 @@ public:
     DialogNotebook(DialogContainer *container);
     ~DialogNotebook() override;
 
-    void add_page(Gtk::Widget &page, Gtk::Widget &tab, Glib::ustring label);
+    void add_page(Gtk::Widget &page, Gtk::Widget &tab, Glib::ustring label, Glib::ustring image);
     void move_page(Gtk::Widget &page);
     void select_page(Gtk::Widget& page);
 
@@ -86,10 +88,15 @@ public:
 private:
     // Widgets
     DialogContainer *_container;
-    UI::Widget::PopoverMenu _menu;
-    UI::Widget::PopoverMenu _menutabs;
+    UI::Widget::PopoverMenu _menu{Gtk::PositionType::BOTTOM};
+    UI::Widget::PopoverMenu _menudock{Gtk::PositionType::BOTTOM};
+    UI::Widget::PopoverMenu _menutabs{Gtk::PositionType::BOTTOM};
     Gtk::Notebook _notebook;
     UI::Widget::PopoverBin _popoverbin;
+    UI::Widget::TabStrip _tabs;
+    Gtk::Box _content{Gtk::Orientation::VERTICAL};
+    DialogWindow* float_tab(Gtk::Widget& page);
+    void add_notebook_page(Gtk::Widget& page, Gtk::Widget& tab, const Glib::ustring& label, const Glib::ustring& icon);
 
     // State variables
     bool _label_visible;
@@ -107,6 +114,8 @@ private:
     std::vector<sigc::scoped_connection> _conn;
     std::vector<sigc::scoped_connection> _connmenu;
     std::multimap<Gtk::Widget *, sigc::scoped_connection> _tab_connections;
+    PrefObserver _label_pref;
+    PrefObserver _tabclose_pref;
 
     static std::list<DialogNotebook *> _instances;
     void add_highlight_header();

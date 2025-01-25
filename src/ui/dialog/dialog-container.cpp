@@ -315,7 +315,7 @@ void DialogContainer::new_dialog(const Glib::ustring& dialog_type, DialogNoteboo
     }
 
     // Add dialog
-    notebook->add_page(*dialog, *tab, dialog->get_name());
+    notebook->add_page(*dialog, *tab, dialog->get_name(), image);
 
     if (auto panel = dynamic_cast<DialogMultipaned*>(notebook->get_parent())) {
         // if panel is collapsed, show it now, or else new dialog will be mysteriously missing
@@ -515,7 +515,7 @@ DialogWindow *DialogContainer::create_new_floating_dialog(const Glib::ustring& d
 
     // New temporary noteboook
     auto const notebook = Gtk::make_managed<DialogNotebook>(this);
-    notebook->add_page(*dialog, *tab, dialog->get_name());
+    notebook->add_page(*dialog, *tab, dialog->get_name(), "");
 
     return notebook->pop_tab_callback();
 }
