@@ -245,48 +245,12 @@ void DialogNotebook::build_docking_menu(UI::Widget::PopoverMenu& menu) {
 }
 
 void DialogNotebook::build_dialog_menu(UI::Widget::PopoverMenu& menu) {
-    struct Dialog {
-        Glib::ustring key;
-        Glib::ustring label;
-        Glib::ustring order;
-        Glib::ustring icon_name;
-        DialogData::Category category;
-        ScrollProvider provide_scroll;
-    };
-    std::vector<Dialog> all_dialogs;
-    auto const &dialog_data = get_dialog_data();
-    all_dialogs.reserve(dialog_data.size());
-    for (auto&& kv : dialog_data) {
-        const auto& key = kv.first;
-        const auto& data = kv.second;
-        if (data.category == DialogData::Other) {
-            continue;
-        }
-        // for sorting dialogs alphabetically, remove '_' (used for accelerators)
-        Glib::ustring order = data.label; // Already translated
-        auto underscore = order.find('_');
-        if (underscore != Glib::ustring::npos) {
-            order = order.erase(underscore, 1);
-        }
-        all_dialogs.emplace_back(Dialog {
-                                     .key = key,
-                                     .label = data.label,
-                                     .order = order,
-                                     .icon_name = data.icon_name,
-                                     .category = data.category,
-                                     .provide_scroll = data.provide_scroll
-                                 });
-    }
-    // sort by categories and then by names
-    std::sort(all_dialogs.begin(), all_dialogs.end(), [](const Dialog& a, const Dialog& b){
-        if (a.category != b.category) return a.category < b.category;
-        return a.order < b.order;
-    });
-
+    // dialogs are already ordered by categories, and that is exactly how they should be arranged in the menu
+    auto dialog_data = get_dialog_data_list();
     const auto icon_size = Gtk::IconSize::NORMAL;
     int row = 0;
     auto builder = ColumnMenuBuilder<DialogData::Category>{menu, 2, icon_size, row};
-    for (auto const &data : all_dialogs) {
+    for (auto const &data : dialog_data) {
         if (data.category == DialogData::Diagnostics) {
             continue; // hide dev dialogs from dialogs menu
         }
