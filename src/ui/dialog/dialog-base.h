@@ -63,6 +63,7 @@ public:
     Glib::ustring const &get_name    () const { return _name       ; }
     Glib::ustring const &getPrefsPath() const { return _prefs_path ; }
     Glib::ustring const &get_type    () const { return _dialog_type; }
+    const Glib::ustring& get_icon() const { return _icon_name; }
 
     void blink();
     // find focusable widget to grab focus
@@ -116,6 +117,7 @@ private:
     SPDesktop  *desktop   = nullptr;
     SPDocument *document  = nullptr;
     Selection  *selection = nullptr;
+    Glib::ustring _icon_name;
 };
 
 } // namespace Inkscape::UI::Dialog

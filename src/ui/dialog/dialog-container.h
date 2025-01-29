@@ -57,7 +57,6 @@ public:
 
     // Dialog-related functions
     void new_dialog(const Glib::ustring& dialog_type);
-
     DialogWindow* new_floating_dialog(const Glib::ustring& dialog_type);
     bool has_dialog_of_type(DialogBase *dialog);
     DialogBase *get_dialog(const Glib::ustring& dialog_type);
@@ -68,6 +67,8 @@ public:
     void update_dialogs(); // Update all linked dialogs
     void set_inkscape_window(InkscapeWindow *inkscape_window);
     InkscapeWindow *get_inkscape_window() { return _inkscape_window; }
+    enum Dock { LeftTop, LeftBottom, RightTop, RightBottom };
+    bool dock_dialog(Gtk::Widget& page, Dock location);
 
     // State saving functionality
     Glib::RefPtr<Glib::KeyFile> save_container_state();
@@ -102,6 +103,9 @@ private:
     Gtk::Widget *create_notebook_tab(Glib::ustring const &label, Glib::ustring const &image,
                                      Glib::ustring const &shortcut);
     DialogWindow *create_new_floating_dialog(Glib::ustring const &dialog_type, bool blink);
+    // get existing or create if needed requested panel
+    DialogMultipaned* get_create_multipaned(Dock location);
+    DialogNotebook* get_notebook(DialogMultipaned* pane, Dock location);
 
     // Signal connections
     std::vector<sigc::scoped_connection> connections;
