@@ -40,6 +40,7 @@ public:
             const gchar * const id;
             export_id_not_found(const gchar * const id = nullptr) : id{id} {};
     };
+    struct lost_document {}; ///< Document was closed during execution of async extension.
 
     Output(Inkscape::XML::Node *in_repr, ImplementationHolder implementation, std::string *base_directory);
     ~Output () override;

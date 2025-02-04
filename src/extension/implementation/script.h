@@ -23,9 +23,10 @@
 #include <glibmm/spawn.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/enums.h>
-
 #include <sigc++/scoped_connection.h>
+
 #include "implementation.h"
+#include "undo-stack-observer.h"
 #include "xml/node.h"
 
 namespace Glib {
@@ -74,7 +75,7 @@ private:
     Glib::RefPtr<Glib::MainLoop> _main_loop;
 
     void _change_extension(Inkscape::Extension::Extension *mod, ExecutionEnv *executionEnv, SPDocument *doc,
-                           std::list<std::string> &params, bool ignore_stderr);
+                           std::list<std::string> &params, bool ignore_stderr, bool pipe_diffs = false);
 
     /**
      * The command that has been derived from
@@ -117,11 +118,25 @@ private:
         bool toFile(const std::string &name);
     };
 
-    int execute (const std::list<std::string> &in_command,
-                 const std::list<std::string> &in_params,
-                 const Glib::ustring &filein,
-                 file_listener &fileout,
-                 bool ignore_stderr = false);
+    class PreviewObserver : public UndoStackObserver
+    {
+    public:
+        PreviewObserver(Glib::RefPtr<Glib::IOChannel> channel);
+
+    private:
+        void notifyUndoCommitEvent(Event *log) override;
+        void notifyUndoEvent(Event *log) override;
+        void notifyRedoEvent(Event *log) override;
+        void notifyClearUndoEvent() override;
+        void notifyClearRedoEvent() override;
+        void notifyUndoExpired(Event *log) override;
+
+        Glib::RefPtr<Glib::IOChannel> _channel;
+    };
+
+    int execute(std::list<std::string> const &in_command, std::list<std::string> const &in_params,
+                Glib::ustring const &filein, file_listener &fileout, bool ignore_stderr = false,
+                bool pipe_diffs = false);
 
     void pump_events();
 

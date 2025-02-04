@@ -63,6 +63,9 @@ public:
     /** \brief  If stderr log should be shown, when process return code is 0 */
     bool ignore_stderr = false;
 
+    /** \brief  If changesets should be piped in via stdin */
+    bool pipe_diffs = false;
+
     /** \brief  Static function to get the last effect used */
     static Effect *  get_last_effect () { return _last_effect; };
     static void      set_last_effect (Effect * in_effect);
