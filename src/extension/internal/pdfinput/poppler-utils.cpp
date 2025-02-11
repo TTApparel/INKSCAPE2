@@ -648,10 +648,17 @@ std::string getString(const GooString *value)
         } else if (_POPPLER_HAS_UNICODE_BOMLE(value)) {
             str = g_convert(value->getCString () + 2, value->getLength () - 2,
                             "UTF-8", "UTF-16LE", NULL, NULL, NULL);
-        } else if (char *utf16 = pdfDocEncodingToUTF16(value->toStr(), &stringLength))  {
+        }
+#if POPPLER_CHECK_VERSION(25,02,0)
+        else if (auto utf16 = pdfDocEncodingToUTF16(value->toStr()); !utf16.empty())  {
+            str = g_convert(utf16.c_str(), utf16.length(), "UTF-8", "UTF-16", NULL, NULL, NULL);
+        }
+#else
+        else if (auto utf16 = pdfDocEncodingToUTF16(value->toStr(), &stringLength))  {
             str = g_convert(utf16, stringLength, "UTF-8", "UTF-16", NULL, NULL, NULL);
             delete[] utf16;
         }
+#endif
         if (str) {
             std::string copy = str;
             g_free(str);
