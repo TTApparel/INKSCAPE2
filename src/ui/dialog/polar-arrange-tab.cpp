@@ -289,6 +289,8 @@ void PolarArrangeTab::arrange()
             }
             ++count;
         }
+    } else {
+        count = tmp.size();
     }
 
     float cx, cy; // Center of the ellipse
@@ -325,6 +327,13 @@ void PolarArrangeTab::arrange()
         arcEnd = angleY.getValue("rad") * yaxisdir;
         transformation.setIdentity();
         referenceEllipse = nullptr;
+    }
+
+    if (count < 1) {
+        if (auto desktop = parent->getDesktop()) {
+            desktop->showNotice(_("No objects to arrange"), 5000);
+        }
+        return;
     }
 
     int anchor = 9;
