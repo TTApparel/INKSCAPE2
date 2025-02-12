@@ -33,7 +33,7 @@ msgstr ""
 "Project-Id-Version: inkscape\n"
 "Report-Msgid-Bugs-To: inkscape-translator@lists.inkscape.org\n"
 "POT-Creation-Date: 2023-08-23 09:41+0200\n"
-"PO-Revision-Date: 2023-08-23 22:04+0200\n"
+"PO-Revision-Date: 2024-11-24 16:14+0200\n"
 "Last-Translator: \n"
 "Language-Team: Catalan <gnome@llistes.softcatala.org>\n"
 "Language: ca\n"
@@ -18842,7 +18842,7 @@ msgstr ""
 
 #: ../src/live_effects/lpe-knot.cpp:365
 msgid "_Gaps in both"
-msgstr "Espais en _ambdos"
+msgstr "Espais en _ambdós"
 
 #: ../src/live_effects/lpe-knot.cpp:365
 msgid "At path intersections, both parts will have a gap"
@@ -23210,21 +23210,21 @@ msgstr "Reinicia el centre"
 #: ../src/seltrans.cpp:1161 ../src/seltrans.cpp:1264
 #, c-format
 msgid "<b>Scale</b>: %0.2f%% x %0.2f%%; with <b>%s</b> to lock ratio"
-msgstr "<b>Escala</b>: %0.2f%% x %0.2f%%; amb <b>%s</b>per blocar la relació"
+msgstr "<b>Escala</b>: %0.2f%% x %0.2f%%; amb <b>%s</b> per blocar la relació"
 
 #. TRANSLATORS: don't modify the first ";"
 #. (it will NOT be displayed as ";" - only the second one will be)
 #: ../src/seltrans.cpp:1407
 #, c-format
 msgid "<b>Skew</b>: %0.2f&#176;; with <b>%s</b> to snap angle"
-msgstr "<b>Esbiaixa</b>: %0.2f#176;; amb <b>%s</b>per a ajustar l'angle"
+msgstr "<b>Esbiaixa</b>: %0.2f#176;; amb <b>%s</b> per a ajustar l'angle"
 
 #. TRANSLATORS: don't modify the first ";"
 #. (it will NOT be displayed as ";" - only the second one will be)
 #: ../src/seltrans.cpp:1487
 #, c-format
 msgid "<b>Rotate</b>: %0.2f&#176;; with <b>%s</b> to snap angle"
-msgstr "<b>Gira</b>: %0.2f#176;; amb <b>%s</b>per ajustar l'angle"
+msgstr "<b>Gira</b>: %0.2f#176;; amb <b>%s</b> per ajustar l'angle"
 
 #: ../src/seltrans.cpp:1524
 #, c-format
@@ -28700,7 +28700,7 @@ msgstr ""
 
 #: ../src/ui/dialog/inkscape-preferences.cpp:1635
 msgid "Show zoom percentage corrected by factor"
-msgstr "Mostra el percentatge de d'ampliació corregit pel factor"
+msgstr "Mostra el percentatge d'ampliació corregit pel factor"
 
 #: ../src/ui/dialog/inkscape-preferences.cpp:1636
 msgid "Zoom percentage can be either by the physical units or by pixels."
@@ -35867,7 +35867,7 @@ msgstr "Majúscules"
 #: ../src/ui/toolbar/pencil-toolbar.cpp:496
 msgid "Line endings when drawing with pressure-sensitive PowerPencil"
 msgstr ""
-"Fins de línia quan es dibuixen amb un PowerPencil amb sensor de presió"
+"Fins de línia quan es dibuixen amb un PowerPencil amb sensor de pressió"
 
 #: ../src/ui/toolbar/rect-toolbar.cpp:81
 #: ../share/ui/object-attributes.glade:223
@@ -37901,7 +37901,7 @@ msgid ""
 "<b>Drag near</b> objects to select them; press <b>%s</b> to switch to touch "
 "selection"
 msgstr ""
-"<b>Arrossegueu prop de</b> objectes per seleccionar-los; premeu <b>%s</b> "
+"<b>Arrossegueu prop</b> d'objectes per seleccionar-los; premeu <b>%s</b> "
 "per canviar a la selecció tàctil"
 
 #: ../src/ui/tools/select-tool.cpp:611
@@ -41207,7 +41207,7 @@ msgstr "Crisp les vores"
 
 #: ../share/ui/image-properties.glade:268
 msgid "Pixelated"
-msgstr "Píxelat"
+msgstr "Pixelat"
 
 #: ../share/ui/inkscape-about.glade:19
 msgid "Inkscape. Draw freely."
@@ -41429,7 +41429,7 @@ msgstr "Document nou"
 
 #: ../share/ui/inkscape-start.glade:1129
 msgid "Time to Draw"
-msgstr "Temps de dibuixar"
+msgstr "És l'hora de dibuixar"
 
 #. Not automatic, but will be turned into start-welcome-text.svg
 #: ../share/ui/inkscape-start.glade:1179
@@ -43680,7 +43680,7 @@ msgstr ""
 "\n"
 "Missatge d'error: %s\n"
 "\n"
-"El convertidor SVG a Synfig està dissenyat per a gestionar els fitxers SVG que es van crear utilitzant l'Inkscape. Les característiques no admeses són més probable que es produeixin en fitxers SVG escrits per altres programes.\n"
+"El convertidor SVG a Synfig està dissenyat per a gestionar els fitxers SVG que es van crear utilitzant l'Inkscape. Les característiques no admeses són més probables que es produeixin en fitxers SVG escrits per altres programes.\n"
 
 #: ../share/extensions/text_split.py:176
 msgid ""
@@ -48752,7 +48752,7 @@ msgstr "Prefixar identificadors escurçats amb el prefix específic."
 #: ../share/extensions/output_scour.inx:87
 msgid "Preserve manually created IDs not ending with digits"
 msgstr ""
-"Preserva els identificadors creats manualment que no acaben amb els dígits"
+"Conserva els identificadors creats manualment que no acaben amb els dígits"
 
 #: ../share/extensions/output_scour.inx:87
 msgid ""
@@ -48769,7 +48769,7 @@ msgstr ""
 
 #: ../share/extensions/output_scour.inx:90
 msgid "Preserve the following IDs:"
-msgstr "Preservar els següents Identificadors:"
+msgstr "Conserva els següents Identificadors:"
 
 #: ../share/extensions/output_scour.inx:90
 msgid "A comma-separated list of IDs that are to be preserved."
@@ -48778,7 +48778,7 @@ msgstr ""
 
 #: ../share/extensions/output_scour.inx:93
 msgid "Preserve IDs starting with:"
-msgstr "Preserva els identificadors que comencen amb:"
+msgstr "Conserva els identificadors que comencen amb:"
 
 #: ../share/extensions/output_scour.inx:93
 msgid ""
@@ -48786,7 +48786,7 @@ msgid ""
 " to preserve \"flag-mx\", \"flag-pt\", etc.)."
 msgstr ""
 "Conserva tots els identificadors que comencen amb el prefix especificat (per"
-" exemple, especifiqueu «flag» per a preservar «flag-mx», «flag-pt», etc.)."
+" exemple, especifiqueu «flag» per a conservar «flag-mx», «flag-pt», etc.)."
 
 #: ../share/extensions/output_scour.inx:101
 msgid "Optimized SVG Output is provided by"

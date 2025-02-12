@@ -19,6 +19,7 @@
 #include <gtkmm/application.h>
 #include <gtkmm/box.h>
 #include <gtkmm/eventcontrollerkey.h>
+#include <gtkmm/shortcutcontroller.h>
 
 #include "document.h"
 #include "inkscape.h"
@@ -32,6 +33,7 @@
 #include "ui/dialog/dialog-multipaned.h"
 #include "ui/dialog/dialog-notebook.h"
 #include "ui/pack.h"
+#include "ui/shortcuts.h"
 #include "ui/themes.h"
 
 // Sizing constants
@@ -72,21 +74,17 @@ DialogWindow::DialogWindow(InkscapeWindow *inkscape_window, Gtk::Widget *page)
         return true;
     }, false); // before GTKʼs default handler, so it wonʼt try to double-delete
 
-    auto win_action_group = dynamic_cast<Gio::ActionGroup *>(inkscape_window);
-    if (win_action_group) {
-        // C++ API requires Glib::RefPtr<Gio::ActionGroup>, use C API here.
-        gtk_widget_insert_action_group(Gtk::Widget::gobj(), "win", win_action_group->gobj());
-    } else {
-        std::cerr << "DialogWindow::DialogWindow: Can't find InkscapeWindow Gio:ActionGroup!" << std::endl;
-    }
-
-    insert_action_group("doc", inkscape_window->get_document()->getActionGroup());
-
     // ================ Window ==================
     set_title(_title);
     set_name(_title);
     int window_width = INITIAL_WINDOW_WIDTH;
     int window_height = INITIAL_WINDOW_HEIGHT;
+
+    // ================ Shortcuts ================
+    auto& shortcuts_instance = Inkscape::Shortcuts::getInstance();
+    auto shortcut_controller = Gtk::ShortcutController::create(shortcuts_instance.get_liststore());
+    shortcut_controller->set_propagation_phase(Gtk::PropagationPhase::BUBBLE);
+    add_controller(shortcut_controller);
 
     // =============== Outer Box ================
     auto const box_outer = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
@@ -194,6 +192,16 @@ void DialogWindow::update_dialogs()
     if (document_name) {
         set_title(_title + " - " + Glib::ustring(document_name));
     }
+
+    auto win_action_group = dynamic_cast<Gio::ActionGroup *>(_inkscape_window);
+    if (win_action_group) {
+        // C++ API requires Glib::RefPtr<Gio::ActionGroup>, use C API here.
+        gtk_widget_insert_action_group(Gtk::Widget::gobj(), "win", win_action_group->gobj());
+    } else {
+        std::cerr << "DialogWindow::DialogWindow: Can't find InkscapeWindow Gio:ActionGroup!" << std::endl;
+    }
+
+    insert_action_group("doc", _inkscape_window->get_document()->getActionGroup());
 }
 
 /**

@@ -100,10 +100,11 @@ bool Inkscape::DocumentUndo::getUndoSensitive(SPDocument const *document) {
 
 void Inkscape::DocumentUndo::done(SPDocument *doc,
                                   Glib::ustring const &event_description,
-                                  Glib::ustring const &icon_name)
+                                  Glib::ustring const &icon_name,
+                                  unsigned int object_modified_tag)
 {
     if (doc->sensitive) {
-        maybeDone(doc, nullptr, event_description, icon_name);
+        maybeDone(doc, nullptr, event_description, icon_name, object_modified_tag);
     }
 }
 
@@ -150,7 +151,8 @@ public:
 void Inkscape::DocumentUndo::maybeDone(SPDocument *doc,
                                        const gchar *key,
                                        Glib::ustring const &event_description,
-                                       Glib::ustring const &icon_name)
+                                       Glib::ustring const &icon_name,
+                                       unsigned int object_modified_tag)
 {
 	g_assert (doc != nullptr);
     g_assert (doc->sensitive);
@@ -169,7 +171,7 @@ void Inkscape::DocumentUndo::maybeDone(SPDocument *doc,
     Inkscape::Debug::EventTracker<CommitEvent> tracker(doc, key, event_description.c_str(), icon_name.c_str());
 
     doc->collectOrphans();
-    doc->ensureUpToDate();
+    doc->ensureUpToDate(object_modified_tag);
 
     DocumentUndo::clearRedo(doc);
 

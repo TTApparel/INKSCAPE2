@@ -14,6 +14,9 @@
 # include "config.h"  // only include where actually required!
 #endif
 
+#include <iostream>
+#include <iomanip>
+
 #ifndef PANGO_ENABLE_ENGINE
 #define PANGO_ENABLE_ENGINE
 #endif
@@ -29,6 +32,7 @@
 #include <pango/pangoft2.h>
 #include <harfbuzz/hb.h>
 #include <harfbuzz/hb-ft.h>
+#include <harfbuzz/hb-ot.h>
 
 #include <glibmm/regex.h>
 
@@ -145,12 +149,14 @@ void FontInstance::acquire(PangoFont *p_font_, PangoFontDescription *descr_)
     descr = descr_;
     hb_font_copy = nullptr;
     face = nullptr;
+    hb_face = nullptr;
 
-    auto hb_font = pango_font_get_hb_font(p_font); // Pango owns hb_font.
+    hb_font = pango_font_get_hb_font(p_font); // Pango owns hb_font.
     if (!hb_font) {
         release();
         throw CtorException("Failed to get harfbuzz font");
     }
+    hb_face = hb_font_get_face(hb_font);
 
 #if HB_VERSION_ATLEAST(2,6,5)
     // hb_font is immutable, yet we need to act on it (with set_funcs) to extract the freetype face
@@ -158,7 +164,9 @@ void FontInstance::acquire(PangoFont *p_font_, PangoFontDescription *descr_)
     hb_ft_font_set_funcs(hb_font_copy);
     face = hb_ft_font_lock_face(hb_font_copy);
 #else
-    face = pango_fc_font_lock_face(PANGO_FC_FONT(p_font));
+    if (face) {
+        pango_fc_font_unlock_face(PANGO_FC_FONT(p_font));
+    }
 #endif
     if (!face) {
         release();
@@ -190,11 +198,14 @@ void FontInstance::init_face()
     auto hb_font = pango_font_get_hb_font(p_font); // Pango owns hb_font.
     assert(hb_font); // Guaranteed since already tested in acquire().
 
+    has_svg = hb_ot_color_has_svg(hb_face); // SVG glyphs Since HB 2.1.0
+
     FT_Select_Charmap(face, ft_encoding_unicode);
     FT_Select_Charmap(face, ft_encoding_symbol);
 
     data = std::make_shared<Data>();
-    readOpenTypeSVGTable(hb_font, data->openTypeSVGGlyphs);
+    readOpenTypeTableList(hb_font, openTypeTableList);
+    readOpenTypeSVGTable(hb_font, data->openTypeSVGGlyphs, data->openTypeSVGData);
     readOpenTypeFvarAxes(face, data->openTypeVarAxes);
 
 #if FREETYPE_MAJOR == 2 && FREETYPE_MINOR >= 8  // 2.8 does not seem to work even though it has some support.
@@ -382,18 +393,21 @@ void FontInstance::find_font_metrics()
     // std::cout << "  text_after:  " << _baselines[ SP_CSS_BASELINE_TEXT_AFTER_EDGE  ] << std::endl;
 }
 
-int FontInstance::MapUnicodeChar(gunichar c) const
+unsigned int FontInstance::MapUnicodeChar(gunichar c) const
 {
-    int res = 0;
-    if (c > 0xf0000) {
-        res = CLAMP(c, 0xf0000, 0x1fffff) - 0xf0000;
+    unsigned int res = 0;
+    if (c > 0x10ffff) {
+        // >= 0xf0000 is out of range for assigned codepoints, above is for private use.
+        std::cerr << "FontInstance::MapUnicodeChar: Unicode codepoint out of range: "
+                  << std::hex << c << std::dec
+                  << std::endl;
     } else {
         res = FT_Get_Char_Index(face, c);
     }
     return res;
 }
 
-FontGlyph const *FontInstance::LoadGlyph(int glyph_id)
+FontGlyph const *FontInstance::LoadGlyph(unsigned int glyph_id)
 {
     if (!FT_IS_SCALABLE(face)) {
         return nullptr; // bitmap font
@@ -405,35 +419,64 @@ FontGlyph const *FontInstance::LoadGlyph(int glyph_id)
 
     Geom::PathBuilder path_builder;
 
-    auto n_g = std::make_unique<FontGlyph>();
-    n_g->bbox[0] = n_g->bbox[1] = n_g->bbox[2] = n_g->bbox[3] = 0.0;
-    n_g->h_advance = 0.0;
-    n_g->v_advance = 0.0;
-    n_g->h_width = 0.0;
-    n_g->v_width = 0.0;
-
+    // Note: Bitmap only fonts (i.e. some color fonts) ignore FT_LOAD_NO_BITMAP.
     if (FT_Load_Glyph(face, glyph_id, FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP)) {
         return nullptr; // error
     }
 
-    if (FT_HAS_HORIZONTAL(face)) {
-        n_g->h_advance = (double)face->glyph->metrics.horiAdvance / face->units_per_EM;
-        n_g->h_width = (double)face->glyph->metrics.width / face->units_per_EM;
-    } else {
-        n_g->h_width = n_g->h_advance = (double)face->bbox.xMax-face->bbox.xMin / face->units_per_EM;
+    // Find scale, used by both metrics and paths.
+    int x_scale = 0;
+    int y_scale = 0;
+    hb_font_get_scale(hb_font, &x_scale, &y_scale);
+    if (x_scale != y_scale) {
+        std::cerr << "FontInstance::LoadGlyph: x scale not equal to y scale!" << std::endl;
     }
-    if (FT_HAS_VERTICAL(face)) {
-        n_g->v_advance = (double)face->glyph->metrics.vertAdvance / face->units_per_EM;
-        n_g->v_width = (double)face->glyph->metrics.height / face->units_per_EM;
+
+    auto n_g = std::make_unique<FontGlyph>();
+
+    // Find metrics ----------------------------------
+
+    // Use harfbuzz as freetype doesn't return proper values for bitmap fonts.
+
+    n_g->h_advance = hb_font_get_glyph_h_advance (hb_font, glyph_id) / (double)x_scale; // Since HB 0.9.2
+    if (openTypeTableList.contains("vmtx")) {
+        n_g->v_advance = -hb_font_get_glyph_v_advance (hb_font, glyph_id) / (double)y_scale;
     } else {
+        // Don't use harfbuzz synthisized vertical metrics, it's wrong (includes line gap?)!
         // CSS3 Writing modes dictates that if vertical font metrics are missing we must
         // synthisize them. No method is specified. The SVG 1.1 spec suggests using the em
         // height (which is not theFace->height as that includes leading). The em height
         // is ascender + descender (descender positive).  Note: The "Requirements for
         // Japanese Text Layout" W3C document says that Japanese kanji should be "set
         // solid" which implies that vertical (and horizontal) advance should be 1em.
-        n_g->v_width = n_g->v_advance = 1.0;
+        n_g->v_advance = 1.0;
     }
+
+    hb_glyph_extents_t extents;
+    bool success = hb_font_get_glyph_extents(hb_font, glyph_id, &extents); // Since HB 0.9.2
+    if (success) {
+        n_g->bbox_exact = Geom::Rect(extents.x_bearing / (double)x_scale,
+                                     extents.y_bearing / (double)y_scale,
+                                    (extents.x_bearing + extents.width) / (double)x_scale,
+                                    (extents.y_bearing + extents.height) / (double)y_scale);
+    } else {
+        std::cerr << "FontInstance::LoadGlyph: Failed to get glyph extents for glyph: glyph_id!"
+                  << "  (" << pango_font_description_to_string(descr) << ")"
+                  << std::endl;
+    }
+
+    // Nominal design space of glyph.
+    n_g->bbox_pick.setRight(n_g->h_advance);
+    n_g->bbox_pick.setBottom(  _ascent_max);
+    n_g->bbox_pick.setTop(   -_descent_max);
+
+    // Any place that might be inked, including any text decoration.
+    n_g->bbox_draw = n_g->bbox_pick;               // Design space for glyph
+    n_g->bbox_draw.setBottom(  _ascent_max * 1.1); // Expand to allow for text decoration
+    n_g->bbox_draw.setTop(   -_descent_max * 1.1);
+    n_g->bbox_draw.unionWith(n_g->bbox_exact);     // Extend if glyph leaks outside of design space.
+
+    // Find path vector ------------------------------
 
     if (face->glyph->format == ft_glyph_format_outline) {
         FT_Outline_Funcs ft2_outline_funcs = {
@@ -458,13 +501,6 @@ FontGlyph const *FontInstance::LoadGlyph(int glyph_id)
 
     if (!pv.empty()) {
         n_g->pathvector = std::move(pv);
-        Geom::OptRect bounds = bounds_exact(n_g->pathvector);
-        if (bounds) {
-            n_g->bbox[0] = bounds->left();
-            n_g->bbox[1] = bounds->top();
-            n_g->bbox[2] = bounds->right();
-            n_g->bbox[3] = bounds->bottom();
-        }
     }
 
     auto ret = data->glyphs.emplace(glyph_id, std::move(n_g));
@@ -513,19 +549,37 @@ bool FontInstance::FontSlope(double &run, double &rise) const
     return true;
 }
 
-Geom::OptRect FontInstance::BBox(int glyph_id)
+Geom::Rect FontInstance::BBoxExact(unsigned int glyph_id)
 {
     auto g = LoadGlyph(glyph_id);
     if (!g) {
         return {};
     }
 
-    Geom::Point rmin(g->bbox[0], g->bbox[1]);
-    Geom::Point rmax(g->bbox[2], g->bbox[3]);
-    return Geom::Rect(rmin, rmax);
+    return g->bbox_exact;
 }
 
-Geom::PathVector const *FontInstance::PathVector(int glyph_id)
+Geom::Rect FontInstance::BBoxPick(unsigned int glyph_id)
+{
+    auto g = LoadGlyph(glyph_id);
+    if (!g) {
+        return {0, 0, 1, 1}; // em box
+    }
+
+    return g->bbox_pick;
+}
+
+Geom::Rect FontInstance::BBoxDraw(unsigned int glyph_id)
+{
+    auto g = LoadGlyph(glyph_id);
+    if (!g) {
+        return {};
+    }
+
+    return g->bbox_draw;
+}
+
+Geom::PathVector const *FontInstance::PathVector(unsigned int glyph_id)
 {
     auto g = LoadGlyph(glyph_id);
     if (!g) {
@@ -535,7 +589,7 @@ Geom::PathVector const *FontInstance::PathVector(int glyph_id)
     return &g->pathvector;
 }
 
-Inkscape::Pixbuf const *FontInstance::PixBuf(int glyph_id)
+Inkscape::Pixbuf const *FontInstance::PixBuf(unsigned int glyph_id)
 {
     auto glyph_iter = data->openTypeSVGGlyphs.find(glyph_id);
     if (glyph_iter == data->openTypeSVGGlyphs.end()) {
@@ -551,13 +605,13 @@ Inkscape::Pixbuf const *FontInstance::PixBuf(int glyph_id)
         return glyph_iter->second.pixbuf.get(); // already loaded
     }
 
-    Glib::ustring svg = glyph_iter->second.svg;
+    Glib::ustring svg = data->openTypeSVGData[glyph_iter->second.entry_index];
 
     // Create new viewbox which determines pixbuf size.
     Glib::ustring viewbox("viewBox=\"0 ");
     viewbox += std::to_string(-_design_units);
     viewbox += " ";
-    viewbox += std::to_string(_design_units);
+    viewbox += std::to_string(_design_units*2); // Noto emoji leaks outside of em-box.
     viewbox += " ";
     viewbox += std::to_string(_design_units*2);
     viewbox += "\"";
@@ -635,6 +689,11 @@ Inkscape::Pixbuf const *FontInstance::PixBuf(int glyph_id)
         svg = regex->replace_literal(svg, 0, viewbox, static_cast<Glib::Regex::MatchFlags>(0));
     }
 
+    // Make glyph visible.
+    auto pattern = Glib::ustring::compose("(id=\"\\s*glyph%1\\s*\")\\s*visibility=\"hidden\"", glyph_id);
+    auto regex2 = Glib::Regex::create(pattern, Glib::Regex::CompileFlags::OPTIMIZE);
+    svg = regex2->replace(svg, 0, "\\1", static_cast<Glib::Regex::MatchFlags>(0));
+
     // Finally create pixbuf!
     auto pixbuf = Inkscape::Pixbuf::create_from_buffer(svg.raw());
 
@@ -647,7 +706,7 @@ Inkscape::Pixbuf const *FontInstance::PixBuf(int glyph_id)
     return pixbuf;
 }
 
-double FontInstance::Advance(int glyph_id, bool vertical)
+double FontInstance::Advance(unsigned int glyph_id, bool vertical)
 {
     auto g = LoadGlyph(glyph_id);
     if (!g) {

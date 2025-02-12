@@ -14,8 +14,10 @@
 #include <glibmm/i18n.h>
 
 #include "actions-helper.h"
+#include "desktop.h"
 #include "document-undo.h"
 #include "inkscape-application.h"
+#include "inkscape-window.h"
 #include "preferences.h"
 #include "selection.h" // Selection
 #include "page-manager.h"
@@ -50,52 +52,61 @@ transform_translate(const Glib::VariantBase& value, InkscapeApplication *app)
 }
 
 void
-transform_rotate(const Glib::VariantBase& value, InkscapeApplication *app)
-{
-    Glib::Variant<double> d = Glib::VariantBase::cast_dynamic<Glib::Variant<double> >(value);
-    auto selection = app->get_active_selection();
-
-    selection->rotate(d.get());
-
-    // Needed to update repr (is this the best way?).
-    Inkscape::DocumentUndo::done(app->get_active_document(), "ActionTransformRotate", "");
-}
-
-void
 transform_scale(const Glib::VariantBase& value, InkscapeApplication *app)
 {
-    Glib::Variant<double> d = Glib::VariantBase::cast_dynamic<Glib::Variant<double> >(value);
-    auto selection = app->get_active_selection();
-    selection->scale(d.get());
-
-    // Needed to update repr (is this the best way?).
-    Inkscape::DocumentUndo::done(app->get_active_document(), "ActionTransformScale", "");
+    auto scale = (Glib::VariantBase::cast_dynamic<Glib::Variant<double>>(value)).get();
+    app->get_active_selection()->scaleAnchored(scale, false);
 }
 
 void
 transform_grow(const Glib::VariantBase& value, InkscapeApplication *app)
 {
-    Glib::Variant<double> d = Glib::VariantBase::cast_dynamic<Glib::Variant<double> >(value);
-    auto selection = app->get_active_selection();
-    selection->scaleGrow(d.get());
+    auto scale = (Glib::VariantBase::cast_dynamic<Glib::Variant<double>>(value)).get();
+    app->get_active_selection()->scaleAnchored(scale);
 }
 
 void
 transform_grow_step(const Glib::VariantBase& value, InkscapeApplication *app)
 {
-    Glib::Variant<double> d = Glib::VariantBase::cast_dynamic<Glib::Variant<double> >(value);
     Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-    auto selection = app->get_active_selection();
-    selection->scaleGrow(d.get() * prefs->getDoubleLimited("/options/defaultscale/value", 2, 0, 1000));
+
+    auto scale = (Glib::VariantBase::cast_dynamic<Glib::Variant<double>>(value)).get();
+    app->get_active_selection()->scaleAnchored(scale * prefs->getDoubleLimited("/options/defaultscale/value", 2, 0, 1000));
 }
 
 void
-transform_grow_screen(const Glib::VariantBase& value, InkscapeApplication *app)
+transform_grow_screen(const Glib::VariantBase& value, InkscapeWindow *win)
 {
-    Glib::Variant<double> d = Glib::VariantBase::cast_dynamic<Glib::Variant<double> >(value);
-    auto selection = app->get_active_selection();
-    selection->scaleScreen(d.get());
+    auto scale = (Glib::VariantBase::cast_dynamic<Glib::Variant<double>>(value)).get();
+    auto desktop = win->get_desktop();
+    desktop->getSelection()->scaleAnchored(scale / desktop->current_zoom());
 }
+
+void
+transform_rotate(const Glib::VariantBase& value, InkscapeApplication *app)
+{
+    auto angle = (Glib::VariantBase::cast_dynamic<Glib::Variant<double>>(value)).get();
+    app->get_active_selection()->rotateAnchored(angle);
+}
+
+void
+transform_rotate_step(const Glib::VariantBase& value, InkscapeApplication *app)
+{
+    Inkscape::Preferences *prefs = Inkscape::Preferences::get();
+
+    auto angle = (Glib::VariantBase::cast_dynamic<Glib::Variant<double>>(value)).get();
+    app->get_active_selection()->rotateAnchored(angle / prefs->getInt("/options/rotationsnapsperpi/value", 12));
+}
+
+void
+transform_rotate_screen(const Glib::VariantBase& value, InkscapeWindow *win)
+{
+    auto angle = (Glib::VariantBase::cast_dynamic<Glib::Variant<double>>(value)).get();
+    auto desktop = win->get_desktop();
+
+    desktop->getSelection()->rotateAnchored(angle, desktop->current_zoom());
+}
+
 
 void
 transform_remove(InkscapeApplication *app)
@@ -123,7 +134,7 @@ void page_rotate(const Glib::VariantBase& value, InkscapeApplication *app)
     Inkscape::DocumentUndo::done(document, "Rotate Page", INKSCAPE_ICON("tool-pages"));
 }
 
-// SHOULD REALLY BE DOC LEVEL ACTIONS
+// SHOULD REALLY BE SELECTION LEVEL ACTIONS
 std::vector<std::vector<Glib::ustring>> raw_data_transform = {
     // clang-format off
     {"app.transform-translate",   N_("Translate"),          "Transform",  N_("Translate selected objects (dx,dy)")},
@@ -132,6 +143,10 @@ std::vector<std::vector<Glib::ustring>> raw_data_transform = {
     {"app.transform-grow",        N_("Grow/Shrink"),        "Transform",  N_("Grow/shrink selected objects")},
     {"app.transform-grow-step",   N_("Grow/Shrink Step"),   "Transform",  N_("Grow/shrink selected objects by multiple of step value")},
     {"app.transform-grow-screen", N_("Grow/Shrink Screen"), "Transform",  N_("Grow/shrink selected objects relative to zoom level")},
+    {"app.transform-rotate",        N_("Rotate"),           "Transform",  N_("Rotate selected objects")},
+    {"app.transform-rotate-step",   N_("Rotate Step"),      "Transform",  N_("Rotate selected objects by multiple of step value")},
+    {"app.transform-rotate-screen", N_("Rotate Screen"),    "Transform",  N_("Rotate selected objects relative to zoom level")},
+
     {"app.transform-remove",      N_("Remove Transforms"),  "Transform",  N_("Remove any transforms from selected objects")},
     {"app.transform-reapply",     N_("Reapply Transforms"), "Transform",  N_("Reapply the last transformation to the selection")},
     {"app.page-rotate",           N_("Rotate Page 90°"),    "Transform",  N_("Rotate page by 90-degree rotation steps")},
@@ -154,6 +169,7 @@ std::vector<std::vector<Glib::ustring>> hint_data_transform =
 void
 add_actions_transform(InkscapeApplication* app)
 {
+    // If these ever get moved to the Inkscape::Selection object, the screen and app based ones can be combined again.
     Glib::VariantType Bool(  Glib::VARIANT_TYPE_BOOL);
     Glib::VariantType Int(   Glib::VARIANT_TYPE_INT32);
     Glib::VariantType Double(Glib::VARIANT_TYPE_DOUBLE);
@@ -167,7 +183,8 @@ add_actions_transform(InkscapeApplication* app)
     gapp->add_action_with_parameter( "transform-scale",          Double, sigc::bind(sigc::ptr_fun(&transform_scale),           app));
     gapp->add_action_with_parameter( "transform-grow",           Double, sigc::bind(sigc::ptr_fun(&transform_grow),            app));
     gapp->add_action_with_parameter( "transform-grow-step",      Double, sigc::bind(sigc::ptr_fun(&transform_grow_step),       app));
-    gapp->add_action_with_parameter( "transform-grow-screen",    Double, sigc::bind(sigc::ptr_fun(&transform_grow_screen),     app));
+    gapp->add_action_with_parameter( "transform-rotate",         Double, sigc::bind(sigc::ptr_fun(&transform_rotate),          app));
+    gapp->add_action_with_parameter( "transform-rotate-step",    Double, sigc::bind(sigc::ptr_fun(&transform_rotate_step),     app));
     gapp->add_action(                "transform-remove",                 sigc::bind(sigc::ptr_fun(&transform_remove),          app));
     gapp->add_action(                "transform-reapply",                sigc::bind(sigc::ptr_fun(&transform_reapply),         app));
     gapp->add_action_with_parameter( "page-rotate",              Int,    sigc::bind(sigc::ptr_fun(&page_rotate),               app));
@@ -177,6 +194,16 @@ add_actions_transform(InkscapeApplication* app)
     app->get_action_hint_data().add_data(hint_data_transform);
 }
 
+void
+add_actions_transform(InkscapeWindow* win)
+{
+    Glib::VariantType Double(Glib::VARIANT_TYPE_DOUBLE);
+
+    win->add_action_with_parameter( "transform-grow-screen", Double, sigc::bind(sigc::ptr_fun(&transform_grow_screen), win));
+    win->add_action_with_parameter( "transform-rotate-screen", Double, sigc::bind(sigc::ptr_fun(&transform_rotate_screen), win));
+
+    // action data already added above by app actions.
+}
 
 /*
   Local Variables:

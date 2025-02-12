@@ -35,7 +35,9 @@ document_new(InkscapeWindow* win)
 void
 document_dialog_templates(InkscapeWindow* win)
 {
-    Inkscape::UI::NewFromTemplate::load_new_from_template();
+    if (win) {
+        Inkscape::UI::NewFromTemplate::load_new_from_template(*win);
+    }
 }
 
 void
@@ -82,8 +84,6 @@ document_save_template(InkscapeWindow* win)
 void
 document_import(InkscapeWindow* win)
 {
-    Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-
     sp_file_import(*win);
 }
 

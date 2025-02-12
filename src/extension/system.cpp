@@ -174,7 +174,7 @@ void
 save(Extension *key, SPDocument *doc, gchar const *filename, bool check_overwrite, bool official,
     Inkscape::Extension::FileSaveMethod save_method)
 {
-    Output *omod;
+    Output *omod = nullptr;
     if (key == nullptr) {
         DB::OutputList o;
         for (auto mod : db.get_output_list(o)) {

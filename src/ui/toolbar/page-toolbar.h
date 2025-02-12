@@ -86,7 +86,6 @@ private:
     sigc::scoped_connection _label_edited;
     sigc::scoped_connection _size_edited;
 
-    Glib::RefPtr<Gtk::Builder> _builder;
     Gtk::ComboBoxText &_combo_page_sizes;
     Gtk::Entry *_entry_page_sizes;
     Gtk::Entry &_text_page_margins;

@@ -41,6 +41,8 @@
 #include "ui/icon-names.h"
 #include "ui/tools/star-tool.h"
 #include "ui/util.h"
+#include "ui/widget/combo-tool-item.h"
+#include "ui/widget/unit-tracker.h"
 #include "ui/widget/spinbutton.h"
 
 using Inkscape::DocumentUndo;
@@ -59,6 +61,8 @@ StarToolbar::StarToolbar(Glib::RefPtr<Gtk::Builder> const &builder)
     , _spoke_item{get_derived_widget<UI::Widget::SpinButton>(builder, "_spoke_item")}
     , _roundedness_item{get_derived_widget<UI::Widget::SpinButton>(builder, "_roundedness_item")}
     , _randomization_item{get_derived_widget<UI::Widget::SpinButton>(builder, "_randomization_item")}
+    , _tracker{std::make_unique<UI::Widget::UnitTracker>(Util::UNIT_TYPE_LINEAR)}
+    , _length_item{get_derived_widget<UI::Widget::SpinButton>(builder, "_length_item")}
 {
     bool is_flat_sided = Preferences::get()->getBool("/tools/shapes/star/isflatsided", false);
 
@@ -111,6 +115,7 @@ StarToolbar::StarToolbar(Glib::RefPtr<Gtk::Builder> const &builder)
     setup_derived_spin_button(_spoke_item, "proportion", 0.5, &StarToolbar::proportion_value_changed);
     setup_derived_spin_button(_roundedness_item, "rounded", 0.0, &StarToolbar::rounded_value_changed);
     setup_derived_spin_button(_randomization_item, "randomized", 0.0, &StarToolbar::randomized_value_changed);
+    setup_derived_spin_button(_length_item, "length", 0.0, &StarToolbar::length_value_changed);
 
     // Flatsided checkbox
     _flat_item_buttons.push_back(&get_widget<Gtk::ToggleButton>(builder, "flat_polygon_button"));
@@ -127,6 +132,10 @@ StarToolbar::StarToolbar(Glib::RefPtr<Gtk::Builder> const &builder)
         .connect(sigc::mem_fun(*this, &StarToolbar::_setDefaults));
 
     _spoke_box.set_visible(!is_flat_sided);
+
+    auto unit_menu = _tracker->create_tool_item(_("Units"), (""));
+    get_widget<Gtk::Box>(builder, "unit_menu_box").append(*unit_menu);
+    _tracker->addAdjustment(_length_item.get_adjustment()->gobj());
 
     _initMenuBtns();
 }
@@ -166,6 +175,7 @@ void StarToolbar::setDesktop(SPDesktop *desktop)
 {
     if (_desktop) {
         _selection_changed_conn.disconnect();
+        _selection_modified_conn.disconnect();
 
         if (_repr) {
             _detachRepr();
@@ -177,8 +187,14 @@ void StarToolbar::setDesktop(SPDesktop *desktop)
     if (_desktop) {
         auto sel = _desktop->getSelection();
         _selection_changed_conn = sel->connectChanged(sigc::mem_fun(*this, &StarToolbar::_selectionChanged));
+        _selection_modified_conn = sel->connectChanged(sigc::mem_fun(*this, &StarToolbar::_selectionModified));
         _selectionChanged(sel); // Synthesize an emission to trigger the update
     }
+}
+
+void StarToolbar::setActiveUnit(Util::Unit const *unit)
+{
+    _tracker->setActiveUnit(unit);
 }
 
 void StarToolbar::side_mode_changed(int mode)
@@ -356,6 +372,25 @@ void StarToolbar::randomized_value_changed()
     }
 }
 
+void StarToolbar::length_value_changed()
+{
+    if (!_blocker.pending() || _tracker->isUpdating()) {
+        // in turn, prevent listener from responding
+        auto guard = _blocker.block();
+
+        auto adj = _length_item.get_adjustment();
+        Preferences::get()->setDouble("/tools/shapes/star/length", adj->get_value());
+        
+        auto value = Util::Quantity::convert(adj->get_value(), _tracker->getActiveUnit(), "px");
+
+        for (auto item : _desktop->getSelection()->items()) {
+            if (auto star = cast<SPStar>(item)) {
+                star -> setSideLength(value);
+            }
+        }
+    }
+}
+
 void StarToolbar::_setDefaults()
 {
     _batchundo = true;
@@ -393,19 +428,44 @@ void StarToolbar::_selectionChanged(Selection *selection)
 
     int n_selected = 0;
     XML::Node *repr = nullptr;
+    double lengths = 0;
 
     for (auto item : selection->items()) {
-        if (is<SPStar>(item)) {
+        if (auto star = cast<SPStar>(item)) {
             n_selected++;
             repr = item->getRepr();
+            lengths += star->getSideLength();
         }
     }
 
     _mode_item.set_markup(n_selected == 0 ? _("<b>New:</b>") : _("<b>Change:</b>"));
+    _length_item.set_sensitive(n_selected > 0);
 
     if (n_selected == 1) {
         _attachRepr(repr);
         _repr->synthesizeEvents(*this); // Fixme: BAD
+    }
+    _selectionModified(selection);
+}
+
+void StarToolbar::_selectionModified(Selection *selection)
+{
+    if (!_blocker.pending()|| _tracker->isUpdating()) {
+        auto guard = _blocker.block();
+        auto length_adj = _length_item.get_adjustment();
+
+        int n_selected = 0;
+        double lengths = 0;
+        for (auto item : selection->items()) {
+            if (auto star = cast<SPStar>(item)) {
+                n_selected++;
+                lengths += star->getSideLength();
+            }
+        }
+        if (n_selected > 0) {
+            auto value = Util::Quantity::convert(lengths / n_selected, "px", _tracker->getActiveUnit());
+            length_adj->set_value(value);
+        }
     }
 }
 
@@ -426,6 +486,7 @@ void StarToolbar::notifyAttributeChanged(XML::Node &, GQuark name_, Util::ptr_sh
     bool isFlatSided = Preferences::get()->getBool("/tools/shapes/star/isflatsided", false);
     auto mag_adj = _magnitude_item.get_adjustment();
     auto spoke_adj = _spoke_item.get_adjustment();
+    auto length_adj = _length_item.get_adjustment(); 
 
     if (!strcmp(name, "inkscape:randomized")) {
         double randomized = _repr->getAttributeDouble("inkscape:randomized", 0.0);
@@ -456,6 +517,20 @@ void StarToolbar::notifyAttributeChanged(XML::Node &, GQuark name_, Util::ptr_sh
     } else if (!strcmp(name, "sodipodi:sides")) {
         int sides = _repr->getAttributeInt("sodipodi:sides", 0);
         mag_adj->set_value(sides);
+    }
+
+    double lengths = 0;
+    int n_selected = 0;
+    for (auto item : _desktop->getSelection()->items()) {
+        if (auto star = cast<SPStar>(item)) {
+            n_selected++;
+            lengths += star->getSideLength();
+        }
+    }
+
+    if (n_selected > 0) {
+        auto value = Util::Quantity::convert(lengths / n_selected, "px", _tracker->getActiveUnit());
+        length_adj->set_value(value);
     }
 }
 

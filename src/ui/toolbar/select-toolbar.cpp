@@ -32,7 +32,6 @@
 #include "object/sp-item-transform.h"
 #include "object/sp-namedview.h"
 #include "page-manager.h"
-#include "preferences.h"
 #include "selection.h"
 #include "ui/builder-utils.h"
 #include "ui/icon-names.h"
@@ -107,6 +106,12 @@ SelectToolbar::SelectToolbar(Glib::RefPtr<Gtk::Builder> const &builder)
     _lock_btn.set_active(prefs->getBool("/tools/select/lock_aspect_ratio", false));
     toggle_lock();
 
+    _box_observer = prefs->createObserver("/tools/bounding_box", [this](const Preferences::Entry& entry) {
+        if (_desktop) {
+            layout_widget_update(_desktop->getSelection());
+        }
+    });
+
     _initMenuBtns();
 }
 
@@ -167,7 +172,7 @@ void SelectToolbar::_sensitize()
 void SelectToolbar::any_value_changed(Glib::RefPtr<Gtk::Adjustment> const &adj)
 {
     // quit if run by the XML listener or a unit change
-    if (_blocker.pending() || _tracker->isUpdating()) {
+    if (_blocker.pending() || _tracker->isUpdating() || !_desktop) {
         return;
     }
 
@@ -179,7 +184,7 @@ void SelectToolbar::any_value_changed(Glib::RefPtr<Gtk::Adjustment> const &adj)
     auto document = _desktop->getDocument();
     auto &pm = document->getPageManager();
     auto page = pm.getSelectedPageRect();
-    auto page_correction = prefs->getBool("/options/origincorrection/page", true);
+    auto page_correction = document->get_origin_follows_page();
 
     document->ensureUpToDate();
 
@@ -302,7 +307,7 @@ void SelectToolbar::layout_widget_update(Selection *sel)
             auto x = bbox->left() + width * sel->anchor.x();
             auto y = bbox->top() + height * sel->anchor.y();
 
-            if (Preferences::get()->getBool("/options/origincorrection/page", true)) {
+            if (_desktop->getDocument()->get_origin_follows_page()) {
                 auto &pm = _desktop->getDocument()->getPageManager();
                 auto page = pm.getSelectedPageRect();
                 x -= page.left();

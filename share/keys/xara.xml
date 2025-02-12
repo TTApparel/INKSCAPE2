@@ -171,8 +171,6 @@ Hom/end keys-select minimum or maximum feather values
   <bind gaction="app.pattern-to-object"             keys="&lt;alt&gt;&lt;shift&gt;i, &lt;alt&gt;&lt;shift&gt;I" />
   <bind gaction="app.object-set-clip" />
   <bind gaction="app.object-release-clip" />
-  <bind gaction="app.object-rotate-90-cw"           keys="&lt;primary&gt;bracketright" />
-  <bind gaction="app.object-rotate-90-ccw"          keys="&lt;primary&gt;bracketleft" />
 
 <!-- Path -->
 

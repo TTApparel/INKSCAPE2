@@ -14,9 +14,6 @@
 #ifndef SP_EXPORT_BATCH_H
 #define SP_EXPORT_BATCH_H
 
-#include <map>
-#include <memory>
-#include <string>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/box.h>
@@ -27,9 +24,12 @@
 #include <gtkmm/grid.h>
 #include <gtkmm/label.h>
 #include <gtkmm/togglebutton.h>
-#include <gtkmm/checkbutton.h>
-
+#include <map>
+#include <memory>
+#include <optional>
 #include <sigc++/scoped_connection.h>
+#include <string>
+
 #include "ui/widget/export-preview.h"
 
 namespace Gtk {
@@ -82,6 +82,9 @@ public:
     void on_mode_changed(Gtk::SelectionMode mode);
     void set_selected(bool selected);
     void update_selected();
+
+    /// @brief Get "Export selected only" setting
+    /// @returns true if only selected items are shown in export
     bool isolateItem() const { return _isolate_item; }
     void setIsolateItem(bool isolate);
 
@@ -154,13 +157,15 @@ private:
     std::map<std::string, std::unique_ptr<BatchItem>> current_items;
 
     std::string original_name;
+    /// Filesystem path to export folder.
+    /// May be different from the button label of path_chooser that is shown to the user.
+    /// std::nullopt represents an unset/unknown path.
+    std::optional<Glib::RefPtr<Gio::File const>> export_path;
 
     Inkscape::Preferences *prefs = nullptr;
     std::map<selection_mode, Glib::ustring> selection_names;
     selection_mode current_key;
 
-    // initialise variables from builder
-    void initialise(const Glib::RefPtr<Gtk::Builder> &builder);
     void setup();
     void setDefaultSelectionMode();
     void onAreaTypeToggle(selection_mode key);
@@ -172,8 +177,9 @@ private:
     void loadExportHints(bool rename_file);
     void pickBatchPath();
 
-    Glib::ustring getBatchPath() const;
-    void setBatchPath(Glib::ustring const &path);
+    std::optional<Glib::RefPtr<Gio::File const>> getPreviousBatchPath() const;
+    std::optional<Glib::RefPtr<Gio::File const>> getBatchPath() const;
+    void setBatchPath(std::optional<Glib::RefPtr<Gio::File const>> path);
     Glib::ustring getBatchName(bool fallback) const;
     void setBatchName(Glib::ustring const &name);
     void setExporting(bool exporting, Glib::ustring const &text = "", Glib::ustring const &test_batch = "");

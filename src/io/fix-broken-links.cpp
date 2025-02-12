@@ -59,6 +59,10 @@ std::vector<std::string> splitPath( std::string const &path )
  * @arg path - The absolute path to convert
  * @arg base - The base or reference path to be relative to
  * @arg parents - The number of parents or .. segments to allow
+ *
+ * All input strings must have the same encoding,
+ * either UTF8 or platform-native encoding (see Glib::filename_to_utf8).
+ * The return value has the same encoding as the input.
  */
 std::string optimizePath(std::string const &path, std::string const &base, unsigned int parents)
 {

@@ -273,6 +273,8 @@ void SPDesktopWidget::switchDesktop(SPDesktop *desktop)
     if (_desktop) {
         layoutWidgets();
 
+        _updateNamedview(); // sets _dt2r, required by updateRulers()
+
         // Once desktop is set, we can update rulers
         _canvas_grid->updateRulers();
 
@@ -296,8 +298,6 @@ void SPDesktopWidget::switchDesktop(SPDesktop *desktop)
         if (auto action = dynamic_cast<Gio::SimpleAction *>(_window->lookup_action("canvas-color-manage").get())) {
             action->set_state(Glib::Variant<bool>::create(_desktop->getCanvas()->get_cms_active()));
         }
-
-        _updateNamedview();
     }
 
     _window->setActiveTab(_desktop);

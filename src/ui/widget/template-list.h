@@ -12,12 +12,12 @@
 
 #include <giomm/liststore.h>
 #include <gtkmm/gridview.h>
-#include <memory>
-#include <string>
 #include <glibmm/refptr.h>
 #include <gtkmm/notebook.h>
 #include <sigc++/signal.h>
 #include <vector>
+#include <gtkmm/boolfilter.h>
+#include <gtkmm/stack.h>
 
 #include "extension/template.h"
 #include "ui/iconview-item-factory.h"
@@ -36,30 +36,45 @@ class SPDocument;
 
 namespace Inkscape::UI::Widget {
 
-class TemplateList final : public Gtk::Notebook
+class TemplateList final : public Gtk::Stack
 {
 public:
     TemplateList() = default;
     TemplateList(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder> &refGlade);
+    ~TemplateList() override = default;
 
-    void init(Extension::TemplateShow mode);
-    void reset_selection();
+    enum AddPage { All, Custom };
+    void init(Extension::TemplateShow mode, AddPage add_page, bool allow_unselect = false);
+    void reset_selection(Gtk::Widget* current_page = nullptr);
     bool has_selected_preset();
-    std::shared_ptr<Extension::TemplatePreset> get_selected_preset();
-    SPDocument *new_document();
+    bool has_selected_new_template();
+    std::shared_ptr<Extension::TemplatePreset> get_selected_preset(Gtk::Widget* current_page = nullptr);
+    SPDocument *new_document(Gtk::Widget* current_page = nullptr);
+    void show_page(const Glib::ustring& name);
+    const std::vector<Glib::ustring>& get_categories() const { return _categories; }
+    void filter(Glib::ustring search);
+    void focus();
 
-    sigc::connection connectItemSelected(const sigc::slot<void ()> &slot) { return _item_selected_signal.connect(slot); }
+    sigc::connection connectItemSelected(const sigc::slot<void (int)> &slot) { return _item_selected_signal.connect(slot); }
     sigc::connection connectItemActivated(const sigc::slot<void ()> &slot) { return _item_activated_signal.connect(slot); }
+    sigc::signal<void(const Glib::ustring&)> signal_switch_page();
 
 private:
     struct TemplateItem;
-    Glib::RefPtr<Gio::ListStore<TemplateItem>> generate_category(std::string const &label);
+    Glib::RefPtr<TemplateItem> get_selected_item(Gtk::Widget* current_page = nullptr);
+    Glib::RefPtr<Gio::ListStore<TemplateItem>> generate_category(std::string const &label, bool allow_unselect);
     Cairo::RefPtr<Cairo::ImageSurface> icon_to_pixbuf(std::string const &name, int scale);
     Gtk::GridView *get_iconview(Gtk::Widget *widget);
+    bool is_item_visible(const Glib::RefPtr<Glib::ObjectBase>& item, const Glib::ustring& search) const;
+    void refilter(Glib::ustring search);
 
-    sigc::signal<void ()> _item_selected_signal;
+    sigc::signal<void (int)> _item_selected_signal;
     sigc::signal<void ()> _item_activated_signal;
     std::vector<std::unique_ptr<IconViewItemFactory>> _factory;
+    sigc::signal<void (const Glib::ustring&)> _signal_switch_page;
+    std::vector<Glib::ustring> _categories;
+    Glib::RefPtr<Gtk::BoolFilter> _filter;
+    Glib::ustring _search_term;
 };
 
 } // namespace Inkscape::UI::Widget

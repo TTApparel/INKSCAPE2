@@ -26,6 +26,8 @@
  */
 
 #include "measure-toolbar.h"
+#include "ui/dialog/measure-tool-settings.h"
+#include "ui/dialog/dialog-container.h"
 
 #include <glibmm/i18n.h>
 #include <gtkmm/adjustment.h>
@@ -39,6 +41,7 @@
 #include "ui/tools/measure-tool.h"
 #include "ui/util.h"
 #include "ui/widget/combo-tool-item.h"
+#include "ui/widget/ink-spin-button.h"
 #include "ui/widget/spinbutton.h"
 #include "ui/widget/unit-tracker.h"
 
@@ -108,6 +111,9 @@ MeasureToolbar::MeasureToolbar(Glib::RefPtr<Gtk::Builder> const &builder)
     _all_layers_btn.set_active(prefs->getBool("/tools/measure/all_layers", true));
     _all_layers_btn.signal_toggled().connect(sigc::mem_fun(*this, &MeasureToolbar::toggle_all_layers));
 
+    auto& settings = get_widget<Gtk::Popover>(builder, "settings-popover");
+    settings.set_child(_settings);
+
     get_widget<Gtk::Button>(builder, "reverse_btn")
         .signal_clicked()
         .connect(sigc::mem_fun(*this, &MeasureToolbar::reverse_knots));
@@ -144,6 +150,7 @@ void MeasureToolbar::setDesktop(SPDesktop *desktop)
             _unit_set = true;
         }
     }
+    _settings.setDesktop(desktop);
 }
 
 void MeasureToolbar::setup_derived_spin_button(UI::Widget::SpinButton &btn, Glib::ustring const &name,

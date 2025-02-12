@@ -595,9 +595,9 @@ std::pair<Geom::Point, Geom::Point> SPGrid::getEffectiveOriginAndSpacing(int ind
         spacing *= scale;
     }
 
-    auto prefs = Inkscape::Preferences::get();
-    if (prefs->getBool("/options/origincorrection/page", true))
+    if (document->get_origin_follows_page()) {
         origin *= document->getPageManager().getSelectedPageAffine();
+    }
 
     return { origin, spacing };
 }

@@ -563,7 +563,7 @@ bool CommandPalette::ask_action_parameter(const ActionPtrName &action_ptr_name)
 
         // Indicate user about what to enter FIXME Dialog generation
         if (action_hint.empty()) {
-            /* Translators: %1 will be replaced with the type of parameter
+            /* TRANSLATORS: %1 will be replaced with the type of parameter
              *              expected by the action, e.g., “whole number”. */
             action_hint = Glib::ustring::compose(_("Enter a %1..."), type_string);
         }

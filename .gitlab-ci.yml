@@ -185,6 +185,10 @@ inkscape:windows:
       allow_failure: true
     - *run_otherwise
   script:
+    # install Windows SDK for exe and msi jobs to provide
+    # 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe'
+    - if ( $Env:DIST -ne "7z" ) { choco install windows-sdk-10.1 -y }
+    # configure with CMake
     - . "C:/$Env:IDW_NAME/msys2_shell.cmd" -defterm -no-start -ucrt64 -here -c "cmake -B build -G Ninja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
     # If we are building the MSI package, install extra build dependencies
     - if ("${DIST}" -eq "msi") { & "$Env:CI_PROJECT_DIR\buildtools\windows-deps-install-wix4.ps1" }
@@ -196,6 +200,7 @@ inkscape:windows:
     #                 --- --------------------------------
     #                 120 minutes runner timeout
     - Start-Job -ScriptBlock{sleep 4800; taskkill /t /F /IM "ninja.exe"}
+    # build with Ninja
     - . "C:/$Env:IDW_NAME/msys2_shell.cmd" -defterm -no-start -ucrt64 -here -c "ninja -C build dist-win-${DIST}"
   artifacts:
     paths:

@@ -23,10 +23,13 @@
 #include <gtkmm/overlay.h>
 #include <gtkmm/scrollbar.h>
 #include <gtkmm/togglebutton.h>
+#include <gtkmm/label.h>
 
 #include "display/control/canvas-item-ptr.h"
+#include "preferences.h"
 #include <sigc++/scoped_connection.h>
 #include "ui/widget/popover-bin.h"
+#include "util/action-accel.h"
 
 namespace Gtk {
 class Adjustment;
@@ -113,7 +116,14 @@ private:
     void size_allocate_vfunc(int width, int height, int baseline) override;
     void on_realize() override;
 
+    PrefObserver _box_observer;
+
     // The widgets
+    Gtk::Label* _quick_preview_label = nullptr;
+    Gtk::Label* _quick_zoom_label = nullptr;
+    Inkscape::Util::ActionAccel _preview_accel{"tool.all.quick-preview"};
+    Inkscape::Util::ActionAccel _zoom_accel{"tool.all.quick-zoom"};
+
     Inkscape::UI::Widget::PopoverBin _popoverbin;
     Inkscape::UI::Widget::Canvas *_canvas = nullptr;
     std::unique_ptr<Dialog::CommandPalette> _command_palette;
@@ -148,6 +158,8 @@ private:
     int _width{}, _height{};
 
     // Connections for page and selection tracking
+    sigc::scoped_connection _update_preview_connection;
+    sigc::scoped_connection _update_zoom_connection;
     sigc::scoped_connection _page_selected_connection;
     sigc::scoped_connection _page_modified_connection;
     sigc::scoped_connection _sel_changed_connection;

@@ -83,8 +83,7 @@ void GuidelinePropertiesDialog::_modeChanged()
         auto pos = _oldpos;
 
         // Adjust position by the page position
-        auto prefs = Inkscape::Preferences::get();
-        if (prefs->getBool("/options/origincorrection/page", true)) {
+        if (_guide->document->get_origin_follows_page()) {
             auto &pm = _guide->document->getPageManager();
             pos *= pm.getSelectedPageAffine().inverse();
         }
@@ -124,10 +123,10 @@ void GuidelinePropertiesDialog::_onOKimpl()
     Geom::Point newpos(points_x, points_y);
 
     // Adjust position by either the relative position, or the page offset
-    auto prefs = Inkscape::Preferences::get();
     if (!_mode) {
         newpos += _oldpos;
-    } else if (prefs->getBool("/options/origincorrection/page", true)) {
+    }
+    else if (_guide->document->get_origin_follows_page()) {
         auto &pm = _guide->document->getPageManager();
         newpos *= pm.getSelectedPageAffine();
     }

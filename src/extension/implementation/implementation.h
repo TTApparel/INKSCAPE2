@@ -107,16 +107,30 @@ public:
     virtual bool match_template_size(Inkscape::Extension::Template *tmod, double width, double height){ return false; }
 
     // ----- Input functions -----
+    /**
+     * Open a file.
+     * @param filename File path. Value is in platform-native encoding (see Glib::filename_to_utf8).
+     */
     virtual std::unique_ptr<SPDocument> open(Inkscape::Extension::Input *module, char const *filename, bool is_importing);
 
     // ----- Output functions -----
     /** Find out information about the file. */
     virtual void save(Inkscape::Extension::Output * /*module*/, SPDocument * /*doc*/, gchar const * /*filename*/) {}
+    /**
+     * Convert from PNG to raster format.
+     * 
+     * The function takes a PNG file and converts it into the specific format.
+     * 
+     * @param png_file Path to input file in PNG format.
+     *             Value is in platform-native encoding (see Glib::filename_to_utf8).
+     * @param filename Path to output file.
+     *             Value is in platform-native encoding (see Glib::filename_to_utf8).
+     */
     virtual void export_raster(
-            Inkscape::Extension::Output * /*module*/,
-            const SPDocument * /*doc*/,
-            std::string const &/*png_file*/,
-            gchar const * /*filename*/) {}
+            Inkscape::Extension::Output * module,
+            const SPDocument * doc,
+            std::string const &png_file,
+            gchar const * filename) {}
 
     // ----- Effect functions -----
     /** Find out information about the file. */

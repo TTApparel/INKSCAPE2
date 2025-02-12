@@ -108,7 +108,8 @@
         <property name="valign">center</property>
         <property name="focusable">True</property>
         <property name="tooltip-text" translatable="yes">Rotate selection 90\xc2\xb0 counter-clockwise</property>
-        <property name="action-name">app.object-rotate-90-ccw</property>
+        <property name="action-name">app.transform-rotate</property>
+        <property name="action-target">-90.0</property>
         <property name="has-frame">False</property>
         <style>
             <class name="priority1"/>
@@ -128,7 +129,8 @@
         <property name="valign">center</property>
         <property name="focusable">True</property>
         <property name="tooltip-text" translatable="yes">Rotate selection 90\xc2\xb0 clockwise</property>
-        <property name="action-name">app.object-rotate-90-cw</property>
+        <property name="action-name">app.transform-rotate</property>
+        <property name="action-target">90.0</property>
         <property name="has-frame">False</property>
         <style>
             <class name="priority1"/>

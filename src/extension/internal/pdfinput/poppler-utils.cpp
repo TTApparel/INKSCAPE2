@@ -650,7 +650,7 @@ std::string getString(const GooString *value)
                             "UTF-8", "UTF-16LE", NULL, NULL, NULL);
         } else if (char *utf16 = pdfDocEncodingToUTF16(value->toStr(), &stringLength))  {
             str = g_convert(utf16, stringLength, "UTF-8", "UTF-16", NULL, NULL, NULL);
-            g_free(utf16);
+            delete[] utf16;
         }
         if (str) {
             std::string copy = str;

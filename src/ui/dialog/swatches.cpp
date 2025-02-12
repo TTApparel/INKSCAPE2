@@ -195,7 +195,7 @@ SwatchesPanel::SwatchesPanel(bool compact, char const *prefsPath)
             if (load_swatches()) {
                 update_loaded_palette_entry();
                 update_selector_menu();
-                update_selector_label(_loaded_palette.id);
+                select_palette(_loaded_palette.id);
             }
         });;
     }
@@ -579,7 +579,6 @@ bool SwatchesPanel::load_swatches() {
         auto prefs = Preferences::get();
         prefs->setString(_prefs_path + "/palette", _loaded_palette.id);
         prefs->setString(_prefs_path + "/palette-path", file);
-        select_palette(_loaded_palette.id);
         loaded = true;
     }
     return loaded;

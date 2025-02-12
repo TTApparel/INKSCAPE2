@@ -27,7 +27,6 @@
 #include <gtkmm/notebook.h>
 #include <gtkmm/overlay.h>
 #include <gtkmm/picture.h>
-#include <gtkmm/recentmanager.h>
 #include <gtkmm/settings.h>
 #include <gtkmm/stack.h>
 #include <gtkmm/styleprovider.h>
@@ -39,6 +38,7 @@
 #include "inkscape.h"
 #include "inkscape-version.h"
 #include "inkscape-version-info.h"
+#include "io/recent-files.h"
 #include "io/resource.h"
 #include "preferences.h"
 #include "ui/builder-utils.h"
@@ -141,7 +141,7 @@ StartScreen::StartScreen()
     : Gtk::Dialog()
     , builder(create_builder("inkscape-start.glade"))
     , tabs           (get_widget<Gtk::Notebook>        (builder, "tabs"))
-    , templates      (get_derived_widget<TemplateList> (builder, "kinds"))
+    , _kinds         (get_widget<Gtk::Notebook>        (builder, "kinds"))
     , banners        (get_widget<Gtk::Overlay>         (builder, "banner"))
     , themes         (get_widget<Gtk::ComboBox>        (builder, "themes"))
     , recent_treeview(get_widget<Gtk::TreeView>        (builder, "recent_treeview"))
@@ -159,7 +159,7 @@ StartScreen::StartScreen()
     set_default_size(700, 360);
 
     // Populate with template extensions
-    templates.init(Inkscape::Extension::TEMPLATE_NEW_WELCOME);
+    templates.init(Inkscape::Extension::TEMPLATE_NEW_WELCOME, TemplateList::All, true);
 
     // Get references to various widget used locally. (In order of appearance.)
     auto canvas      = &get_widget<Gtk::ComboBox>    (builder, "canvas");
@@ -223,10 +223,21 @@ StartScreen::StartScreen()
 
     show_toggle->signal_toggled().connect(sigc::mem_fun(*this, &StartScreen::show_toggle));
     load_btn.signal_clicked().connect(sigc::mem_fun(*this, &StartScreen::load_document));
-    templates.connectItemSelected(sigc::mem_fun(*this, &StartScreen::new_document));
+    templates.connectItemSelected([this](int){ new_document(); });
     new_btn->signal_clicked().connect(sigc::mem_fun(*this, &StartScreen::new_document));
     close_btn->signal_clicked().connect([this] { response(GTK_RESPONSE_CLOSE); });
-
+    // move pages from stack to our notebook
+    for (auto cat : templates.get_categories()) {
+        if (auto page = templates.get_child_by_name(cat)) {
+            page->reference();
+            templates.remove(*page);
+            _kinds.append_page(*page, cat);
+            page->unreference();
+        }
+    }
+    _kinds.signal_switch_page().connect([this](Gtk::Widget* page, auto) {
+        templates.reset_selection(page); //_kinds.get_nth_page(_kinds.get_current_page()));
+    });
     // Parent to our dialog window
     set_titlebar(banners);
     Gtk::Box* box = get_content_area();
@@ -319,27 +330,22 @@ StartScreen::enlist_recent_files()
     first_row[cols.col_dt] = std::numeric_limits<gint64>::max();
     recent_treeview.get_selection()->select(store->get_path(first_row.get_iter()));
 
-    Glib::RefPtr<Gtk::RecentManager> manager = Gtk::RecentManager::get_default();
-    for (auto item : manager->get_items()) {
-        if (item->has_application(g_get_prgname())
-            || item->has_application("org.inkscape.Inkscape")
-            || item->has_application("inkscape")
-            || item->has_application("inkscape.exe")
-           ) {
-            // This uri is a GVFS uri, so parse it with that or it will fail.
-            auto file = Gio::File::create_for_uri(item->get_uri());
-            std::string path = file->get_path();
-            // Note: Do not check if the file exists, to avoid long delays. See https://gitlab.com/inkscape/inkscape/-/issues/2348 .
-            if (!path.empty() && item->get_mime_type() == "image/svg+xml") {
-                Gtk::TreeModel::Row row = *(store->append());
-                row[cols.col_name] = item->get_display_name();
-                row[cols.col_id] = item->get_uri();
-                row[cols.col_dt] = item->get_modified().to_unix();
-                row[cols.col_crash] = item->has_group("Crash");
-            }
+    auto recent_files = Inkscape::getInkscapeRecentFiles();
+    auto shortened_path_map = Inkscape::getShortenedPathMap(recent_files);
+
+    for (auto const &recent_file : recent_files) {
+        // This uri is a GVFS uri, so parse it with that or it will fail.
+        auto file = Gio::File::create_for_uri(recent_file->get_uri());
+        std::string path = file->get_path();
+        // Note: Do not check if the file exists, to avoid long delays. See https://gitlab.com/inkscape/inkscape/-/issues/2348 .
+        if (!path.empty() && recent_file->get_mime_type() == "image/svg+xml") {
+            Gtk::TreeModel::Row row = *(store->append());
+            row[cols.col_name] = shortened_path_map[recent_file->get_uri_display()];
+            row[cols.col_id] = recent_file->get_uri();
+            row[cols.col_dt] = recent_file->get_modified().to_unix();
+            row[cols.col_crash] = recent_file->has_group("Crash");
         }
     }
-
 }
 
 /**
@@ -354,9 +360,9 @@ StartScreen::on_recent_changed()
 /**
  * Called when the left side tabs are changed.
  */
-void StartScreen::on_kind_changed(Gtk::Widget *tab, unsigned page_num)
+void StartScreen::on_kind_changed(const Glib::ustring& name)
 {
-    load_btn.set_visible(page_num == 0);
+    load_btn.set_visible(name == "???");
 }
 
 /**
@@ -366,7 +372,7 @@ void
 StartScreen::new_document()
 {
     // Generate a new document from the selected template.
-    _document = templates.new_document();
+    _document = templates.new_document(_kinds.get_nth_page(_kinds.get_current_page()));
     if (_document) {
     // Quit welcome screen if options not 'canceled'
         response(GTK_RESPONSE_APPLY);
@@ -472,7 +478,7 @@ StartScreen::on_response(int response_id)
     }
     if (response_id != GTK_RESPONSE_OK && !_document) {
         // Last ditch attempt to generate a new document while exiting.
-        _document = templates.new_document();
+        _document = templates.new_document(_kinds.get_nth_page(_kinds.get_current_page()));
     }
 }
 
@@ -659,7 +665,7 @@ void
 StartScreen::refresh_keys_warning()
 {
     auto prefs = Inkscape::Preferences::get();
-    auto current_file = prefs->getString("/options/kbshortcuts/shortcutfile");
+    auto current_file = prefs->getString("/options/kbshortcuts/shortcutfile", "inkscape.xml");
     auto &keys_warning = get_widget<Gtk::InfoBar>(builder, "keys_warning");
     if (current_file != "inkscape.xml" && current_file != "default.xml") {
         keys_warning.set_visible(true);

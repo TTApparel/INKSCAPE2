@@ -38,7 +38,10 @@
 #include "display/control/canvas-item-group.h"
 #include "display/control/canvas-item-text.h"
 
+#include "helper/geom.h"
+
 #include "object/sp-defs.h"
+#include "object/sp-ellipse.h"
 #include "object/sp-flowtext.h"
 #include "object/sp-namedview.h"
 #include "object/sp-root.h"
@@ -47,6 +50,7 @@
 
 #include "svg/svg.h"
 
+#include "ui/clipboard.h"
 #include "ui/dialog/knot-properties.h"
 #include "ui/icon-names.h"
 #include "ui/knot/knot.h"
@@ -67,6 +71,7 @@ namespace {
  */
 struct LabelPlacement
 {
+    Glib::ustring label;
     double lengthVal;
     double offset;
     Geom::Point start;
@@ -127,7 +132,7 @@ void repositionOverlappingLabels(std::vector<LabelPlacement> &placements, SPDesk
 
 /**
  * Calculates where to place the anchor for the display text and arc.
- *
+ * 
  * @param desktop the desktop that is being used.
  * @param angle the angle to be displaying.
  * @param baseAngle the angle of the initial baseline.
@@ -160,6 +165,58 @@ Geom::Point calcAngleDisplayAnchor(SPDesktop *desktop, double angle, double base
     } // else likely initialized the measurement tool, keep display near the measurement.
 
     return where;
+}
+
+
+/**
+ * @brief Calculates the point where to position the delta text label
+ * 
+ *  returns the point to use for the text anchor
+ * 
+ * @param placements: the positions of the labels to try to avoid overlapping
+ * @param basePoint: the base point along the delta line from where the perpendicular line starts
+ * @param maxStrLength: the maximum length of the text labels shown (may be approx., but better than hard coding it)
+ * @param normal: the normal of the delta line
+ * @param is_dX: if true calculates for dX; if false calculates for dY
+ * 
+ */
+Geom::Point calcDeltaLabelTextPos(std::vector<LabelPlacement> placements, SPDesktop *desktop, Geom::Point basePoint,
+                            double fontsize, Glib::ustring unit_name, int maxStrLength, Geom::Point normal, bool is_dX = true)
+{
+    double border = 3;
+    Geom::Rect box;
+    {
+        Geom::Point tmp((fontsize * maxStrLength * 0.66) + (border * 2), fontsize + (border * 2));
+        tmp = desktop->w2d(tmp);
+        box = Geom::Rect(-tmp[Geom::X] / 2, -tmp[Geom::Y] / 2, tmp[Geom::X] / 2, tmp[Geom::Y] / 2);
+    }
+    Geom::Point textPos = basePoint;
+    double step;
+    if (is_dX) {
+        step =  normal[Geom::Y] * fontsize * 2; // the label box is bigger than the font...
+        textPos[Geom::Y] += step * 1.5; // bringing it slightly higher at the initial position
+    } else {
+        step =  normal[Geom::X] * fontsize * 2;
+        textPos[Geom::X] += step; 
+    }    
+    
+    bool changed = false;
+    do {
+        changed = false;
+        for (auto item : placements) { // placements are not ordered so checking all of them 
+            Geom::Rect itemBox(box + item.end);
+            Geom::Rect boxDelta(box + textPos);
+            if (boxDelta.intersects(itemBox)) {
+                if (is_dX) {
+                    textPos[Geom::Y] += step;  // the normals to dX and dY are always horizontal/vertical
+                } else {
+                    textPos[Geom::X] += step; 
+                }
+                changed = true;
+            }
+        }
+    } while (changed);
+    return textPos;
 }
 
 } // namespace
@@ -462,6 +519,10 @@ bool MeasureTool::root_handler(CanvasEvent const &event)
             explicit_base_tmp = explicit_base;
             explicit_base = end_p;
             showInfoBox(last_pos, true);
+        }
+        if ((event.modifiers & GDK_ALT_MASK ) && ((event.keyval == GDK_KEY_c) || (event.keyval == GDK_KEY_C))) {
+            copyToClipboard();
+            ret = true;
         }
     },
     [&] (KeyReleaseEvent const &event) {
@@ -907,11 +968,12 @@ void MeasureTool::reset()
 void MeasureTool::setMeasureCanvasText(bool is_angle, double precision, double amount, double fontsize,
                                        Glib::ustring unit_name, Geom::Point position, guint32 background,
                                        bool to_left, bool to_item,
-                                       bool to_phantom, Inkscape::XML::Node *measure_repr)
+                                       bool to_phantom, Inkscape::XML::Node *measure_repr, Glib::ustring label)
 {
     Glib::ustring measure = Inkscape::ustring::format_classic(std::setprecision(precision), std::fixed, amount);
     measure += " ";
     measure += (is_angle ? "°" : unit_name);
+    if (!label.empty()) { measure = label + ": " + measure; }
     auto canvas_tooltip = new Inkscape::CanvasItemText(_desktop->getCanvasTemp(), position, measure);
     canvas_tooltip->set_fontsize(fontsize);
     canvas_tooltip->set_fill(0xffffffff);
@@ -999,6 +1061,7 @@ void MeasureTool::showInfoBox(Geom::Point cursor, bool into_groups)
     if (!newover) {
         // Clear over when the cursor isn't over anything.
         over = nullptr;
+        clipBMeas.unsetShapeMeasures(); // shape measurements are not set and will not be copied to the clipboard
         return;
     }
     auto unit = _desktop->getNamedView()->getDisplayUnit();
@@ -1019,7 +1082,7 @@ void MeasureTool::showInfoBox(Geom::Point cursor, bool into_groups)
         over = newover;
         auto affine = over->i2dt_affine() * Geom::Scale(scale);
         // Correct for the current page's position.
-        if (prefs->getBool("/options/origincorrection/page", true)) {
+        if (_desktop->getDocument()->get_origin_follows_page()) {
             affine *= _desktop->getDocument()->getPageManager().getSelectedPageAffine().inverse();
         }
         if (auto bbox = over->bounds(box_type, affine)) {
@@ -1090,6 +1153,18 @@ void MeasureTool::showInfoBox(Geom::Point cursor, bool into_groups)
     precision_str.str("");
     showItemInfoText(pos - (yaxisdir * Geom::Point(0, rel_position[Geom::Y]) * zoom), measure_str, fontsize);
     g_free(measure_str);
+
+    clipBMeas.lengths[MT::LengthIDs::SHAPE_LENGTH] = item_length; // will be copied to the clipboard 
+    clipBMeas.lengths[MT::LengthIDs::SHAPE_WIDTH] = item_width;
+    clipBMeas.lengths[MT::LengthIDs::SHAPE_HEIGHT] = item_height;
+    clipBMeas.lengths[MT::LengthIDs::SHAPE_X] = item_x;
+    clipBMeas.lengths[MT::LengthIDs::SHAPE_Y] = item_y;
+    clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_LENGTH] = true;
+    clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_WIDTH] = true;
+    clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_HEIGHT] = true;
+    clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_X] = true;
+    clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_Y] = true;
+
 }
 
 void MeasureTool::showCanvasItems(bool to_guides, bool to_item, bool to_phantom, Inkscape::XML::Node *measure_repr)
@@ -1148,7 +1223,12 @@ void MeasureTool::showCanvasItems(bool to_guides, bool to_item, bool to_phantom,
             continue;
         }
         if (all_layers || _desktop->layerManager().layerForObject(item) == current_layer) {
-            if (auto shape = cast<SPShape>(item)) {
+            if (auto e = cast<SPGenericEllipse>(item)) { // this fixes a bug with the calculation of the intersection on
+                e->set_shape();                          // ellipses and circles. If the calculate_intersections(...) is fixed
+                                                         // then this if() can be removed
+                Geom::PathVector new_pv = pathv_to_linear_and_cubic_beziers(e->curve()->get_pathvector());
+                calculate_intersections(_desktop, item, lineseg, SPCurve(new_pv), intersection_times);
+            } else if (auto shape = cast<SPShape>(item)) {
                 calculate_intersections(_desktop, item, lineseg, *shape->curve(), intersection_times);
             } else {
                 if (is<SPText>(item) || is<SPFlowtext>(item)) {
@@ -1203,6 +1283,32 @@ void MeasureTool::showCanvasItems(bool to_guides, bool to_item, bool to_phantom,
         intersections.insert(intersections.begin(),lineseg[0].pointAt(0));
         intersections.push_back(lineseg[0].pointAt(1));
     }
+    int precision = prefs->getInt("/tools/measure/precision", 2);
+    Glib::ustring MTSpath = prefs->getString("/tools/measure/MTSpath","");// path to the settings of the dialog
+    bool showDeltas = false;                                 
+    bool show_deltas_label = false;
+    bool show_segments_label = false;
+    double seg_min_len = 0.1;
+    bool showAngle = true;
+    if (!MTSpath.empty()){
+        Glib::ustring pathStr = MTSpath;
+        pathStr.append("/segments_min_length");
+        seg_min_len = prefs->getDouble(pathStr.c_str(), 0.1);
+        pathStr = MTSpath;
+        pathStr.append("/show_segments_label");
+        show_segments_label = prefs->getBool(pathStr.c_str(), false);
+        pathStr = MTSpath;
+        pathStr.append("/show_deltas_label");
+        show_deltas_label = prefs->getBool(pathStr.c_str(), false);
+        pathStr = MTSpath;
+        pathStr.append("/show_deltas");
+        showDeltas = prefs->getBool(pathStr.c_str(), false);
+        pathStr = MTSpath;
+        pathStr.append("/show_angle");
+        showAngle = prefs->getBool(pathStr.c_str(), true);
+    }
+    int segIndex = 1;
+    clipBMeas.segLengths.clear();
     std::vector<LabelPlacement> placements;
     for (size_t idx = 1; idx < intersections.size(); ++idx) {
         LabelPlacement placement;
@@ -1211,20 +1317,80 @@ void MeasureTool::showCanvasItems(bool to_guides, bool to_item, bool to_phantom,
         placement.offset = dimension_offset / 2;
         placement.start = _desktop->doc2dt((intersections[idx - 1] + intersections[idx]) / 2);
         placement.end = placement.start - (normal * placement.offset);
-
-        placements.push_back(placement);
+        if (placement.lengthVal > seg_min_len) { // trying to avoid 0length segments 
+            placement.label = clipBMeas.symbols[MT::LengthIDs::SEGMENT] + std::to_string(segIndex);
+            clipBMeas.segLengths[placement.label] = placement.lengthVal * scale; // will be copied to the clipboard
+            clipBMeas.measureIsSet[MT::LengthIDs::SEGMENT] = true;
+            placements.push_back(placement);
+            segIndex++;
+        }
     }
-    int precision = prefs->getInt("/tools/measure/precision", 2);
+
     // Adjust positions
     repositionOverlappingLabels(placements, _desktop, windowNormal, fontsize, precision);
+
+    Geom::Point deltasBasePoint;                            // will use these to show lines later
+    Geom::Point dXmidpos, dYmidpos, dXTextPos, dYTextPos;   //
+    bool dX_is0, dY_is0;                                    //
+    if (showDeltas) {
+        Geom::Point dPoint = end_p - start_p;
+        double dX = dPoint[Geom::X];
+        double dY = dPoint[Geom::Y];
+        dX_is0 = equalWithinRange(dX, 0, precision);
+        dY_is0 = equalWithinRange(dY, 0, precision);
+        if (!dX_is0 && !dY_is0) { // not showing deltas if either of them is 0 ...
+            std::vector<Geom::Point> basePointinfo = calcDeltaBasePoint(dX, dY);  
+            deltasBasePoint = basePointinfo[0];
+            dXmidpos = basePointinfo[3];
+            dYmidpos = basePointinfo[4];
+            std::vector<LabelPlacement> allPlacements = placements;  // placements only has the segments
+            if (placements.size() > 1) {  // between length
+                LabelPlacement placement;
+                placement.lengthVal = ((intersections[0] + normal * dimension_offset) -
+                                        (intersections[intersections.size() - 1] + normal * dimension_offset)).length();
+                placement.lengthVal = Inkscape::Util::Quantity::convert(placement.lengthVal, "px", unit_name);
+                placement.offset = dimension_offset / 2;
+                placement.start = _desktop->doc2dt(((intersections[0] + normal * dimension_offset) +
+                                                    (intersections[intersections.size() - 1] + normal * dimension_offset)) / 2);
+                placement.end = placement.start;  // this label is not displaced
+                allPlacements.push_back(placement);
+            }
+            const int intdXdY = static_cast<int>(std::ceil(dX * dY / 2)); // averaging the number of chars from dX and dY
+            int maxStrLength = (show_segments_label ? 3 : 0) + std::to_string(intdXdY).length() + precision + unit_name.length();
+            dXTextPos = calcDeltaLabelTextPos(allPlacements, _desktop, dXmidpos, fontsize, unit_name, maxStrLength, basePointinfo[1], true);
+            dYTextPos = calcDeltaLabelTextPos(allPlacements, _desktop, dYmidpos, fontsize, unit_name, maxStrLength, basePointinfo[2], false);
+            dX = Inkscape::Util::Quantity::convert(dX, "px", unit_name);
+            dY = Inkscape::Util::Quantity::convert(dY, "px", unit_name);
+            double dYscaled = dY * scale;
+            int dYstrLen = std::to_string(dYscaled).length();
+            if (show_deltas_label) { dYstrLen += 3; }
+            setMeasureCanvasText(false, precision, dX * scale, fontsize, unit_name, dXTextPos, 0x3333337f,
+                false, to_item, to_phantom, measure_repr, (show_deltas_label ? clipBMeas.symbols[MT::LengthIDs::DX] : ""));
+            setMeasureCanvasText(false, precision, dYscaled, fontsize, unit_name, dYTextPos - Geom::Point((dYstrLen * fontsize / 2),0),
+                0x3333337f, false, to_item, to_phantom, measure_repr, (show_deltas_label ? clipBMeas.symbols[MT::LengthIDs::DY] : ""));
+            clipBMeas.lengths[MT::LengthIDs::DX] = dX * scale; // will be copied to the clipboard
+            clipBMeas.lengths[MT::LengthIDs::DY] = dYscaled;
+            clipBMeas.measureIsSet[MT::LengthIDs::DX] = true;
+            clipBMeas.measureIsSet[MT::LengthIDs::DY] = true;
+        }
+    } else { // measures are unset and will not be copied to the clipboard
+        clipBMeas.measureIsSet[MT::LengthIDs::DX] = false;
+        clipBMeas.measureIsSet[MT::LengthIDs::DY] = false;
+    }
+
     for (auto & place : placements) {
         setMeasureCanvasText(false, precision, place.lengthVal * scale, fontsize, unit_name, place.end, 0x0000007f,
-                             false, to_item, to_phantom, measure_repr);
+                             false, to_item, to_phantom, measure_repr, (show_segments_label ? place.label : ""));
     }
     Geom::Point angleDisplayPt = calcAngleDisplayAnchor(_desktop, angle, baseAngle, start_p, end_p, fontsize);
-
-    setMeasureCanvasText(true, precision, Geom::deg_from_rad(angle), fontsize, unit_name, angleDisplayPt, 0x337f337f,
-                         false, to_item, to_phantom, measure_repr);
+    if (showAngle) { // angleDisplayPt needs to be outside to be used below for the lines
+        setMeasureCanvasText(true, precision, Geom::deg_from_rad(angle), fontsize, unit_name, angleDisplayPt, 0x337f337f,
+                            false, to_item, to_phantom, measure_repr);
+        clipBMeas.lengths[MT::LengthIDs::ANGLE] = Geom::deg_from_rad(angle); // will be copied to the clipboard
+        clipBMeas.measureIsSet[MT::LengthIDs::ANGLE] = true;
+    } else { // measure is unset and will not be copied to the clipboard
+        clipBMeas.measureIsSet[MT::LengthIDs::ANGLE] = false;
+    }
 
     {
         double totallengthval = (end_p - start_p).length();
@@ -1232,14 +1398,20 @@ void MeasureTool::showCanvasItems(bool to_guides, bool to_item, bool to_phantom,
         Geom::Point origin = end_p + _desktop->w2d(Geom::Point(3 * fontsize, -fontsize));
         setMeasureCanvasText(false, precision, totallengthval * scale, fontsize, unit_name, origin, 0x3333337f,
                              true, to_item, to_phantom, measure_repr);
+        clipBMeas.lengths[MT::LengthIDs::LENGTH] = totallengthval  * scale; // will be copied to the clipboard
+        clipBMeas.measureIsSet[MT::LengthIDs::LENGTH] = true;
     }
 
-    if (intersections.size() > 2) {
+    if (placements.size() > 1) {
         double totallengthval = (intersections[intersections.size()-1] - intersections[0]).length();
         totallengthval = Inkscape::Util::Quantity::convert(totallengthval, "px", unit_name);
         Geom::Point origin = _desktop->doc2dt((intersections[0] + intersections[intersections.size()-1])/2) + normal * dimension_offset;
         setMeasureCanvasText(false, precision, totallengthval * scale, fontsize, unit_name, origin, 0x33337f7f,
                              false, to_item, to_phantom, measure_repr);
+        clipBMeas.lengths[MT::LengthIDs::LENGTH_BETWEEN] = totallengthval  * scale; // will be copied to the clipboard
+        clipBMeas.measureIsSet[MT::LengthIDs::LENGTH_BETWEEN] = true;
+    } else { // measure is unset and will not be copied to the clipboard
+        clipBMeas.measureIsSet[MT::LengthIDs::LENGTH_BETWEEN] = false;
     }
 
     // Initial point
@@ -1268,19 +1440,28 @@ void MeasureTool::showCanvasItems(bool to_guides, bool to_item, bool to_phantom,
     // draw main control line
     {
         setMeasureCanvasControlLine(start_p, end_p, false, to_phantom, Inkscape::CANVAS_ITEM_PRIMARY, measure_repr);
-        double length = std::abs((end_p - start_p).length());
-        Geom::Point anchorEnd = start_p;
-        anchorEnd[Geom::X] += length;
-        if (explicit_base) {
-            anchorEnd *= (Geom::Affine(Geom::Translate(-start_p))
-                          * Geom::Affine(Geom::Rotate(baseAngle))
-                          * Geom::Affine(Geom::Translate(start_p)));
+        if (showAngle) {
+            double length = std::abs((end_p - start_p).length());
+            Geom::Point anchorEnd = start_p;
+            anchorEnd[Geom::X] += length;
+            if (explicit_base) {
+                anchorEnd *= (Geom::Affine(Geom::Translate(-start_p))
+                            * Geom::Affine(Geom::Rotate(baseAngle))
+                            * Geom::Affine(Geom::Translate(start_p)));
+            }
+            setMeasureCanvasControlLine(start_p, anchorEnd, to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);
+            createAngleDisplayCurve(start_p, end_p, angleDisplayPt, angle, to_phantom, measure_repr);
         }
-        setMeasureCanvasControlLine(start_p, anchorEnd, to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);
-        createAngleDisplayCurve(start_p, end_p, angleDisplayPt, angle, to_phantom, measure_repr);
     }
 
-    if (intersections.size() > 2) {
+     if ((showDeltas) && (!dX_is0) && (!dY_is0)) {  // adding delta lines 
+        setMeasureCanvasControlLine(start_p, deltasBasePoint, to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);
+        setMeasureCanvasControlLine(end_p, deltasBasePoint, to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);
+        setMeasureCanvasControlLine(dXmidpos, dXTextPos, to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);
+        setMeasureCanvasControlLine(dYmidpos, dYTextPos - Geom::Point((5 * fontsize),0), to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);
+    }
+
+    if (placements.size() > 1) {
         setMeasureCanvasControlLine(_desktop->doc2dt(intersections[0]) + normal * dimension_offset, _desktop->doc2dt(intersections[intersections.size() - 1]) + normal * dimension_offset, to_item, to_phantom, Inkscape::CANVAS_ITEM_PRIMARY , measure_repr);
 
         setMeasureCanvasControlLine(_desktop->doc2dt(intersections[0]), _desktop->doc2dt(intersections[0]) + normal * dimension_offset, to_item, to_phantom, Inkscape::CANVAS_ITEM_PRIMARY , measure_repr);
@@ -1290,13 +1471,16 @@ void MeasureTool::showCanvasItems(bool to_guides, bool to_item, bool to_phantom,
 
     // call-out lines
     for (auto & place : placements) {
-        setMeasureCanvasControlLine(place.start, place.end, to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);
+        setMeasureCanvasControlLine(place.start, place.end, to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);       
     }
-
+/* this is not needed, it does the same thing as the for (auto & place : placements) above ... but now the shortest segments will
+   not be shown, so this will show extra lines.
+   This whole comment block should be deleted. But I didn't want to delete it without giving an explanation.
     for (size_t idx = 1; idx < intersections.size(); ++idx) {
         Geom::Point measure_text_pos = (intersections[idx - 1] + intersections[idx]) / 2;
         setMeasureCanvasControlLine(_desktop->doc2dt(measure_text_pos), _desktop->doc2dt(measure_text_pos) - (normal * dimension_offset / 2), to_item, to_phantom, Inkscape::CANVAS_ITEM_SECONDARY, measure_repr);
     }
+     */
 }
 
 /**
@@ -1359,6 +1543,265 @@ void MeasureTool::setMeasureItem(Geom::PathVector pathv, bool is_curve, bool mar
         _desktop->getSelection()->clear();
         _desktop->getSelection()->add(item);
     }
+}
+
+/**
+ * @brief Copies some measurements to the clipboard
+ * 
+ * It deals with Alt + C event
+ *
+ * It copies the measurements to the clipboard.
+ * The settings for what should be copied are in the MeasureToolSettingsDialog.
+ * The path to the settings of the MeasureToolSettingsDialog is saved in the preferences,
+ * so if for any reason the path of the MeasureToolSettingsDialog is changed, no change is needed here.
+ * Probably all settings can go in /tools/measure/, but the other dialogs have their own path starting 
+ * with /dialog/, so I have done it the same.
+ * 
+ * The measurements are unset only when they are not visible, visible measurements are always accurate.
+ * Measurements that are not visible have not been (re)calculated, so the stored value may be inaccurate.
+ */
+void MeasureTool::copyToClipboard() {
+    Inkscape::Preferences *prefs = Inkscape::Preferences::get();
+    int precision = prefs->getInt("/tools/measure/precision", 2);
+    Glib::ustring unit_name = prefs->getString("/tools/measure/unit");
+    Glib::ustring MTSpath = prefs->getString("/tools/measure/MTSpath",""); // path to the settings
+    Glib::ustring pathStr = MTSpath;
+    pathStr.append("/show_angle");
+    bool showAngleOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/show_deltas");
+    bool deltasOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/labels");
+    bool labelsOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/units");
+    bool unitsOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/tabs");
+    bool tabsOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/length");
+    bool lengthOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/between");
+    bool betweenOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/angle");
+    bool angleOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/dX");
+    bool dXOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/dY");
+    bool dYOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/segments");
+    bool segmentsOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/shape_width");
+    bool shape_widthOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/shape_height");
+    bool shape_heightOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/shape_X");
+    bool shape_XOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/shape_Y");
+    bool shape_YOpt = prefs->getBool(pathStr.c_str(), true);
+    pathStr = MTSpath;
+    pathStr.append("/shape_length");
+    bool shape_lengthOpt = prefs->getBool(pathStr.c_str(), true);
+
+    Glib::ustring stringToCopy = "";
+    if ((lengthOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::LENGTH])) { 
+        stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::LENGTH, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+    }
+    if ((betweenOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::LENGTH_BETWEEN])) { // not copying it if it is the same as the length
+        if (clipBMeas.lengths[MT::LengthIDs::LENGTH] != clipBMeas.lengths[MT::LengthIDs::LENGTH_BETWEEN]) {
+            stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::LENGTH_BETWEEN, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+        } else {
+            if (!lengthOpt) { // if the length is not being copied, then will copy this
+                stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::LENGTH_BETWEEN, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+            }
+        }
+    }
+    if ((deltasOpt) && (dXOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::DX])) { 
+        stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::DX, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+    }
+    if ((deltasOpt) && (dYOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::DY])) { 
+        stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::DY, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+    }
+    if ((showAngleOpt) && (angleOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::ANGLE])) { 
+        stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::ANGLE, precision, "°", labelsOpt, unitsOpt, tabsOpt) + "\n";
+    }
+    if ((clipBMeas.segLengths.size() > 0) && (segmentsOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::SEGMENT])) {
+        Glib::ustring firstSeg = clipBMeas.symbols[MT::LengthIDs::SEGMENT] + "1";
+        if ((clipBMeas.segLengths.size() == 1) && (clipBMeas.segLengths["S1"] == clipBMeas.lengths[MT::LengthIDs::LENGTH])) {
+            // do nothing the segment is the same as the total length - no point in showing it
+        } else {
+            stringToCopy += _("\nIntersection segments lengths:\n");
+            Glib::ustring sep = tabsOpt ? "\t" : " ";
+            for (const auto& [key,value] : clipBMeas.segLengths) {
+                if (labelsOpt) { stringToCopy += key +":" + sep; }
+                stringToCopy += Glib::ustring::format(std::setprecision(precision), std::fixed, value);
+                if (unitsOpt) { stringToCopy += sep + unit_name; }
+                stringToCopy += "\n";
+            }
+        }
+    }
+
+        bool showTitle = true;
+        const char* title = _("\nInfo about the shape under the pointer:\n");
+        if ((shape_widthOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_WIDTH])) { 
+            if (showTitle) {
+                stringToCopy += title;
+                showTitle = false;
+            }
+            stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::SHAPE_WIDTH, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+        }
+        if ((shape_heightOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_HEIGHT])) {
+            if (showTitle) {
+                stringToCopy += title;
+                showTitle = false;
+            }
+            stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::SHAPE_HEIGHT, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+        }
+        if ((shape_XOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_X])) {
+            if (showTitle) {
+                stringToCopy += title;
+                showTitle = false;
+            }
+            stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::SHAPE_X, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+        }
+        if ((shape_YOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_Y])) {
+            if (showTitle) {
+                stringToCopy += title;
+                showTitle = false;
+            }
+            stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::SHAPE_Y, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+        }
+        if ((shape_lengthOpt) && (clipBMeas.measureIsSet[MT::LengthIDs::SHAPE_LENGTH])) {
+            if (showTitle) {
+                stringToCopy += title;
+                showTitle = false;
+            }
+            stringToCopy += clipBMeas.composeMeaStr(MT::LengthIDs::SHAPE_LENGTH, precision, unit_name, labelsOpt, unitsOpt, tabsOpt) + "\n";
+        }
+    
+
+    Inkscape::UI::ClipboardManager *cm = Inkscape::UI::ClipboardManager::get();
+    if (cm->copyString(stringToCopy)) {
+        _desktop->messageStack()->flash(Inkscape::MessageType::INFORMATION_MESSAGE,_("The measurements have been copied to the clipboard"));
+    } 
+
+}
+
+/**
+ * @brief Calculates the base point from which to draw the dX and dY lines
+ * 
+ * It puts the point on the opposite side from where the angle is drawn
+ * The returned array contains the following points:
+ * 
+ * ___point0 is the base point; ___point1 is the dX normal; ___point2 is the dY normal;  
+ * ___point3 is the dXbase (mid point along the dX line);  
+ * ___point4 is the dYbase (mid point along the dY line)
+ */
+std::vector<Geom::Point> MeasureTool::calcDeltaBasePoint(double dX, double dY)
+{
+    Geom::Point deltasBasePoint;
+    Geom::Point dXnormal;
+    Geom::Point dYnormal;
+    Geom::Point dXbase;
+    Geom::Point dYbase;
+    double midX = (std::abs(dX) / 2);
+    double midY = (std::abs(dY) / 2);
+    if ((dX > 0) && (dY > 0)) {  // positioning the measures on the outside to avoid the clutter
+        deltasBasePoint = Geom::Point(start_p[Geom::X], end_p[Geom::Y]);
+        dXnormal = Geom::Point(0, 1);
+        dYnormal = Geom::Point(-1, 0);
+        dXbase = Geom::Point(start_p[Geom::X] + midX / 2, end_p[Geom::Y]); // putting closer to the base point to avoid other labels
+        dYbase = Geom::Point(start_p[Geom::X], start_p[Geom::Y] + midY);
+    }
+    if ((dX > 0) && (dY < 0)) {
+        deltasBasePoint = Geom::Point(start_p[Geom::X], end_p[Geom::Y]);
+        dXnormal = Geom::Point(0, -1);
+        dYnormal = Geom::Point(-1, 0);
+        dXbase = Geom::Point(start_p[Geom::X] + midX / 2, end_p[Geom::Y]);
+        dYbase = Geom::Point(start_p[Geom::X], end_p[Geom::Y] + midY);
+    }
+    if ((dX < 0) && (dY > 0)) {
+        deltasBasePoint = Geom::Point(end_p[Geom::X],start_p[Geom::Y]);
+        dXnormal = Geom::Point(0, -1);
+        dYnormal = Geom::Point(-1, 0);
+        dXbase = Geom::Point(end_p[Geom::X] + midX / 2, start_p[Geom::Y]);
+        dYbase = Geom::Point(end_p[Geom::X], start_p[Geom::Y] + midY);
+    }
+    if ((dX < 0) && (dY < 0)) {
+        deltasBasePoint = Geom::Point(end_p[Geom::X],start_p[Geom::Y]);
+        dXnormal = Geom::Point(0, 1);
+        dYnormal = Geom::Point(-1, 0);
+        dXbase = Geom::Point(end_p[Geom::X] + midX / 2, start_p[Geom::Y]);
+        dYbase = Geom::Point(end_p[Geom::X], end_p[Geom::Y] + midY);
+    }
+    std::vector<Geom::Point> result;
+    result.push_back(deltasBasePoint);
+    result.push_back(dXnormal);
+    result.push_back(dYnormal);
+    result.push_back(dXbase);
+    result.push_back(dYbase);
+    return result;
+}
+
+/**
+ * @brief Checks if a value is very close to a reference value and can be considered equal to it
+ * 
+ * @param epsilon: the value of the acceptable discrepancy from true equality
+ * @param positiveAllowed: if true (default) it checks for reference_value + epsilon range
+ * @param negativeAllowed: if true (default) it checks for reference_value - epsilon range
+ *    
+ *    If value is not allowed to cross a limit, then the range can be limited to either side of the limit
+ *    by setting the appropriate flag to false                  
+ */
+bool MeasureTool::equalWithinRange(double value, double reference_value, double epsilon, bool positiveAllowed, bool negativeAllowed) {
+    if (positiveAllowed) {
+        if ((value <= reference_value + epsilon) && (value >= reference_value)) { return true; }
+    }
+    if (negativeAllowed) {
+        if ((value >= reference_value - epsilon) && (value <= reference_value)) { return true; }
+    }
+    return false;
+}
+
+MT::ClipboardMeaClass::ClipboardMeaClass() {}
+MT::ClipboardMeaClass::~ClipboardMeaClass() {}
+
+/**
+ * @brief Composes the string for a easurement to be copied to the clipboards
+ * 
+ * @param id: one of the values of the enum MT::LengthIDs that identifies the measurement
+ * @param unit: the unit of measurement
+ * @param :  the other parameters are formatting options (if true are included; if false they are omitted) 
+ *                     
+ */
+Glib::ustring MT::ClipboardMeaClass::composeMeaStr(int id, int precision, Glib::ustring unit, bool withLabel, bool withUnit, bool tabSeparated) {
+    Glib::ustring value = Glib::ustring::format(std::setprecision(precision), std::fixed, lengths[id]);
+    Glib::ustring sep = tabSeparated ? "\t" : " ";
+    Glib::ustring result = withLabel ? labels[id] + ":" + sep : "";
+    result += value;
+    if (withUnit) {
+        result += sep + unit;
+    }
+    return result;
+}
+
+void MT::ClipboardMeaClass::unsetShapeMeasures() {
+    measureIsSet[LengthIDs::SHAPE_LENGTH] = false;
+    measureIsSet[LengthIDs::SHAPE_WIDTH] = false;
+    measureIsSet[LengthIDs::SHAPE_HEIGHT] = false;
+    measureIsSet[LengthIDs::SHAPE_X] = false;
+    measureIsSet[LengthIDs::SHAPE_Y] = false;
 }
 
 } // namespace Inkscape::UI::Tools

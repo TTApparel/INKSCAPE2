@@ -23,7 +23,7 @@ class VisualBoundsTest : public Inkscape::TestWithSvgObjectPairs
 {
 public:
     VisualBoundsTest()
-        : TestWithSvgObjectPairs("data/visual-bounds.svg", 13) {}
+        : TestWithSvgObjectPairs("data/visual-bounds.svg", 29) {}
 };
 
 TEST_F(VisualBoundsTest, ShapeBounds)

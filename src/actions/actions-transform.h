@@ -12,8 +12,10 @@
 #define INK_ACTIONS_TRANSFORM_H
 
 class InkscapeApplication;
+class InkscapeWindow;
 
 void add_actions_transform(InkscapeApplication* app);
+void add_actions_transform(InkscapeWindow* win);
 
 #endif // INK_ACTIONS_TRANSFORM_H
 

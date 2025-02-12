@@ -20,6 +20,8 @@
 #include <gtkmm/treemodel.h>  // for TreeModel
 #include <sigc++/scoped_connection.h>
 
+#include "ui/widget/template-list.h"
+
 namespace Gtk {
 class Builder;
 class Button;
@@ -32,13 +34,7 @@ class Widget;
 
 class SPDocument;
 
-namespace Inkscape::UI {
-
-namespace Widget {
-class TemplateList;
-} // namespace Widget
-
-namespace Dialog {
+namespace Inkscape::UI::Dialog {
 
 class StartScreen : public Gtk::Dialog {
 public:
@@ -71,7 +67,7 @@ private:
     void new_document();
     void load_document();
     void on_recent_changed();
-    void on_kind_changed(Gtk::Widget *tab, unsigned page_num);
+    void on_kind_changed(const Glib::ustring& name);
 
     Glib::RefPtr<Gtk::Builder> builder;
     Gtk::Notebook &tabs;
@@ -79,16 +75,15 @@ private:
     Gtk::ComboBox &themes;
     Gtk::TreeView &recent_treeview;
     Gtk::Button   &load_btn;
-    Inkscape::UI::Widget::TemplateList &templates;
+    Inkscape::UI::Widget::TemplateList templates;
+    Gtk::Notebook& _kinds;
 
     SPDocument* _document = nullptr;
     sigc::scoped_connection _tabs_switch_page_conn;
     sigc::scoped_connection _templates_switch_page_conn;
 };
 
-} // namespace Dialog
-
-} // namespace Inkscape::UI
+} // namespace Inkscape::UI::Dialog
 
 #endif // STARTSCREEN_H
 

@@ -16,6 +16,7 @@
 
 #include <map>
 #include <memory>
+#include <unordered_set>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -105,12 +106,15 @@ inline FT_Fixed FTDoubleToFixed (double value) {
 
 namespace Inkscape { class Pixbuf; }
 
-struct SVGTableEntry
+struct SVGGlyphEntry
 {
-    std::string svg;
+    unsigned int entry_index;
     std::unique_ptr<Inkscape::Pixbuf const> pixbuf;
-    ~SVGTableEntry();
+    ~SVGGlyphEntry();
 };
+
+void readOpenTypeTableList (hb_font_t* hb_font,
+                            std::unordered_set<std::string>& list);
 
 // This would be better if one had std::vector<OTSubstitution> instead of OTSubstitution where each
 // entry corresponded to one substitution (e.g. ff -> ﬀ) but Harfbuzz at the moment cannot return
@@ -125,7 +129,8 @@ void readOpenTypeFvarNamed (const FT_Face ft_face,
                             std::map<Glib::ustring, OTVarInstance>& named);
 
 void readOpenTypeSVGTable  (hb_font_t* hb_font,
-                            std::map<int, SVGTableEntry>& glyphs);
+                            std::map<unsigned int, SVGGlyphEntry>& glyphs,
+                            std::map<int, std::string>& svgs);
 
 #endif /* !USE_PANGO_WIND32    */
 #endif /* !SEEN_OPENTYPEUTIL_H */

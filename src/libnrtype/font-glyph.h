@@ -16,10 +16,12 @@
 // The info for a glyph in a font. It's totally resolution- and fontsize-independent.
 struct FontGlyph
 {
-    double h_advance, h_width; // width != advance because of kerning adjustements
-    double v_advance, v_width;
-    double bbox[4];            // bbox of the path (and the artbpath), not the bbox of the glyph as the fonts sometimes contain outline as a livarot Path
-    Geom::PathVector pathvector; // outline as 2geom pathvector, for text->curve stuff (should be unified with livarot)
+    double h_advance = 1.0;
+    double v_advance = 1.0;
+    Geom::PathVector pathvector;
+    Geom::Rect bbox_exact;                        // Exact bounding box, from font.
+    Geom::Rect bbox_pick = {0.0, -0.2, 1.0, 0.8}; // Expanded bounding box (initialize to em box). (y point down.)
+    Geom::Rect bbox_draw = {0.0, -0.2, 1.0, 0.8}; // Expanded bounding box (initialize to em box).
 };
 
 #endif // LIBNRTYPE_FONT_GLYPH_H

@@ -53,91 +53,66 @@
 using Inkscape::DocumentUndo;
 using Inkscape::Util::UnitTable;
 
-SPNamedView::SPNamedView()
-    : SPObjectGroup()
-    , snap_manager(this, get_snapping_preferences())
-    , showguides(true)
-    , lockguides(false)
-    , clip_to_page(false)
-    , grids_visible(false)
-    , desk_checkerboard(false)
+SPNamedView::SPNamedView() : SPObjectGroup(),
+    snap_manager(this, get_snapping_preferences()),
+    _viewport{new Inkscape::CanvasPage()}
 {
-    this->zoom = 0;
-    this->views.clear();
-    // this->page_size_units = nullptr;
-    this->window_x = 0;
-    this->cy = 0;
-    this->window_y = 0;
-    this->display_units = nullptr;
-    // this->page_size_units = nullptr;
-    this->cx = 0;
-    this->rotation = 0;
-    this->window_width = 0;
-    this->window_height = 0;
-    this->window_maximized = 0;
+    connector_spacing = defaultConnSpacing;
 
-    this->editable = TRUE;
-    this->viewcount = 0;
-
-    this->default_layer_id = 0;
-
-    this->connector_spacing = defaultConnSpacing;
-
-    this->_viewport = new Inkscape::CanvasPage();
-    this->_viewport->hide();
+    _viewport->hide();
 }
 
 SPNamedView::~SPNamedView()
-{
-    delete _viewport;
-}
+{ }
 
 void SPNamedView::build(SPDocument *document, Inkscape::XML::Node *repr) {
     SPObjectGroup::build(document, repr);
 
-    this->readAttr(SPAttr::INKSCAPE_DOCUMENT_UNITS);
-    this->readAttr(SPAttr::UNITS);
-    this->readAttr(SPAttr::VIEWONLY);
-    this->readAttr(SPAttr::SHOWGUIDES);
-    this->readAttr(SPAttr::SHOWGRIDS);
-    this->readAttr(SPAttr::GRIDTOLERANCE);
-    this->readAttr(SPAttr::GUIDETOLERANCE);
-    this->readAttr(SPAttr::OBJECTTOLERANCE);
-    this->readAttr(SPAttr::ALIGNMENTTOLERANCE);
-    this->readAttr(SPAttr::DISTRIBUTIONTOLERANCE);
-    this->readAttr(SPAttr::GUIDECOLOR);
-    this->readAttr(SPAttr::GUIDEOPACITY);
-    this->readAttr(SPAttr::GUIDEHICOLOR);
-    this->readAttr(SPAttr::GUIDEHIOPACITY);
-    this->readAttr(SPAttr::SHOWBORDER);
-    this->readAttr(SPAttr::SHOWPAGESHADOW);
-    this->readAttr(SPAttr::BORDERLAYER);
-    this->readAttr(SPAttr::BORDERCOLOR);
-    this->readAttr(SPAttr::BORDEROPACITY);
-    this->readAttr(SPAttr::PAGECOLOR);
-    this->readAttr(SPAttr::PAGELABELSTYLE);
-    this->readAttr(SPAttr::INKSCAPE_DESK_COLOR);
-    this->readAttr(SPAttr::INKSCAPE_DESK_CHECKERBOARD);
-    this->readAttr(SPAttr::INKSCAPE_PAGESHADOW);
-    this->readAttr(SPAttr::INKSCAPE_ZOOM);
-    this->readAttr(SPAttr::INKSCAPE_ROTATION);
-    this->readAttr(SPAttr::INKSCAPE_CX);
-    this->readAttr(SPAttr::INKSCAPE_CY);
-    this->readAttr(SPAttr::INKSCAPE_WINDOW_WIDTH);
-    this->readAttr(SPAttr::INKSCAPE_WINDOW_HEIGHT);
-    this->readAttr(SPAttr::INKSCAPE_WINDOW_X);
-    this->readAttr(SPAttr::INKSCAPE_WINDOW_Y);
-    this->readAttr(SPAttr::INKSCAPE_WINDOW_MAXIMIZED);
-    this->readAttr(SPAttr::INKSCAPE_CURRENT_LAYER);
-    this->readAttr(SPAttr::INKSCAPE_CONNECTOR_SPACING);
-    this->readAttr(SPAttr::INKSCAPE_LOCKGUIDES);
+    readAttr(SPAttr::INKSCAPE_DOCUMENT_UNITS);
+    readAttr(SPAttr::UNITS);
+    readAttr(SPAttr::VIEWONLY);
+    readAttr(SPAttr::SHOWGUIDES);
+    readAttr(SPAttr::SHOWGRIDS);
+    readAttr(SPAttr::GRIDTOLERANCE);
+    readAttr(SPAttr::GUIDETOLERANCE);
+    readAttr(SPAttr::OBJECTTOLERANCE);
+    readAttr(SPAttr::ALIGNMENTTOLERANCE);
+    readAttr(SPAttr::DISTRIBUTIONTOLERANCE);
+    readAttr(SPAttr::GUIDECOLOR);
+    readAttr(SPAttr::GUIDEOPACITY);
+    readAttr(SPAttr::GUIDEHICOLOR);
+    readAttr(SPAttr::GUIDEHIOPACITY);
+    readAttr(SPAttr::SHOWBORDER);
+    readAttr(SPAttr::SHOWPAGESHADOW);
+    readAttr(SPAttr::BORDERLAYER);
+    readAttr(SPAttr::BORDERCOLOR);
+    readAttr(SPAttr::BORDEROPACITY);
+    readAttr(SPAttr::PAGECOLOR);
+    readAttr(SPAttr::PAGELABELSTYLE);
+    readAttr(SPAttr::INKSCAPE_DESK_COLOR);
+    readAttr(SPAttr::INKSCAPE_DESK_CHECKERBOARD);
+    readAttr(SPAttr::INKSCAPE_PAGESHADOW);
+    readAttr(SPAttr::INKSCAPE_ZOOM);
+    readAttr(SPAttr::INKSCAPE_ROTATION);
+    readAttr(SPAttr::INKSCAPE_CX);
+    readAttr(SPAttr::INKSCAPE_CY);
+    readAttr(SPAttr::INKSCAPE_WINDOW_WIDTH);
+    readAttr(SPAttr::INKSCAPE_WINDOW_HEIGHT);
+    readAttr(SPAttr::INKSCAPE_WINDOW_X);
+    readAttr(SPAttr::INKSCAPE_WINDOW_Y);
+    readAttr(SPAttr::INKSCAPE_WINDOW_MAXIMIZED);
+    readAttr(SPAttr::INKSCAPE_CURRENT_LAYER);
+    readAttr(SPAttr::INKSCAPE_CONNECTOR_SPACING);
+    readAttr(SPAttr::INKSCAPE_LOCKGUIDES);
     readAttr(SPAttr::INKSCAPE_CLIP_TO_PAGE_RENDERING);
     readAttr(SPAttr::INKSCAPE_ANTIALIAS_RENDERING);
+    readAttr(SPAttr::INKSCAPE_ORIGIN_CORRECTION);
+    readAttr(SPAttr::INKSCAPE_Y_AXIS_DOWN);
 
     /* Construct guideline and pages list */
     for (auto &child : children) {
         if (auto guide = cast<SPGuide>(&child)) {
-            this->guides.push_back(guide);
+            guides.push_back(guide);
             guide->setColor(getGuideColor().toRGBA());
             guide->setHiColor(getGuideHiColor().toRGBA());
             guide->readAttr(SPAttr::INKSCAPE_COLOR);
@@ -152,8 +127,8 @@ void SPNamedView::build(SPDocument *document, Inkscape::XML::Node *repr) {
 }
 
 void SPNamedView::release() {
-    this->guides.clear();
-    this->grids.clear();
+    guides.clear();
+    grids.clear();
 
     SPObjectGroup::release();
 }
@@ -193,7 +168,7 @@ void SPNamedView::set_desk_color(SPDesktop* desktop) {
         dkcolor.setOpacity(desk_checkerboard ? 0.0 : 1.0);
         desktop->getCanvas()->set_desk(dkcolor.toRGBA());
         // Update pages, whose colours sometimes change whe the desk color changes.
-        document->getPageManager().setDefaultAttributes(_viewport);
+        document->getPageManager().setDefaultAttributes(_viewport.get());
     }
 }
 
@@ -202,7 +177,7 @@ void SPNamedView::modified(unsigned int flags)
     // Copy the page style for the default viewport attributes
     auto &page_manager = document->getPageManager();
     if (flags & SP_OBJECT_MODIFIED_FLAG) {
-        page_manager.setDefaultAttributes(_viewport);
+        page_manager.setDefaultAttributes(_viewport.get());
         updateViewPort();
         // Pass modifications to the page manager to update the page items.
         for (auto &page : page_manager.getPages()) {
@@ -226,7 +201,7 @@ void SPNamedView::modified(unsigned int flags)
         }
     }
 
-    for (auto child : this->childList(false)) {
+    for (auto child : childList(false)) {
         if (flags || (child->mflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->emitModified(flags & SP_OBJECT_MODIFIED_CASCADE);
         }
@@ -244,7 +219,7 @@ void SPNamedView::update(SPCtx *ctx, guint flags)
 
     flags &= SP_OBJECT_MODIFIED_CASCADE;
 
-    for (auto child : this->childList(false)) {
+    for (auto child : childList(false)) {
         if (flags || (child->uflags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))) {
             child->updateDisplay(ctx, flags);
         }
@@ -285,7 +260,7 @@ const Inkscape::Util::Unit* sp_parse_document_units(const char* value) {
 void SPNamedView::set(SPAttr key, const gchar* value) {
     // Send page attributes to the page manager.
     if (document->getPageManager().subset(key, value)) {
-        this->requestModified(SP_OBJECT_MODIFIED_FLAG);
+        requestModified(SP_OBJECT_MODIFIED_FLAG);
         return;
     }
 
@@ -299,32 +274,32 @@ void SPNamedView::set(SPAttr key, const gchar* value) {
 
     switch (key) {
     case SPAttr::VIEWONLY:
-        this->editable = (!value);
+        editable = (!value);
         break;
     case SPAttr::SHOWGUIDES:
-        this->showguides.readOrUnset(value);
+        showguides.readOrUnset(value);
         break;
     case SPAttr::INKSCAPE_LOCKGUIDES:
-        this->lockguides.readOrUnset(value);
+        lockguides.readOrUnset(value);
         break;
     case SPAttr::SHOWGRIDS:
-        this->grids_visible.readOrUnset(value);
+        grids_visible.readOrUnset(value);
         updateGrids();
         break;
     case SPAttr::GRIDTOLERANCE:
-        this->snap_manager.snapprefs.setGridTolerance(value ? g_ascii_strtod(value, nullptr) : 10);
+        snap_manager.snapprefs.setGridTolerance(value ? g_ascii_strtod(value, nullptr) : 10);
         break;
     case SPAttr::GUIDETOLERANCE:
-        this->snap_manager.snapprefs.setGuideTolerance(value ? g_ascii_strtod(value, nullptr) : 20);
+        snap_manager.snapprefs.setGuideTolerance(value ? g_ascii_strtod(value, nullptr) : 20);
         break;
     case SPAttr::OBJECTTOLERANCE:
-        this->snap_manager.snapprefs.setObjectTolerance(value ? g_ascii_strtod(value, nullptr) : 20);
+        snap_manager.snapprefs.setObjectTolerance(value ? g_ascii_strtod(value, nullptr) : 20);
         break;
     case SPAttr::ALIGNMENTTOLERANCE:
-        this->snap_manager.snapprefs.setAlignementTolerance(value ? g_ascii_strtod(value, nullptr) : 5);
+        snap_manager.snapprefs.setAlignementTolerance(value ? g_ascii_strtod(value, nullptr) : 5);
         break;
     case SPAttr::DISTRIBUTIONTOLERANCE:
-        this->snap_manager.snapprefs.setDistributionTolerance(value ? g_ascii_strtod(value, nullptr) : 5);
+        snap_manager.snapprefs.setDistributionTolerance(value ? g_ascii_strtod(value, nullptr) : 5);
         break;
     case SPAttr::GUIDECOLOR:
         _guide_color = Inkscape::Colors::Color::parse(value);
@@ -346,40 +321,40 @@ void SPNamedView::set(SPAttr key, const gchar* value) {
         _desk_color = Inkscape::Colors::Color::parse(value);
         break;
     case SPAttr::INKSCAPE_DESK_CHECKERBOARD:
-        this->desk_checkerboard.readOrUnset(value);
+        desk_checkerboard.readOrUnset(value);
         break;
     case SPAttr::INKSCAPE_ZOOM:
-        this->zoom = value ? g_ascii_strtod(value, nullptr) : 0; // zero means not set
+        zoom = value ? g_ascii_strtod(value, nullptr) : 0; // zero means not set
         break;
     case SPAttr::INKSCAPE_ROTATION:
-        this->rotation = value ? g_ascii_strtod(value, nullptr) : 0; // zero means not set
+        rotation = value ? g_ascii_strtod(value, nullptr) : 0; // zero means not set
         break;
     case SPAttr::INKSCAPE_CX:
-        this->cx = value ? g_ascii_strtod(value, nullptr) : HUGE_VAL; // HUGE_VAL means not set
+        cx = value ? g_ascii_strtod(value, nullptr) : HUGE_VAL; // HUGE_VAL means not set
         break;
     case SPAttr::INKSCAPE_CY:
-        this->cy = value ? g_ascii_strtod(value, nullptr) : HUGE_VAL; // HUGE_VAL means not set
+        cy = value ? g_ascii_strtod(value, nullptr) : HUGE_VAL; // HUGE_VAL means not set
         break;
     case SPAttr::INKSCAPE_WINDOW_WIDTH:
-        this->window_width = value? atoi(value) : -1; // -1 means not set
+        window_width = value? atoi(value) : -1; // -1 means not set
         break;
     case SPAttr::INKSCAPE_WINDOW_HEIGHT:
-        this->window_height = value ? atoi(value) : -1; // -1 means not set
+        window_height = value ? atoi(value) : -1; // -1 means not set
         break;
     case SPAttr::INKSCAPE_WINDOW_X:
-        this->window_x = value ? atoi(value) : 0;
+        window_x = value ? atoi(value) : 0;
         break;
     case SPAttr::INKSCAPE_WINDOW_Y:
-        this->window_y = value ? atoi(value) : 0;
+        window_y = value ? atoi(value) : 0;
         break;
     case SPAttr::INKSCAPE_WINDOW_MAXIMIZED:
-        this->window_maximized = value ? atoi(value) : 0;
+        window_maximized = value ? atoi(value) : 0;
         break;
     case SPAttr::INKSCAPE_CURRENT_LAYER:
-        this->default_layer_id = value ? g_quark_from_string(value) : 0;
+        default_layer_id = value ? g_quark_from_string(value) : 0;
         break;
     case SPAttr::INKSCAPE_CONNECTOR_SPACING:
-        this->connector_spacing = value ? g_ascii_strtod(value, nullptr) : defaultConnSpacing;
+        connector_spacing = value ? g_ascii_strtod(value, nullptr) : defaultConnSpacing;
         break;
     case SPAttr::INKSCAPE_DOCUMENT_UNITS:
         display_units = sp_parse_document_units(value);
@@ -414,12 +389,18 @@ void SPNamedView::set(SPAttr key, const gchar* value) {
             this->page_size_units = new_unit;
             break;
     } */
+    case SPAttr::INKSCAPE_ORIGIN_CORRECTION:
+        _origin_correction.readOrUnset(value);
+        break;
+    case SPAttr::INKSCAPE_Y_AXIS_DOWN:
+        _y_axis_down.readOrUnset(value);
+        break;
     default:
         SPObjectGroup::set(key, value);
         return;
     }
 
-    this->requestModified(SP_OBJECT_MODIFIED_FLAG);
+    requestModified(SP_OBJECT_MODIFIED_FLAG);
 }
 
 /**
@@ -436,14 +417,14 @@ void SPNamedView::updateViewPort()
     } else {
         // Otherwise we are showing the viewport item.
         _viewport->show();
-        _viewport->update(*box, {}, {}, nullptr, document->getPageManager().hasPages());
+        _viewport->update(*box, {}, {}, nullptr, document->getPageManager().hasPages(), document->is_yaxisdown());
     }
 }
 
 void SPNamedView::child_added(Inkscape::XML::Node *child, Inkscape::XML::Node *ref) {
     SPObjectGroup::child_added(child, ref);
 
-    SPObject *no = this->document->getObjectByRepr(child);
+    SPObject *no = document->getObjectByRepr(child);
     if (!no)
         return;
 
@@ -455,28 +436,28 @@ void SPNamedView::child_added(Inkscape::XML::Node *child, Inkscape::XML::Node *r
     } else if (!strcmp(child->name(), "inkscape:page")) {
         if (auto page = cast<SPPage>(no)) {
             document->getPageManager().addPage(page);
-            for (auto view : this->views) {
+            for (auto view : views) {
                 page->showPage(view->getCanvasPagesBg(), view->getCanvasPagesFg());
             }
         }
     } else {
         if (auto g = cast<SPGuide>(no)) {
-            this->guides.push_back(g);
+            guides.push_back(g);
 
             //g_object_set(G_OBJECT(g), "color", this->guidecolor, "hicolor", this->guidehicolor, NULL);
             g->setColor(getGuideColor().toRGBA());
             g->setHiColor(getGuideHiColor().toRGBA());
             g->readAttr(SPAttr::INKSCAPE_COLOR);
 
-            if (this->editable) {
-                for(auto view : this->views) {
+            if (editable) {
+                for(auto view : views) {
                     g->SPGuide::showSPGuide(view->getCanvasGuides());
 
                     if (view->guides_active) {
                         g->sensitize(view->getCanvas(), TRUE);
                     }
 
-                    this->setShowGuideSingle(g);
+                    setShowGuideSingle(g);
                 }
             }
         }
@@ -498,9 +479,9 @@ void SPNamedView::remove_child(Inkscape::XML::Node *child) {
             }
         }
     } else {
-        for(std::vector<SPGuide *>::iterator it=this->guides.begin();it!=this->guides.end();++it ) {
-            if ( (*it)->getRepr() == child ) {
-                this->guides.erase(it);
+        for (auto it = guides.begin(); it != guides.end(); ++it) {
+            if ((*it)->getRepr() == child) {
+                guides.erase(it);
                 break;
             }
         }
@@ -534,14 +515,13 @@ Inkscape::XML::Node* SPNamedView::write(Inkscape::XML::Document *xml_doc, Inksca
 
 void SPNamedView::show(SPDesktop *desktop)
 {
-
-    for (auto guide : this->guides) {
+    for (auto guide : guides) {
         guide->showSPGuide( desktop->getCanvasGuides() );
 
         if (desktop->guides_active) {
             guide->sensitize(desktop->getCanvas(), TRUE);
         }
-        this->setShowGuideSingle(guide);
+        setShowGuideSingle(guide);
     }
 
     for (auto grid : grids) {
@@ -550,7 +530,7 @@ void SPNamedView::show(SPDesktop *desktop)
 
     auto box = document->preferredBounds();
     _viewport->add(*box, desktop->getCanvasPagesBg(), desktop->getCanvasPagesFg());
-    document->getPageManager().setDefaultAttributes(_viewport);
+    document->getPageManager().setDefaultAttributes(_viewport.get());
     updateViewPort();
 
     for (auto page : document->getPageManager().getPages()) {
@@ -751,8 +731,7 @@ void SPNamedView::setDefaultAttribute(std::string attribute, std::string prefere
     if (!getAttribute(attribute.c_str())) {
         std::string value = "";
         if (!preference.empty()) {
-            Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-            value = prefs->getString(preference);
+            value = Preferences::get()->getString(preference);
         }
         if (value.empty() && !fallback.empty()) {
             value = fallback;
@@ -769,14 +748,14 @@ void SPNamedView::activateGuides(void* desktop, bool active)
     g_assert(std::find(views.begin(),views.end(),desktop)!=views.end());
 
     SPDesktop *dt = static_cast<SPDesktop*>(desktop);
-    for(auto & guide : this->guides) {
+    for(auto & guide : guides) {
         guide->sensitize(dt->getCanvas(), active);
     }
 }
 
 gchar const *SPNamedView::getName() const
 {
-    return this->getAttribute("id");
+    return getAttribute("id");
 }
 
 std::vector<SPDesktop *> const SPNamedView::getViewList() const
@@ -805,7 +784,7 @@ void SPNamedView::setShowGrids(bool v)
         DocumentUndo::ScopedInsensitive ice(document);
 
         if (v && grids.empty())
-            SPGrid::create_new(document, this->getRepr(), GridType::RECTANGULAR);
+            SPGrid::create_new(document, getRepr(), GridType::RECTANGULAR);
 
         getRepr()->setAttributeBoolean("showgrid", v);
     }
@@ -951,7 +930,7 @@ SPGrid *SPNamedView::getFirstEnabledGrid()
 }
 
 void SPNamedView::translateGuides(Geom::Translate const &tr) {
-    for(auto & it : this->guides) {
+    for(auto & it : guides) {
         SPGuide &guide = *it;
         Geom::Point point_on_line = guide.getPoint();
         point_on_line *= tr;
@@ -967,7 +946,7 @@ void SPNamedView::translateGrids(Geom::Translate const &tr) {
 }
 
 void SPNamedView::scrollAllDesktops(double dx, double dy) {
-    for(auto & view : this->views) {
+    for(auto & view : views) {
         view->scroll_relative_in_svg_coords(dx, dy);
     }
 }
@@ -1000,6 +979,26 @@ void SPNamedView::temporarily_show_guides(bool show) {
     // hide page margin and bleed lines
     for (auto page : document->getPageManager().getPages()) {
         page->set_guides_visible(show);
+    }
+}
+
+void SPNamedView::set_origin_follows_page(bool on) {
+    if (auto repr = getRepr()) {
+        repr->setAttributeBoolean("origin-correction", on);
+        requestModified(SP_OBJECT_MODIFIED_FLAG);
+    }
+}
+
+void SPNamedView::set_y_axis_down(bool down) {
+    if (auto repr = getRepr()) {
+        repr->setAttributeBoolean("y-axis-down", down);
+        requestModified(SP_OBJECT_MODIFIED_FLAG);
+    }
+}
+
+void SPNamedView::fix_guidelines() {
+    for (auto guide : guides) {
+        guide->fix_orientation();
     }
 }
 

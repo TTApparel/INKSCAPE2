@@ -52,7 +52,7 @@
 #include "ui/widget/gradient-image.h"
 #include "ui/widget/popover-menu.h"
 #include "ui/widget/popover-menu-item.h"
-#include "util/units.cpp"
+#include "util/units.h"
 #include "util/value-utils.h"
 #include "util-string/ustring-format.h"
 #include "util/variant-visitor.h"

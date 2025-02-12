@@ -368,9 +368,8 @@ std::shared_ptr<const std::vector<FontInfo>> get_all_fonts(Async::Progress<doubl
                         info.variable_font = !font->get_opentype_varaxes().empty();
                         auto glyph = font->LoadGlyph(font->MapUnicodeChar('E'));
                         if (glyph) {
-                            // bbox: L T R B
-                            caps_height = glyph->bbox[3] - glyph->bbox[1]; // caps height normalized to 0..1
-                            auto& path = glyph->pathvector;
+                            // caps height normalized to 0..1
+                            caps_height = glyph->bbox_exact.height();
                         }
                     }
                 }
@@ -459,3 +458,14 @@ sigc::scoped_connection FontDiscovery::connect_to_fonts(std::function<void (cons
 }
 
 } // namespace
+
+/*
+  Local Variables:
+  mode:c++
+  c-file-style:"stroustrup"
+  c-file-offsets:((innamespace . 0)(inline-open . 0)(case-label . +))
+  indent-tabs-mode:nil
+  fill-column:99
+  End:
+*/
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:fileencoding=utf-8:textwidth=99 :

@@ -150,7 +150,7 @@ void add_actions_dialogs(InkscapeWindow *win)
 
     // macOS automatically uses app.preferences in the application menu
     auto gapp = win->get_application();
-    gapp->add_action("preferences", [win] { dialog_open(Glib::Variant<Glib::ustring>::create("Preferences"), win); });
+    gapp->add_action("preferences", [] { dialog_open(Glib::Variant<Glib::ustring>::create("Preferences"), InkscapeApplication::instance()->get_active_window()); });
 
     auto app = InkscapeApplication::instance();
     if (!app) {

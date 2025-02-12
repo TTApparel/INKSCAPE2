@@ -400,7 +400,7 @@ public:
             if (auto grid = dynamic_cast<Gtk::Grid*>(_table->get_first_child())) {
                 auto op_button = Gtk::make_managed<Gtk::ToggleButton>();
                 op_button->set_active(false);
-                op_button->set_tooltip_markup("<b>Picker Tool</b>\nSelect objects on canvas");
+                op_button->set_tooltip_markup(_("<b>Picker Tool</b>\nSelect objects on canvas"));
                 op_button->set_margin_start(4);
                 op_button->set_image_from_icon_name("object-pick");
 
@@ -726,13 +726,13 @@ public:
                 _path->updateRepr();
             });
         });
+
         _clear_rnd.signal_clicked().connect([this](){ _rand.get_adjustment()->set_value(0); });
         _clear_round.signal_clicked().connect([this](){ _rounded.get_adjustment()->set_value(0); });
         _clear_ratio.signal_clicked().connect([this](){ _ratio.get_adjustment()->set_value(0.5); });
 
         _poly.signal_toggled().connect([this](){ set_flat(true); });
         _star.signal_toggled().connect([this](){ set_flat(false); });
-
         _align.signal_clicked().connect([this](){
             change_value(_path, {}, [this](double) { align_star_shape(_path); });
         });
@@ -755,6 +755,7 @@ public:
         }
         _rounded.set_value(_path->rounded);
         _rand.set_value(_path->randomized);
+
         _clear_rnd  .set_visible(_path->randomized != 0);
         _clear_round.set_visible(_path->rounded != 0);
         _clear_ratio.set_visible(std::abs(_ratio.get_value() - 0.5) > 0.0005);

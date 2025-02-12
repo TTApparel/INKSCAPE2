@@ -211,16 +211,17 @@ void Layout::show(DrawingGroup *parent, StyleAttachments &style_attachments, Geo
                 }
                 // Save the starting coordinates for the line - these are needed for figuring out dot/dash/wave phase.
                 // Use maximum ascent and descent to ensure glyphs that extend outside the embox are fully drawn.
-                drawing_text->addComponent(_spans[i].font, _glyphs[glyph_index].glyph, glyph_matrix,
-                    _glyphs[glyph_index].advance,
-                    _spans[i].line_height.getMaxAscent(),
-                    _spans[i].line_height.getMaxDescent(),
-                    glyph_matrix.translation().x() - phase0
+                drawing_text->addComponent(_spans[i].font,
+                                           _glyphs[glyph_index].glyph,
+                                           glyph_matrix,
+                                           _glyphs[glyph_index].advance,
+                                           _spans[i].line_height.getMaxAscent(),
+                                           _spans[i].line_height.getMaxDescent(),
+                                           glyph_matrix.translation().x() - phase0
                 );
             }
             glyph_index++;
         }
-
         drawing_text->setStyle(style);
         drawing_text->setItemBounds(paintbox);
         // Text spans must be painted in the right order (see inkscape/685)
@@ -248,7 +249,7 @@ Geom::OptRect Layout::bounds(Geom::Affine const &transform, bool with_stroke, in
         Geom::Affine total_transform = glyph_matrix;
         total_transform *= transform;
         if(_glyphs[glyph_index].span(this).font) {
-            Geom::OptRect glyph_rect = _glyphs[glyph_index].span(this).font->BBox(_glyphs[glyph_index].glyph);
+            Geom::OptRect glyph_rect = _glyphs[glyph_index].span(this).font->BBoxExact(_glyphs[glyph_index].glyph);
             if (glyph_rect) {
                 auto glyph_box = *glyph_rect * total_transform;
                 // FIXME: Expand rectangle by half stroke width, this doesn't include meters

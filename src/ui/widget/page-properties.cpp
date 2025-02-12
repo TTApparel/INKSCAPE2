@@ -133,6 +133,9 @@ public:
       , _page_height          (get_derived_widget<MathSpinButton>(_builder, "page-height"))
       , _portrait             (get_widget<Gtk::CheckButton>      (_builder, "page-portrait"))
       , _landscape            (get_widget<Gtk::CheckButton>      (_builder, "page-landscape"))
+      , _y_axis_up            (get_widget<Gtk::CheckButton>      (_builder, "y-axis-up"))
+      , _y_axis_down          (get_widget<Gtk::CheckButton>      (_builder, "y-axis-down"))
+      , _origin_page          (get_widget<Gtk::CheckButton>      (_builder, "origin-page"))
       , _scale_x              (get_derived_widget<MathSpinButton>(_builder, "scale-x"))
       , _link_scale_content   (get_widget<Gtk::Button>           (_builder, "link-scale-content"))
       , _unsupported_size     (get_widget<Gtk::Label>            (_builder, "unsupported"))
@@ -184,7 +187,7 @@ public:
         _preview->set_expand(true);
         _preview_box.append(*_preview);
 
-        for (auto check : {Check::Border, Check::Shadow, Check::Checkerboard, Check::BorderOnTop, Check::AntiAlias, Check::ClipToPage, Check::PageLabelStyle}) {
+        for (auto check : {Check::Border, Check::Shadow, Check::Checkerboard, Check::BorderOnTop, Check::AntiAlias, Check::ClipToPage, Check::PageLabelStyle, Check::YAxisPointsDown, Check::OriginCurrentPage}) {
             auto checkbutton = &get_checkbutton(check);
             checkbutton->signal_toggled().connect([=, this](){ fire_checkbox_toggled(*checkbutton, check); });
         }
@@ -443,6 +446,7 @@ private:
             if (element == Check::Checkerboard) _preview->enable_checkerboard(checked);
             if (element == Check::Shadow) _preview->enable_drop_shadow(checked);
             if (element == Check::Border) _preview->draw_border(checked);
+            if (element == Check::YAxisPointsDown && !checked) _y_axis_up.set_active();
         }
     }
 
@@ -520,6 +524,8 @@ private:
             case Check::Checkerboard: return _checkerboard;
             case Check::ClipToPage: return _clip_to_page;
             case Check::PageLabelStyle: return _page_label_style;
+            case Check::YAxisPointsDown: return _y_axis_down;
+            case Check::OriginCurrentPage: return _origin_page;
 
             default:
                 throw std::runtime_error("missing case in get_checkbutton");
@@ -548,6 +554,9 @@ private:
     MathSpinButton &_page_height;
     Gtk::CheckButton &_portrait;
     Gtk::CheckButton &_landscape;
+    Gtk::CheckButton& _y_axis_up;
+    Gtk::CheckButton& _y_axis_down;
+    Gtk::CheckButton& _origin_page;
     MathSpinButton &_scale_x;
     Gtk::Button &_link_scale_content;
     Gtk::Label &_unsupported_size;

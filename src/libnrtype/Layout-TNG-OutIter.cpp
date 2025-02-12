@@ -258,7 +258,7 @@ Layout::iterator Layout::sourceToIterator(SPObject *source /*, Glib::ustring::co
 Geom::OptRect Layout::glyphBoundingBox(iterator const &it, double *rotation) const
 {
    if (rotation) *rotation = _glyphs[it._glyph_index].rotation;
-   return _glyphs[it._glyph_index].span(this).font->BBox(_glyphs[it._glyph_index].glyph);
+   return _glyphs[it._glyph_index].span(this).font->BBoxExact(_glyphs[it._glyph_index].glyph);
 }
 
 Geom::Point Layout::characterAnchorPoint(iterator const &it) const

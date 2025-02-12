@@ -92,7 +92,7 @@ void SPGuide::set(SPAttr key, const gchar *value) {
         if (auto c = Inkscape::Colors::Color::parse(value)) {
             if (!c->hasOpacity())
                 c->addOpacity(0.5);
-            color = c->toRGBA();
+            setColor(c->toRGBA());
         }
         break;
     case SPAttr::INKSCAPE_LABEL:
@@ -195,6 +195,14 @@ void SPGuide::set(SPAttr key, const gchar *value) {
     	SPObject::set(key, value);
         break;
     }
+}
+
+void SPGuide::fix_orientation() {
+    if (!document) return;
+
+    // refresh orientation and position taking current Y-axis orientation into account
+    readAttr(SPAttr::ORIENTATION);
+    readAttr(SPAttr::POSITION);
 }
 
 /* Only used internally and in sp-line.cpp */

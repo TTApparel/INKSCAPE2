@@ -291,14 +291,19 @@ bool InkscapeApplication::document_revert(SPDocument *document)
         return false;
     }
 
-    // Swap reverted document in all windows.
+    // Acquire list of desktops attached to old document. (They are about to get moved around.)
+    std::vector<SPDesktop *> desktops;
     for (auto const &desktop : it->second) {
+        desktops.push_back(desktop.get());
+    }
 
+    // Swap reverted document in all windows.
+    for (auto const desktop : desktops) {
         // Remember current zoom and view.
         double zoom = desktop->current_zoom();
         Geom::Point c = desktop->current_center();
 
-        bool reverted = document_swap(desktop.get(), new_document);
+        bool reverted = document_swap(desktop, new_document);
 
         if (reverted) {
             desktop->zoom_absolute(c, zoom, false);
@@ -816,7 +821,7 @@ void InkscapeApplication::create_window(Glib::RefPtr<Gio::File> const &file)
     }
 
     _active_document = document;
-    _active_window   = desktop->getInkscapeWindow();
+    _active_window = desktop ? desktop->getInkscapeWindow() : nullptr;
 }
 
 /** Destroy a window and close the document it contains. Aborts if document needs saving.

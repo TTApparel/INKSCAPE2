@@ -284,8 +284,6 @@ override) the bindings in the main default.xml.
   <bind gaction="app.selection-lower"                    keys="Page_Down,  KP_Page_Down" />
   <bind gaction="app.selection-bottom"                   keys="End,        KP_End" />
 
-  <bind gaction="app.object-rotate-90-cw"                keys="&lt;primary&gt;bracketright" />
-  <bind gaction="app.object-rotate-90-ccw"               keys="&lt;primary&gt;bracketleft" />
   <bind gaction="app.object-flip-horizontal"             keys="h" />
   <bind gaction="app.object-flip-vertical"               keys="v" />
 
@@ -302,12 +300,20 @@ override) the bindings in the main default.xml.
   <!-- Object Transform -->
   <bind gaction="app.transform-remove"                   keys="&lt;shift&gt;&lt;alt&gt;t" />
   <bind gaction="app.transform-reapply"                  keys="&lt;primary&gt;&lt;alt&gt;t" />
+
   <bind gaction="app.transform-scale(2.0)"               keys="&lt;primary&gt;period, &lt;primary&gt;greater" />
-  <bind gaction="app.transform-grow-step(1.0)"           keys="               period,                greater" /> <!-- uses preference step value -->
-  <bind gaction="app.transform-grow-screen(2.0)"         keys="    &lt;alt&gt;period,     &lt;alt&gt;greater" />
   <bind gaction="app.transform-scale(0.5)"               keys="&lt;primary&gt;comma,  &lt;primary&gt;less" />
-  <bind gaction="app.transform-grow-step(-1.0)"          keys="               comma,                 less" />  <!-- shrink -->
-  <bind gaction="app.transform-grow-screen(-2.0)"        keys="    &lt;alt&gt;comma,      &lt;alt&gt;less" />  <!-- shrink -->
+  <bind gaction="app.transform-grow-step(1.0)"           keys="               period,                greater" />
+  <bind gaction="app.transform-grow-step(-1.0)"          keys="               comma,                 less" />
+  <bind gaction="win.transform-grow-screen(2.0)"         keys="    &lt;alt&gt;period,     &lt;alt&gt;greater" />
+  <bind gaction="win.transform-grow-screen(-2.0)"        keys="    &lt;alt&gt;comma,      &lt;alt&gt;less" />
+
+  <bind gaction="app.transform-rotate(90.0)"             keys="&lt;primary&gt;bracketright" />
+  <bind gaction="app.transform-rotate(-90.0)"            keys="&lt;primary&gt;bracketleft" />
+  <bind gaction="app.transform-rotate-step(180.0)"       keys="               bracketright" />
+  <bind gaction="app.transform-rotate-step(-180.0)"      keys="               bracketleft" />
+  <bind gaction="win.transform-rotate-screen(1.0)"       keys="    &lt;alt&gt;bracketright" />
+  <bind gaction="win.transform-rotate-screen(-1.0)"      keys="    &lt;alt&gt;bracketleft" />
 
   <bind gaction="win.unhide-all" />
   <bind gaction="win.unlock-all" />

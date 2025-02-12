@@ -540,10 +540,10 @@ void CanvasItemGridTiles::_update(bool) {
     auto tile = _spacing;
     auto pitch = tile + _gap;
 
-    _world_pitch = Geom::Point(pitch.x(), pitch.y()) * affine().withoutTranslation();
-    _world_tile = Geom::Point(tile.x(), tile.y()) * affine().withoutTranslation();
-    _world_gap = Geom::Point(_gap.x(), _gap.y()) * affine().withoutTranslation();
-    _world_margin = Geom::Point(_margin.x(), _margin.y()) * affine().withoutTranslation();
+    _world_pitch = pitch * affine().withoutTranslation();
+    _world_tile = tile * affine().withoutTranslation();
+    _world_gap = _gap * affine().withoutTranslation();
+    _world_margin = _margin * affine().withoutTranslation();
 
     request_redraw();
 }

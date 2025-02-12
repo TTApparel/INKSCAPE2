@@ -49,38 +49,38 @@ std::pair<Glib::ustring, Glib::ustring> get_axis_name(const std::string& tag, co
     // CC BY-SA 4.0
     // Standard axes guide for reference: https://variationsguide.typenetwork.com
     static std::map<std::string, std::pair<Glib::ustring, Glib::ustring>> map = {
-        // “Grade” (GRAD in CSS) is an axis that can be used to alter stroke thicknesses (or other forms)
+        // TRANSLATORS: “Grade” (GRAD in CSS) is an axis that can be used to alter stroke thicknesses (or other forms)
         // without affecting the type's overall width, inter-letter spacing, or kerning — unlike altering weight.
         {"GRAD", std::make_pair(C_("Variable font axis", "Grade"),         _("Alter stroke thicknesses (or other forms) without affecting the type’s overall width"))},
-        // “Parametric Thick Stroke”, XOPQ, is a reference to its logical name, “X Opaque”,
+        // TRANSLATORS: “Parametric Thick Stroke”, XOPQ, is a reference to its logical name, “X Opaque”,
         // which describes how it alters the opaque stroke forms of glyphs typically in the X dimension
         {"XOPQ", std::make_pair(C_("Variable font axis", "X opaque"),      _("Alter the opaque stroke forms of glyphs in the X dimension"))},
-        // “Parametric Thin Stroke”, YOPQ, is a reference to its logical name, “Y Opaque”,
+        // TRANSLATORS: “Parametric Thin Stroke”, YOPQ, is a reference to its logical name, “Y Opaque”,
         // which describes how it alters the opaque stroke forms of glyphs typically in the Y dimension 
         {"YOPQ", std::make_pair(C_("Variable font axis", "Y opaque"),      _("Alter the opaque stroke forms of glyphs in the Y dimension"))},
-        // “Parametric Counter Width”, XTRA, is a reference to its logical name, “X-Transparent,”
+        // TRANSLATORS: “Parametric Counter Width”, XTRA, is a reference to its logical name, “X-Transparent,”
         // which describes how it alters a font’s transparent spaces (also known as negative shapes)
         // inside and around all glyphs along the X dimension
         {"XTRA", std::make_pair(C_("Variable font axis", "X transparent"), _("Alter the transparent spaces inside and around all glyphs along the X dimension"))},
         {"YTRA", std::make_pair(C_("Variable font axis", "Y transparent"), _("Alter the transparent spaces inside and around all glyphs along the Y dimension"))},
-        // Width/height of Chinese glyphs
+        // TRANSLATORS: Width/height of Chinese glyphs
         {"XTCH", std::make_pair(C_("Variable font axis", "X transparent Chinese"), _("Alter the width of Chinese glyphs"))},
         {"YTCH", std::make_pair(C_("Variable font axis", "Y transparent Chinese"), _("Alter the height of Chinese glyphs"))},
-        // “Parametric Lowercase Height”
+        // TRANSLATORS: “Parametric Lowercase Height”
         {"YTLC", std::make_pair(C_("Variable font axis", "Lowercase height"), _("Vary the height of counters and other spaces between the baseline and x-height"))},
-        // “Parametric Uppercase Counter Height”
+        // TRANSLATORS: “Parametric Uppercase Counter Height”
         {"YTUC", std::make_pair(C_("Variable font axis", "Uppercase height"), _("Vary the height of uppercase letterforms"))},
-        // “Parametric Ascender Height”
+        // TRANSLATORS: “Parametric Ascender Height”
         {"YTAS", std::make_pair(C_("Variable font axis", "Ascender height"),  _("Vary the height of lowercase ascenders"))},
-        // “Parametric Descender Depth”
+        // TRANSLATORS: “Parametric Descender Depth”
         {"YTDE", std::make_pair(C_("Variable font axis", "Descender depth"),  _("Vary the depth of lowercase descenders"))},
-        // “Parametric Figure Height”
+        // TRANSLATORS: “Parametric Figure Height”
         {"YTFI", std::make_pair(C_("Variable font axis", "Figure height"), _("Vary the height of figures"))},
-        // "Serif rise" - found in the wild (https://github.com/googlefonts/amstelvar)
+        // TRANSLATORS: "Serif rise" - found in the wild (https://github.com/googlefonts/amstelvar)
         {"YTSE", std::make_pair(C_("Variable font axis", "Serif rise"),  _("Vary the shape of the serifs"))},
-        // Flare - flaring of the stems
+        // TRANSLATORS: Flare - flaring of the stems
         {"FLAR", std::make_pair(C_("Variable font axis", "Flare"),         _("Controls the flaring of the stems"))},
-        // Volume - The volume axis works only in combination with the Flare axis. It transforms the serifs
+        // TRANSLATORS: Volume - The volume axis works only in combination with the Flare axis. It transforms the serifs
         // and adds a little more edge to details.
         {"VOLM", std::make_pair(C_("Variable font axis", "Volume"),        _("Volume works in combination with flare to transform serifs"))},
         // Softness
@@ -99,18 +99,18 @@ std::pair<Glib::ustring, Glib::ustring> get_axis_name(const std::string& tag, co
         {"ESHP", std::make_pair(C_("Variable font axis", "Element shape"), _("Selection of the base element glyphs are composed of"))},
         // Element grid
         {"EGRD", std::make_pair(C_("Variable font axis", "Element grid"),  _("Controls how many elements are used per one grid unit"))},
-        // “Optical Size”
+        // TRANSLATORS: “Optical Size”
         // Optical sizes in a variable font are different versions of a typeface optimized for use at singular specific sizes,
         // such as 14 pt or 144 pt. Small (or body) optical sizes tend to have less stroke contrast, more open and wider spacing,
         // and a taller x-height than those of their large (or display) counterparts.
         {"opsz", std::make_pair(C_("Variable font axis", "Optical size"),  _("Optimize the typeface for use at specific size"))},
-        // Slant controls the font file’s slant parameter for oblique styles.
+        // TRANSLATORS: Slant controls the font file’s slant parameter for oblique styles.
         {"slnt", std::make_pair(C_("Variable font axis", "Slant"),         _("Controls the font file’s slant parameter for oblique styles"))},
         // Italic
         {"ital", std::make_pair(C_("Variable font axis", "Italic"),        _("Turns on the font’s italic forms"))},
-        // Weight controls the font file’s weight parameter. 
+        // TRANSLATORS: Weight controls the font file’s weight parameter. 
         {"wght", std::make_pair(C_("Variable font axis", "Weight"),        _("Controls the font file’s weight parameter"))},
-        // Width controls the font file’s width parameter.
+        // TRANSLATORS: Width controls the font file’s width parameter.
         {"wdth", std::make_pair(C_("Variable font axis", "Width"),         _("Controls the font file’s width parameter"))},
         //
         {"xtab", std::make_pair(C_("Variable font axis", "Tabular width"), _("Controls the tabular width"))},

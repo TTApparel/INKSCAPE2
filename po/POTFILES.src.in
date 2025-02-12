@@ -44,7 +44,6 @@ ${_build_dir}/share/templates/templates.h
 ../src/colors/spaces/components.cpp
 ../src/context-fns.cpp
 ../src/desktop-events.cpp
-../src/desktop-style.cpp
 ../src/desktop.cpp
 ../src/display/control/canvas-item-text.cpp
 ../src/display/control/ctrl-handle-manager.cpp
@@ -267,6 +266,7 @@ ${_build_dir}/share/templates/templates.h
 ../src/rdf.cpp
 ../src/selection-chemistry.cpp
 ../src/selection-describer.cpp
+../src/selection.cpp
 ../src/seltrans-handles.cpp
 ../src/seltrans.cpp
 ../src/text-chemistry.cpp
@@ -311,6 +311,7 @@ ${_build_dir}/share/templates/templates.h
 ../src/ui/dialog/lpe-fillet-chamfer-properties.cpp
 ../src/ui/dialog/lpe-powerstroke-properties.cpp
 ../src/ui/dialog/new-from-template.cpp
+../src/ui/dialog/new-from-template.h
 ../src/ui/dialog/object-attributes.cpp
 ../src/ui/dialog/object-properties.cpp
 ../src/ui/dialog/objects.cpp
@@ -318,6 +319,7 @@ ${_build_dir}/share/templates/templates.h
 ../src/ui/dialog/polar-arrange-tab.cpp
 ../src/ui/dialog/print.cpp
 ../src/ui/dialog/save-template-dialog.cpp
+../src/ui/dialog/save-template-dialog.h
 ../src/ui/dialog/selectorsdialog.cpp
 ../src/ui/dialog/spellcheck.cpp
 ../src/ui/dialog/startup.cpp
@@ -375,6 +377,7 @@ ${_build_dir}/share/templates/templates.h
 ../src/ui/tools/gradient-tool.cpp
 ../src/ui/tools/lpe-tool.cpp
 ../src/ui/tools/measure-tool.cpp
+../src/ui/tools/measure-tool.h
 ../src/ui/tools/mesh-tool.cpp
 ../src/ui/tools/node-tool.cpp
 ../src/ui/tools/pages-tool.cpp
@@ -398,6 +401,7 @@ ${_build_dir}/share/templates/templates.h
 ../src/ui/widget/combo-enums.h
 ../src/ui/widget/dash-selector.cpp
 ../src/ui/widget/desktop-widget.cpp
+../src/ui/widget/document-templates.cpp
 ../src/ui/widget/entity-entry.cpp
 ../src/ui/widget/export-lists.cpp
 ../src/ui/widget/fill-style.cpp

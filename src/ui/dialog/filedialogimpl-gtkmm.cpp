@@ -385,31 +385,34 @@ bool FileSaveDialogImplGtk::setExtension(Glib::ustring const &filename_utf8)
 void FileSaveDialogImplGtk::setExtension(Inkscape::Extension::Extension *key)
 {
     if (!key) {
-        // Try to use filename.
-        auto filename_utf8 = get_current_name();
-        setExtension(filename_utf8);
+        // Try to use filename, return if successful
+        if (setExtension(get_current_name())) {
+            return;
+        }
     }
 
     // Save module.
     FileDialog::setExtension(key);
+    setFilterFromExtension(key);
+    setFilenameFromExtension(key);
+}
 
-    // Update filter.
-    if (!from_filefilter_changed) {
+void FileSaveDialogImplGtk::setFilterFromExtension(Inkscape::Extension::Extension *key)
+{
+    if (key) {
         set_filter(extensionFilterMap[key]);
     }
-    from_filefilter_changed = false;
+}
 
-    // Update filename.
-    if (!from_filename_changed) {
-        auto filename_utf8 = get_current_name(); // UTF8 encoded!
-        auto output = dynamic_cast<Inkscape::Extension::Output *>(getExtension());
-        if (output && get_choice("Extension") == "true") {
-            // Append the file extension if it's not already present and display it in the file name entry field.
-            appendExtension(filename_utf8, output);
-            set_current_name(filename_utf8);
-        }
+void FileSaveDialogImplGtk::setFilenameFromExtension(Inkscape::Extension::Extension *key)
+{
+    auto filename_utf8 = get_current_name(); // UTF8 encoded!
+    auto output = dynamic_cast<Inkscape::Extension::Output *>(getExtension());
+    if (output && get_choice("Extension") == "true") {
+        // Append the file extension if it's not already present and display it in the file name entry field.
+        appendExtension(filename_utf8, output);
+        set_current_name(filename_utf8);
     }
-    from_filename_changed = false;
 }
 
 void FileSaveDialogImplGtk::createFilterMenu()
@@ -440,8 +443,9 @@ void FileSaveDialogImplGtk::createFilterMenu()
  */
 void FileSaveDialogImplGtk::filefilterChanged()
 {
-    from_filefilter_changed = true;
-    setExtension(filterExtensionMap[get_filter()]);
+    auto key = filterExtensionMap[get_filter()];
+    FileDialog::setExtension(key);
+    setFilenameFromExtension(key);
 }
 
 /**
@@ -474,8 +478,9 @@ void FileSaveDialogImplGtk::filenameChanged() {
         return;
     }
 
-    from_filename_changed = true;
-    setExtension(knownExtensions[ext]);
+    auto key = knownExtensions[ext];
+    FileDialog::setExtension(key);
+    setFilterFromExtension(key);
 }
 
 } // namespace Inkscape::UI::Dialog

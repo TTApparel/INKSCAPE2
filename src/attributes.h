@@ -597,6 +597,8 @@ enum class SPAttr {
     // Inkscape-specific mode: clip content rendering to pages' boundaries
     INKSCAPE_CLIP_TO_PAGE_RENDERING,
     INKSCAPE_ANTIALIAS_RENDERING,
+    INKSCAPE_ORIGIN_CORRECTION,
+    INKSCAPE_Y_AXIS_DOWN,
 
     // sentinel
     SPAttr_SIZE

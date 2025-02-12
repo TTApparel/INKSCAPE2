@@ -828,7 +828,6 @@ bool SelectTool::root_handler(CanvasEvent const &event)
             }
 
             gdouble const nudge = prefs->getDoubleLimited("/options/nudgedistance/value", 2, 0, 1000, "px"); // in px
-            int const snaps = prefs->getInt("/options/rotationsnapsperpi/value", 12);
             auto const y_dir = _desktop->yaxisdir();
 
             bool const rotated = prefs->getBool("/options/moverotated/value", true);
@@ -913,30 +912,6 @@ bool SelectTool::root_handler(CanvasEvent const &event)
                     }
                     break;
                     
-                case GDK_KEY_bracketleft:
-                    if (mod_alt(event)) {
-                        selection->rotateScreen(-mul * y_dir);
-                    } else if (mod_ctrl(event)) {
-                        selection->rotate(-90 * y_dir);
-                    } else if (snaps) {
-                        selection->rotate(-180.0/snaps * y_dir);
-                    }
-                    
-                    ret = true;
-                    break;
-                    
-                case GDK_KEY_bracketright:
-                    if (mod_alt(event)) {
-                        selection->rotateScreen(mul * y_dir);
-                    } else if (mod_ctrl(event)) {
-                        selection->rotate(90 * y_dir);
-                    } else if (snaps) {
-                        selection->rotate(180.0/snaps * y_dir);
-                    }
-                    
-                    ret = true;
-                    break;
-
                 case GDK_KEY_Return:
                     if (mod_ctrl_only(event)) {
                         if (selection->singleItem()) {

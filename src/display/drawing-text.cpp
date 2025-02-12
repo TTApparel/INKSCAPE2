@@ -12,6 +12,9 @@
 
 #include <2geom/pathvector.h>
 
+#include <iostream>
+#include <iomanip>
+
 #include "style.h"
 
 #include "cairo-utils.h"
@@ -26,14 +29,13 @@
 
 namespace Inkscape {
 
-
 DrawingGlyphs::DrawingGlyphs(Drawing &drawing)
     : DrawingItem(drawing)
     , _glyph(0)
 {
 }
 
-void DrawingGlyphs::setGlyph(std::shared_ptr<FontInstance> font, int glyph, Geom::Affine const &trans)
+void DrawingGlyphs::setGlyph(std::shared_ptr<FontInstance> font, unsigned int glyph, Geom::Affine const &trans)
 {
     defer([=, this, font = std::move(font)] {
         _markForRendering();
@@ -46,18 +48,25 @@ void DrawingGlyphs::setGlyph(std::shared_ptr<FontInstance> font, int glyph, Geom
 
         design_units = 1.0;
         pathvec = nullptr;
-        pathvec_ref  = nullptr;
         pixbuf = nullptr;
 
         // Load pathvectors and pixbufs in advance, as must be done on main thread.
         if (font) {
             design_units = font->GetDesignUnits();
             pathvec      = font->PathVector(_glyph);
-            pathvec_ref  = font->PathVector(42);
-
+            bbox_exact   = font->BBoxExact(_glyph);
+            bbox_pick    = font->BBoxPick( _glyph);
+            bbox_draw    = font->BBoxDraw( _glyph);
             if (font->FontHasSVG()) {
                 pixbuf = font->PixBuf(_glyph);
             }
+            font_descr   = pango_font_description_to_string(font->get_descr());
+            // std::cout << "DrawingGlyphs::setGlyph: " << std::setw(6) << glyph
+            //           << "  design_units: " << design_units
+            //           << "  bbox_exact: " << bbox_exact
+            //           << "  bbox_pick: " << bbox_pick
+            //           << "  bbox_draw: " << bbox_draw
+            //           << std::endl;
         }
 
         _markForUpdate(STATE_ALL, false);
@@ -77,87 +86,12 @@ unsigned DrawingGlyphs::_updateItem(Geom::IntRect const &/*area*/, UpdateContext
     }
 
     if (!pathvec) {
+        // Bitmap font
         return STATE_ALL;
     }
 
-    _pick_bbox = Geom::IntRect();
-    _bbox = Geom::IntRect();
-
-    /*
-      Make a bounding box for drawing that is a little taller and lower (currently 10% extra) than
-      the font's drawing box.  Extra space is to hold overline or underline, if present.  All
-      characters in a font use the same ascent and descent, but different widths. This lets leading
-      and trailing spaces have text decorations. If it is not done the bounding box is limited to
-      the box surrounding the drawn parts of visible glyphs only, and draws outside are ignored.
-      The box is also a hair wider than the text, since the glyphs do not always start or end at
-      the left and right edges of the box defined in the font.
-    */
-
-    float scale_bigbox = 1.0;
-    if (_transform) {
-        scale_bigbox /= _transform->descrim();
-    }
-
-    /* Because there can be text decorations the bounding box must correspond in Y to a little above the glyph's ascend
-    and a little below its descend.  This leaves room for overline and underline.  The left and right sides
-    come from the glyph's bounding box.  Note that the initial direction of ascender is positive down in Y, and
-    this flips after the transform is applied.  So change the sign on descender. 1.1 provides a little extra space
-    above and below the max/min y positions of the letters to place the text decorations.*/
-
-    Geom::Rect b;
-    if (pathvec) {
-        Geom::OptRect tiltb = Geom::bounds_exact(*pathvec);
-        if (tiltb) {
-            Geom::Rect bigbox(Geom::Point(tiltb->left(), -_dsc * scale_bigbox * 1.1), Geom::Point(tiltb->right(), _asc * scale_bigbox * 1.1));
-            b = bigbox * ctx.ctm;
-        }
-    }
-    if (b.hasZeroArea()) { // Fallback, spaces mostly
-        Geom::Rect bigbox(Geom::Point(0.0, -_dsc * scale_bigbox * 1.1),  Geom::Point(_width * scale_bigbox, _asc * scale_bigbox * 1.1));
-        b = bigbox * ctx.ctm;
-    }
-
-    /*
-      The pick box matches the characters as best as it can, leaving no extra space above or below
-      for decorations.  The pathvector may include spaces, and spaces have no drawable glyph.
-      Catch those and do not pass them to bounds_exact_transformed(), which crashes Inkscape if it
-      sees a nondrawable glyph. Instead mock up a pickbox for them using font characteristics.
-      There may also be some other similar white space characters in some other unforeseen context
-      which should be handled by this code as well..
-    */
-
-    Geom::OptRect pb;
-    if (pathvec) {
-        if (!pathvec->empty()) {
-            pb = bounds_exact_transformed(*pathvec, ctx.ctm);
-        }
-        if (pathvec_ref && !pathvec_ref->empty()) {
-            pb.unionWith(bounds_exact_transformed(*pathvec_ref, ctx.ctm));
-            pb.expandTo(Geom::Point(pb->right() + (_width * ctx.ctm.descrim()), pb->bottom()));
-        }
-    }
-    if (!pb) { // Fallback
-        Geom::Rect pbigbox(Geom::Point(0.0, _asc * scale_bigbox * 0.66),Geom::Point(_width * scale_bigbox, 0.0));
-        pb = pbigbox * ctx.ctm;
-    }
- 
-#if 0
-    /* FIXME  if this is commented out then not even an approximation of pick on decorations */
-    /* adjust the pick box up or down to include the decorations.
-       This is only approximate since at this point we don't know how wide that line is, if it has
-       an unusual offset, and so forth.  The selection point is set at what is roughly the center of
-       the decoration (vertically) for the wide ones, like wavy and double line.
-       The text decorations are not actually selectable.
-    */
-    if (_decorations.overline || _decorations.underline) {
-        double top = _asc*scale_bigbox*0.66;
-        double bot = 0;
-        if (_decorations.overline) {  top =   _asc * scale_bigbox * 1.025; }
-        if (_decorations.underline) { bot =  -_dsc * scale_bigbox * 0.2;   }
-        Geom::Rect padjbox(Geom::Point(0.0, top),Geom::Point(_width*scale_bigbox, bot));
-        pb.unionWith(padjbox * ctx.ctm);
-    }
-#endif
+    Geom::Rect bbox_pick_scaled_d  = bbox_pick  * ctx.ctm;
+    Geom::Rect bbox_draw_scaled_d  = bbox_draw  * ctx.ctm;
 
     if (ggroup->_nrstyle.data.stroke.type != NRStyleData::PaintType::NONE) {
         // this expands the selection box for cases where the stroke is "thick"
@@ -167,24 +101,29 @@ unsigned DrawingGlyphs::_updateItem(Geom::IntRect const &/*area*/, UpdateContext
         }
         float width = std::max<double>(0.125, ggroup->_nrstyle.data.stroke_width * scale);
         if (std::fabs(ggroup->_nrstyle.data.stroke_width * scale) > 0.01) { // FIXME: this is always true
-            b.expandBy(0.5 * width);
-            pb->expandBy(0.5 * width);
+            bbox_pick_scaled_d.expandBy(0.5 * width);
+            bbox_draw_scaled_d.expandBy(0.5 * width);
         }
-
-        // save bbox without miters for picking
-        _pick_bbox = pb->roundOutwards();
 
         float miterMax = width * ggroup->_nrstyle.data.miter_limit;
         if (miterMax > 0.01) {
             // grunt mode. we should compute the various miters instead
             // (one for each point on the curve)
-            b.expandBy(miterMax);
+            bbox_draw_scaled_d.expandBy(miterMax);
         }
-        _bbox = b.roundOutwards();
-    } else {
-        _bbox = b.roundOutwards();
-        _pick_bbox = pb->roundOutwards();
     }
+
+    bbox_pick_scaled  = bbox_pick_scaled_d.roundOutwards();   // Used for picking
+    bbox_draw_scaled  = bbox_draw_scaled_d.roundOutwards();   // Used for drawing
+
+    // drawing-item variable
+    _bbox = bbox_draw_scaled;
+
+    // std::cout << "DrawingGlyphs::_updateItem: "
+    //           << " glyph: " << std::setw(6) << _glyph
+    //           << " bbox_pick_scaled: "  << bbox_pick_scaled
+    //           << " bbox_draw_scaled: "  << bbox_draw_scaled
+    //           << std::endl;
 
     return STATE_ALL;
 }
@@ -200,12 +139,10 @@ DrawingItem *DrawingGlyphs::_pickItem(Geom::Point const &p, double /*delta*/, un
                      ggroup->_nrstyle.data.stroke.type == NRStyleData::PaintType::NONE;
     bool outline = flags & PICK_OUTLINE;
 
-    if (pathvec && _bbox && (outline || !invisible)) {
-        // With text we take a simple approach: pick if the point is in a character bbox
-        Geom::Rect expanded(_pick_bbox);
-        // FIXME, why expand by delta?  When is the next line needed?
-        // expanded.expandBy(delta);
-        if (expanded.contains(p)) {
+    if (outline || !invisible) {
+        // With text we take a simple approach: pick if the point is in a character pick bbox
+        Geom::Rect temp(bbox_pick_scaled); // Convert from Geom::RectInt
+        if (temp.contains(p)) {
             result = this;
         }
     }
@@ -220,13 +157,17 @@ DrawingText::DrawingText(Drawing &drawing)
 {
 }
 
-bool DrawingText::addComponent(std::shared_ptr<FontInstance> const &font, int glyph, Geom::Affine const &trans, float width, float ascent, float descent, float phase_length)
+bool DrawingText::addComponent(std::shared_ptr<FontInstance> const &font, unsigned int glyph, Geom::Affine const &trans, float width, float ascent, float descent, float phase_length)
 {
-    // original, did not save a glyph for white space characters, causes problems for text-decoration
-    /*if (!font || !font->PathVector(glyph)) {
+    if (glyph == 0x0fffffff) {
+        // 0x0fffffff is returned by Pango for a zero-width empty glyph which we can ignore (e.g. 0xFE0F, Emoji variant selector).
         return false;
-    }*/
-    if (!font) return false;
+    }
+
+    if (!font) {
+        std::cerr << "DrawingTExt::addComponent: no font!" << std::endl;
+        return false;
+    }
 
     defer([=, this, font = std::move(font)] () mutable {
         _markForRendering();
@@ -234,8 +175,8 @@ bool DrawingText::addComponent(std::shared_ptr<FontInstance> const &font, int gl
         assert(!_drawing.snapshotted());
         ng->setGlyph(font, glyph, trans);
         ng->_width  = width;   // used especially when _drawable = false, otherwise, it is the advance of the font
-        ng->_asc    = ascent;  // of font, not of this one character
-        ng->_dsc    = descent; // of font, not of this one character
+        ng->_asc    = ascent;  // Of line, not of this one character. In pixels.
+        ng->_dsc    = descent; // Of line, not of this one character. In pixels.
         ng->_pl     = phase_length; // used for phase of dots, dashes, and wavy
         appendChild(ng);
     });
@@ -466,7 +407,9 @@ void DrawingText::decorateItem(DrawingContext &dc, double phase_length, bool und
 unsigned DrawingText::_renderItem(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const
 {
     auto visible = area & _bbox;
-    if (!visible) return RENDER_OK;
+    if (!visible) {
+        return RENDER_OK;
+    }
 
     bool outline = flags & RENDER_OUTLINE;
 
@@ -488,6 +431,7 @@ unsigned DrawingText::_renderItem(DrawingContext &dc, RenderContext &rc, Geom::I
                 dc.path(*g->pathvec);
                 dc.fill();
             }
+            // TODO If pathvec empty, draw box.
         }
         return RENDER_OK;
     }
@@ -611,19 +555,64 @@ unsigned DrawingText::_renderItem(DrawingContext &dc, RenderContext &rc, Geom::I
             if (!g) throw InvalidItemException();
 
             Inkscape::DrawingContext::Save save(dc);
-            if (g->_ctm.isSingular()) continue;
+            if (g->_ctm.isSingular()) {
+                std::cerr << "DrawingText::_renderItem: glyph matrix is singular!" << std::endl;
+                continue;
+            }
             dc.transform(g->_ctm);
+
+#if 0
+            // Draw various boxes for debugging
+            auto path_copy = cairo_copy_path(dc.raw()); // Cairo save/restore doesn't apply to path!
+            {
+                Inkscape::DrawingContext::Save save(dc);
+                dc.newPath();
+                dc.rectangle(g->bbox_exact);
+                dc.setLineWidth(0.02);
+                dc.setSource(0x80ffff80); // Bluegreen
+                dc.stroke();
+            }
+            {
+                Inkscape::DrawingContext::Save save(dc);
+                dc.newPath();
+                dc.rectangle(g->bbox_pick);
+                dc.setLineWidth(0.02);
+                dc.setSource(0xff80ff80); // Purple
+                dc.stroke();
+            }
+            {
+                Inkscape::DrawingContext::Save save(dc);
+                dc.newPath();
+                dc.rectangle(g->bbox_draw);
+                dc.setLineWidth(0.02);
+                dc.setSource(0xffff8080); // Yellow
+                dc.stroke();
+            }
+            cairo_append_path(dc.raw(), path_copy);
+            cairo_path_destroy(path_copy);
+            // End debug boxes.
+#endif
+
             if (g->pathvec) {
+
+                // Draw various boxes for debugging
+                // auto path_copy = cairo_copy_path(dc.raw()); // Cairo save/restore doesn't apply to path!
+                // {
+                //     Geom::OptRect box = bounds_exact(*g->pathvec);
+                //     if (box) {
+                //         Inkscape::DrawingContext::Save save(dc);
+                //         dc.newPath();
+                //         dc.rectangle(*box);
+                //         dc.setLineWidth(0.02);
+                //         dc.setSource(0xff000080);
+                //         dc.stroke();
+                //     }
+                // }
+                // cairo_append_path(dc.raw(), path_copy); // Restore path.
+                // cairo_path_destroy(path_copy);
+                // End debug boxes.
+
                 if (g->pixbuf) {
-                    // Geom::OptRect box = bounds_exact(*g->pathvec);
-                    // if (box) {
-                    //     Inkscape::DrawingContext::Save save(dc);
-                    //     dc.newPath();
-                    //     dc.rectangle(*box);
-                    //     dc.setLineWidth(0.01);
-                    //     dc.setSource(0x8080ffff);
-                    //     dc.stroke();
-                    // }
                     {
                         // pixbuf is in font design units, scale to embox.
                         double scale = g->design_units;

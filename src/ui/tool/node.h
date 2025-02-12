@@ -112,7 +112,7 @@ private:
      * Keeping the invariant on node moves is left to the %Node class.
      */
     static Geom::Point _saved_other_pos;
-
+    static Geom::Point _saved_dir;
     static double _saved_length;
     static bool _drag_out;
     friend class Node;

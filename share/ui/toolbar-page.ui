@@ -93,12 +93,6 @@
             <attribute name="markup">1</attribute>
           </attributes>
         </child>
-        <property name="child">
-          <object class="GtkEntry">
-            <property name="focusable">True</property>
-            <property name="completion">_sizes_searcher</property>
-          </object>
-        </property>
       </object>
     </child>
     <child>

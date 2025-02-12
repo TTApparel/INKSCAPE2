@@ -302,7 +302,7 @@ void SPMarker::hide(unsigned int key) {
 /**
  * Calculate the transformation for this marker.
  */
-Geom::Affine SPMarker::get_marker_transform(const Geom::Affine &base, double linewidth, bool start_marker)
+Geom::Affine SPMarker::get_marker_transform(Geom::Affine const &base, double linewidth, bool start_marker) const
 {
     // Default is MARKER_ORIENT_AUTO
     Geom::Affine result = base;
@@ -447,7 +447,7 @@ sp_marker_show_dimension (SPMarker *marker, unsigned int key, unsigned int size)
 Inkscape::DrawingItem *
 sp_marker_show_instance ( SPMarker *marker, Inkscape::DrawingItem *parent,
                           unsigned int loc, unsigned int pos, unsigned int z_order,
-                          Geom::Affine const &base, float linewidth)
+                          Geom::Affine const &marker_transform, float linewidth)
 {
     // Do not show marker if linewidth == 0 and markerUnits == strokeWidth
     // otherwise Cairo will fail to render anything on the tile
@@ -484,9 +484,7 @@ sp_marker_show_instance ( SPMarker *marker, Inkscape::DrawingItem *parent,
     }
 
     if (view->items[pos]) {
-        // Rotating for reversed-marker option is done at rendering time if necessary
-        // so always pass in start_marker is false.
-        view->items[pos]->setTransform(marker->get_marker_transform(base, linewidth, false));
+        view->items[pos]->setTransform(marker_transform);
         view->items[pos]->setZOrder(z_order);
     }
 
@@ -635,7 +633,7 @@ void sp_marker_flip_horizontally(SPMarker* marker) {
     set.addList(marker->item_list());
     Geom::OptRect bbox = set.visualBounds();
     if (bbox) {
-        set.setScaleRelative(bbox->midpoint(), Geom::Scale(-1.0, 1.0));
+        set.scaleRelative(bbox->midpoint(), Geom::Scale(-1.0, 1.0));
         if (marker->document) {
             DocumentUndo::maybeDone(marker->document, "marker", _("Flip marker horizontally"), INKSCAPE_ICON("dialog-fill-and-stroke"));
         }

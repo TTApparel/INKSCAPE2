@@ -33,7 +33,7 @@ public:
     virtual void set_color(Color element, Colors::Color const &) = 0;
 
     enum class Check { Checkerboard, Border, Shadow, BorderOnTop, AntiAlias, NonuniformScale,
-                       DisabledScale, UnsupportedSize, ClipToPage, PageLabelStyle };
+                       DisabledScale, UnsupportedSize, ClipToPage, PageLabelStyle, YAxisPointsDown, OriginCurrentPage };
     virtual void set_check(Check element, bool checked) = 0;
 
     enum class Dimension { PageSize, ViewboxSize, ViewboxPosition, Scale, ScaleContent, PageTemplate };
@@ -47,6 +47,7 @@ public:
     auto signal_dimension_changed() { return _signal_dimension_changed; }
     auto signal_unit_changed     () { return _signal_unit_changed     ; }
     auto signal_resize_to_fit    () { return _signal_resize_to_fit    ; }
+    auto signal_origin_changed   () { return _signal_origin_changed   ; }
 
 protected:
     sigc::signal<void (Colors::Color const &, Color)> _signal_color_changed;
@@ -54,6 +55,7 @@ protected:
     sigc::signal<void (double, double, const Util::Unit*, Dimension)> _signal_dimension_changed;
     sigc::signal<void (const Util::Unit*, Units)> _signal_unit_changed;
     sigc::signal<void ()> _signal_resize_to_fit;
+    sigc::signal<void (bool)> _signal_origin_changed;
 };
 
 } // namespace UI::Widget

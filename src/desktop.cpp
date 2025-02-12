@@ -1221,6 +1221,8 @@ void SPDesktop::_attachDocument()
     _reconstruction_finish_connection = document->connectReconstructionFinish(sigc::mem_fun(*this, &SPDesktop::reconstruction_finish));
     _reconstruction_old_layer_id.clear();
 
+    _y_axis_flipped = document->get_y_axis_flipped().connect([this](double yshift){ handle_y_axis_flip(yshift); });
+
     auto const drawing = _canvas_drawing->get_drawing();
 
     if (auto const drawing_item = document->getRoot()->invoke_show(*drawing, dkey, SP_ITEM_SHOW_DISPLAY)) {
@@ -1319,6 +1321,17 @@ void SPDesktop::reconstruction_finish()
         _reconstruction_old_layer_id.clear();
     }
     g_debug("Desktop, finishing reconstruction end\n");
+}
+
+void SPDesktop::handle_y_axis_flip(double yshift) {
+    // selection is repainted in a wrong location, so clearing it for now
+    _selection->clear();
+
+    auto offset = _current_affine.getOffset();
+    auto zoom = _current_affine.getZoom();
+    _current_affine.setScale(Geom::Scale(zoom, yaxisdir() * zoom));
+    _current_affine.setOffset(Geom::Point(offset.x(), offset.y() + zoom * yshift));
+    set_display_area(false);
 }
 
 Geom::Affine const &SPDesktop::doc2dt() const

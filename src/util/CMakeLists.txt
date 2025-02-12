@@ -12,6 +12,7 @@ set(util_SRC
 	funclog.cpp
 	share.cpp
 	object-renderer.cpp
+    object-modified-tags.cpp
 	paper.cpp
 	parse-int-range.cpp
 	preview.cpp
@@ -45,6 +46,7 @@ set(util_SRC
 	hybrid-pointer.h
 	longest-common-suffix.h
     object-renderer.h
+    object-modified-tags.h
 	optstr.h
 	pages-skeleton.h
 	paper.h

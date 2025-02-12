@@ -64,7 +64,7 @@
                     <child>
                       <object class="GtkLabel" id="header-authors">
                         <property name="margin-top">3</property>
-                        <property name="label" translatable="yes">&lt;big&gt;&lt;b&gt;Do you want to get involved with Inkscape? &lt;a href="https://inkscape.org/contribute/"&gt;Check this page!&lt;/a&gt;&lt;/b&gt;&lt;/big&gt;</property>
+                        <property name="label" translatable="yes" context="Authors">&lt;big&gt;&lt;b&gt;Do you want to get involved with Inkscape? &lt;a href="https://inkscape.org/contribute/"&gt;Check this page!&lt;/a&gt;&lt;/b&gt;&lt;/big&gt;</property>
                         <property name="use-markup">True</property>
                       </object>
                     </child>

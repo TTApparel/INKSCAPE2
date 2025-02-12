@@ -150,6 +150,7 @@ set(ui_SRC
 	dialog/livepatheffect-editor.cpp
 	dialog/lpe-fillet-chamfer-properties.cpp
 	dialog/lpe-powerstroke-properties.cpp
+	dialog/measure-tool-settings.cpp
 	dialog/new-from-template.cpp
 	dialog/object-attributes.cpp
 	dialog/object-properties.cpp
@@ -207,6 +208,7 @@ set(ui_SRC
 	widget/custom-tooltip.cpp
 	widget/dash-selector.cpp
 	widget/desktop-widget.cpp
+	widget/document-templates.cpp
 	widget/drop-down-list.cpp
 	widget/entity-entry.cpp
 	widget/entry.cpp
@@ -362,6 +364,7 @@ set(ui_SRC
 	dialog/livepatheffect-editor.h
 	dialog/lpe-fillet-chamfer-properties.h
 	dialog/lpe-powerstroke-properties.h
+	dialog/measure-tool-settings.h
 	dialog/new-from-template.h
 	dialog/object-attributes.h
 	dialog/object-properties.h
@@ -512,6 +515,7 @@ set(ui_SRC
 	widget/dash-selector.h
 	widget/desktop-widget.h
 	widget/drop-down-list.h
+	widget/document-templates.h
 	widget/entity-entry.h
 	widget/entry.h
 	widget/events/canvas-event.h

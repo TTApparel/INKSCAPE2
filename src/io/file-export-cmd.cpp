@@ -672,6 +672,9 @@ InkFileExportCmd::do_export_png(SPDocument *doc, std::string const &export_filen
     return 0;
 }
 
+/**
+ * @param filename_out Filename and path. Value is UTF8 encoded.
+ */
 void
 InkFileExportCmd::do_export_png_now(SPDocument *doc, std::string const &filename_out, Geom::Rect area, double dpi_in, const std::vector<SPItem const *> &items)
 {

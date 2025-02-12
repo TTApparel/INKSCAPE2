@@ -1690,8 +1690,8 @@ void PathManipulator::_handleUngrabbed()
 
 bool PathManipulator::_handleClicked(Handle *h, ButtonReleaseEvent const &event)
 {
-    // retracting by Ctrl+click
-    if (event.button == 1 && held_ctrl(event)) {
+    // retracting by Alt+Click
+    if (event.button == 1 && held_alt(event)) {
         h->move(h->parent()->position());
         update();
         _commit(_("Retract handle"));

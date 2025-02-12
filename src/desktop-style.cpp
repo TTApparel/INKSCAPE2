@@ -229,21 +229,17 @@ sp_desktop_set_style(Inkscape::ObjectSet *set, SPDesktop *desktop, SPCSSAttr *cs
         auto itemlist = set->items();
         for (auto i = itemlist.begin(); i!= itemlist.end(); ++i) {
             SPItem *item = *i;
-            if (item->isLocked()) {
-                // If locked, don't apply style
-                desktop->messageStack()->flash(Inkscape::WARNING_MESSAGE, _("<b>Locked</b> object(s) cannot be modified."));
-            } else {
-                // If not text, don't apply text attributes (can a group have text attributes? Yes! FIXME)
-                if (isTextualItem(item)) {
-                    // If any font property has changed, then we have written out the font
-                    // properties in longhand and we need to remove the 'font' shorthand.
-                    if (!sp_repr_css_property_is_unset(css, "font-family")) {
-                        sp_repr_css_unset_property(css, "font");
-                    }
-                    sp_desktop_apply_css_recursive(item, css, true);
-                } else {
-                    sp_desktop_apply_css_recursive(item, css_no_text, true);
+
+            // If not text, don't apply text attributes (can a group have text attributes? Yes! FIXME)
+            if (isTextualItem(item)) {
+                // If any font property has changed, then we have written out the font
+                // properties in longhand and we need to remove the 'font' shorthand.
+                if (!sp_repr_css_property_is_unset(css, "font-family")) {
+                    sp_repr_css_unset_property(css, "font");
                 }
+                sp_desktop_apply_css_recursive(item, css, true);
+            } else {
+                sp_desktop_apply_css_recursive(item, css_no_text, true);
             }
         }
         sp_repr_css_attr_unref(css_no_text);

@@ -406,20 +406,20 @@
             <property name="margin-bottom">2</property>
             <property name="has-entry">True</property>
             <items>
-              <item translatable="yes">6</item>
-              <item translatable="yes">7</item>
-              <item translatable="yes">8</item>
-              <item translatable="yes">9</item>
-              <item translatable="yes">10</item>
-              <item translatable="yes">12</item>
-              <item translatable="yes">14</item>
-              <item translatable="yes">16</item>
-              <item translatable="yes">20</item>
-              <item translatable="yes">24</item>
-              <item translatable="yes">32</item>
-              <item translatable="yes">48</item>
-              <item translatable="yes">72</item>
-              <item translatable="yes">144</item>
+              <item>6</item>
+              <item>7</item>
+              <item>8</item>
+              <item>9</item>
+              <item>10</item>
+              <item>12</item>
+              <item>14</item>
+              <item>16</item>
+              <item>20</item>
+              <item>24</item>
+              <item>32</item>
+              <item>48</item>
+              <item>72</item>
+              <item>144</item>
             </items>
           </object>
         </child>

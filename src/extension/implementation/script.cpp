@@ -846,10 +846,18 @@ bool Script::file_listener::read(Glib::IOCondition condition) {
     return true;
 }
 
+/**
+ * @param name File path.
+ *             Value is in UTF8 encoding.
+ */
 bool Script::file_listener::toFile(const Glib::ustring &name) {
     return toFile(Glib::filename_from_utf8(name));
 }
 
+/**
+ * @param name File path. 
+ *             Value is in platform-native encoding (see Glib::filename_to_utf8).
+ */
 bool Script::file_listener::toFile(const std::string &name) {
     try {
         Glib::RefPtr<Glib::IOChannel> stdout_file = Glib::IOChannel::create_from_file(name, "w");

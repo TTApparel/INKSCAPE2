@@ -168,7 +168,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkLabel">
+          <object class="GtkLabel" id="quick_zoom_label">
             <property name="tooltip-text" translatable="yes">Hold this key to activate quick zoom</property>
             <property name="halign">center</property>
             <property name="margin-top">1</property>
@@ -187,7 +187,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkLabel">
+          <object class="GtkLabel" id="quick_preview_label">
             <property name="tooltip-text" translatable="yes">Hold this key for document preview, hiding grids, guides, handles etc.</property>
             <property name="halign">center</property>
             <property name="margin-top">1</property>

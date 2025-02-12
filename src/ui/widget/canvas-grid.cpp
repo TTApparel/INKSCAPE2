@@ -156,6 +156,28 @@ CanvasGrid::CanvasGrid(SPDesktopWidget *dtw)
     _quick_actions.set_direction(Gtk::ArrowType::LEFT);
     _quick_actions.set_tooltip_text(_("Display options"));
 
+    _quick_preview_label = &get_widget<Gtk::Label>(_builder_display_popup, "quick_preview_label");
+    _quick_zoom_label = &get_widget<Gtk::Label>(_builder_display_popup, "quick_zoom_label");
+
+    auto quick_preview_shortcut = _preview_accel.getShortcutText();
+    auto quick_zoom_shortcut = _zoom_accel.getShortcutText();
+
+    if (!quick_preview_shortcut.empty()) {
+        _quick_preview_label->set_label("<b>" + quick_preview_shortcut[0] + "</b>");
+    }
+
+    if (!quick_zoom_shortcut.empty()) {
+        _quick_zoom_label->set_label("<b>" + quick_zoom_shortcut[0] + "</b>");
+    }
+
+    _update_preview_connection = _preview_accel.connectModified([this]() {
+        _quick_preview_label->set_label("<b>" + _preview_accel.getShortcutText()[0] + "</b>");
+    });
+
+    _update_zoom_connection = _zoom_accel.connectModified([this]() {
+        _quick_zoom_label->set_label("<b>" + _zoom_accel.getShortcutText()[0] + "</b>");
+    });
+
     // Main grid
     attach(*_tabs_widget,  0, 0);
     attach(_subgrid,       0, 1, 1, 2);
@@ -179,6 +201,11 @@ CanvasGrid::CanvasGrid(SPDesktopWidget *dtw)
 
     bind_controllers(_hruler, RulerOrientation::horizontal);
     bind_controllers(_vruler, RulerOrientation::vertical);
+
+    auto prefs = Inkscape::Preferences::get();
+    _box_observer = prefs->createObserver("/tools/bounding_box", [this](const Preferences::Entry& entry) {
+        updateRulers();
+    });
 }
 
 CanvasGrid::~CanvasGrid() = default;
@@ -283,7 +310,6 @@ Gtk::CheckButton *CanvasGrid::GetStickyZoom() {
 // get_display_area should be a member of _canvas.
 void CanvasGrid::updateRulers()
 {
-    auto prefs = Inkscape::Preferences::get();
     auto const desktop = _dtw->get_desktop();
     auto document = desktop->getDocument();
     auto &pm = document->getPageManager();
@@ -308,7 +334,7 @@ void CanvasGrid::updateRulers()
 
     Geom::Rect viewbox = _canvas->get_area_world();
     Geom::Rect startbox = viewbox;
-    if (prefs->getBool("/options/origincorrection/page", true)) {
+    if (document->get_origin_follows_page()) {
         // Move viewbox according to the selected page's position (if any)
         auto page_transform = pm.getSelectedPageAffine().inverse() * desktop->d2w();
         startbox += page_transform.translation();

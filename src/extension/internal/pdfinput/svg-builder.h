@@ -76,8 +76,12 @@ struct SvgGlyph {
     Geom::Point position;      // Absolute glyph coords
     Geom::Point text_position; // Absolute glyph coords in text space
     Geom::Point origin;        // Origin of glyph (used for fixing vertical text position)
-    Geom::Point delta;         // X, Y advance values
-    double rise;               // Text rise parameter
+    Geom::Point delta;         // X, Y displacement values (distance between glyph origins)
+    Geom::Point advance;       // X, Y advance values
+    double rise;               // Text rise parameter (Ts operator)
+    double char_space;         // Character spacing   (Tc operator)
+    double word_space;         // Word spacing        (Tw operator)
+    double horiz_scaling;      // Horizontal scaling  (Tz operator)
     Glib::ustring code;        // UTF-8 coded character
     bool is_space;
 
@@ -147,6 +151,7 @@ public:
     void endString(GfxState *state);
     void addChar(GfxState *state, double x, double y,
                  double dx, double dy,
+                 double ax, double ay,
                  double originX, double originY,
                  CharCode code, int nBytes, Unicode const *u, int uLen);
     void beginTextObject(GfxState *state);

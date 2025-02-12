@@ -107,7 +107,7 @@ void CanvasPage::set_guides_visible(bool show) {
  * @param txt - An optional label for the page
  * @param outline - Disable normal rendering and show as an outline.
  */
-void CanvasPage::update(Geom::Rect size, Geom::OptRect margin, Geom::OptRect bleed, const char *txt, bool outline)
+void CanvasPage::update(Geom::Rect size, Geom::OptRect margin, Geom::OptRect bleed, const char *txt, bool outline, bool is_yaxisdown)
 {
     // Put these in the preferences?
     bool border_on_top = _border_on_top;
@@ -177,7 +177,7 @@ void CanvasPage::update(Geom::Rect size, Geom::OptRect margin, Geom::OptRect ble
                 rect->set_shadow(0x0, 0);
             }
         } else if (auto label = dynamic_cast<CanvasItemText *>(item.get())) {
-            _updateTextItem(label, size, txt ? txt : "");
+            _updateTextItem(label, size, txt ? txt : "", is_yaxisdown);
         }
     }
 }
@@ -185,7 +185,7 @@ void CanvasPage::update(Geom::Rect size, Geom::OptRect margin, Geom::OptRect ble
 /**
  * Update the page's textual label.
  */
-void CanvasPage::_updateTextItem(CanvasItemText *label, Geom::Rect page, std::string txt)
+void CanvasPage::_updateTextItem(CanvasItemText *label, Geom::Rect page, std::string txt, bool is_yaxisdown)
 {
     // Default style for the label
     int fontsize = 10.0;
@@ -207,7 +207,7 @@ void CanvasPage::_updateTextItem(CanvasItemText *label, Geom::Rect page, std::st
         radius = 1.0;
         fontsize = 14.0;
         anchor = Geom::Point(0.5, -0.2);
-        coord = Geom::Point(page.midpoint()[Geom::X], page.bottom());
+        coord = Geom::Point(page.midpoint().x(), is_yaxisdown ? page.bottom() : page.top());
 
         if (!txt.empty()) {
             std::string bullet = is_selected ? " \u2022 " : "   ";

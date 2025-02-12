@@ -36,13 +36,27 @@ class SPObject;
 /* Convenience */
 #define SP_OBJECT_FLAGS_ALL 0xff
 
+// Tags that can be passed along with other "modified" flags.
+// Client code can use them to track senders of modification requests.
+// Tags themselves do not signify any modification to the object(s).
+#define SP_OBJECT_USER_MODIFIED_TAG_1 (1 << 8)
+#define SP_OBJECT_USER_MODIFIED_TAG_2 (1 << 9)
+#define SP_OBJECT_USER_MODIFIED_TAG_3 (1 << 10)
+#define SP_OBJECT_USER_MODIFIED_TAG_4 (1 << 11)
+#define SP_OBJECT_USER_MODIFIED_TAG_5 (1 << 12)
+#define SP_OBJECT_USER_MODIFIED_TAG_6 (1 << 13)
+#define SP_OBJECT_USER_MODIFIED_TAG_7 (1 << 14)
+#define SP_OBJECT_USER_MODIFIED_TAG_8 (1 << 15)
+
+#define SP_OBJECT_USER_TAGS_ALL 0xff00
+
 /* Flags that mark object as modified */
 /* Object, Child, Style, Viewport, User */
 #define SP_OBJECT_MODIFIED_STATE (SP_OBJECT_FLAGS_ALL & ~(SP_OBJECT_PARENT_MODIFIED_FLAG))
 
 /* Flags that will propagate downstreams */
 /* Parent, Style, Viewport, User */
-#define SP_OBJECT_MODIFIED_CASCADE (SP_OBJECT_FLAGS_ALL & ~(SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))
+#define SP_OBJECT_MODIFIED_CASCADE ((SP_OBJECT_FLAGS_ALL | SP_OBJECT_USER_TAGS_ALL) & ~(SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG))
 inline unsigned cascade_flags(unsigned flags)
 {
     // Unset object-modified and child-modified, set parent-modified if object-modified.
@@ -165,8 +179,8 @@ public:
 
     unsigned int cloned : 1;
     SPObject *clone_original{nullptr};
-    unsigned int uflags : 8;
-    unsigned int mflags : 8;
+    unsigned int uflags : 16;
+    unsigned int mflags : 16;
     SPIXmlSpace xml_space;
     Glib::ustring lang;
     unsigned int hrefcount{0};        /* number of xlink:href references */

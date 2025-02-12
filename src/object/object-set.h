@@ -477,16 +477,11 @@ public:
     void removePathTransforms();
     void removeTransform();
     void setScaleAbsolute(double, double, double, double);
-    void setScaleRelative(const Geom::Point&, const Geom::Scale&);
+    void scaleRelative(const Geom::Point&, const Geom::Scale&);
     void rotateRelative(const Geom::Point&, double);
     void skewRelative(const Geom::Point&, double, double);
     void moveRelative(const Geom::Point &move, bool compensate = true);
     void moveRelative(double dx, double dy);
-    void rotate(double);
-    void rotateScreen(double);
-    void scaleGrow(double);
-    void scaleScreen(double);
-    void scale(double);
     void move(double dx, double dy);
     void moveScreen(double dx, double dy);
     void move(double dx, double dy, bool rotated);

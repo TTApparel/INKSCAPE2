@@ -92,9 +92,6 @@ std::vector<SPItem*> sp_get_same_object_type(SPItem *sel, std::vector<SPItem*> &
 
 void scroll_to_show_item(SPDesktop *desktop, SPItem *item);
 
-void sp_undo(SPDesktop *desktop, SPDocument *doc);
-void sp_redo(SPDesktop *desktop, SPDocument *doc);
-
 bool fit_canvas_to_drawing(SPDocument *, bool with_margins = false);
 void fit_canvas_to_drawing(SPDesktop *);
 

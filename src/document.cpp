@@ -131,10 +131,6 @@ SPDocument::SPDocument() :
 
     Inkscape::Preferences *prefs = Inkscape::Preferences::get();
 
-    if (!prefs->getBool("/options/yaxisdown", true)) {
-        _doc2dt[3] = -1;
-    }
-
     // Penalise libavoid for choosing paths with needless extra segments.
     // This results in much better looking orthogonal connector paths.
     _router->setRoutingPenalty(Avoid::segmentPenalty);
@@ -244,7 +240,8 @@ SPNamedView *SPDocument::getNamedView()
         rroot->addChildAtPos(xml, 0);
         Inkscape::GC::release(xml);
     }
-    return cast<SPNamedView> (getObjectByRepr(xml));
+    auto nv = getObjectByRepr(xml);
+    return cast<SPNamedView>(nv);
 }
 
 SPDefs *SPDocument::getDefs()
@@ -1422,28 +1419,70 @@ void SPDocument::setupViewport(SPItemCtx *ctx)
     ctx->i2vp = Geom::identity();
 }
 
+bool SPDocument::has_yaxis_orientation_changed() {
+    if (!root) return false;
+
+    // detect Y-axis orientation change
+    if (auto nv = getNamedView(); nv && is_yaxisdown() != nv->is_y_axis_down()) {
+        return true;
+    }
+
+    return false;
+}
+
+double SPDocument::update_desktop_affine() {
+    if (!root) return 0;
+
+    auto nv = getNamedView();
+    auto shift = _doc2dt[5];
+    if (nv->is_y_axis_down()) {
+        _doc2dt[3] = 1;
+        _doc2dt[5] = 0;
+    }
+    else {
+        _doc2dt[3] = -1;
+        _doc2dt[5] = root->height.computed;
+    }
+
+    return shift - _doc2dt[5];
+}
+
 /**
  * Tries to update the document state based on the modified and
  * "update required" flags, and return true if the document has
  * been brought fully up to date.
  */
-bool
-SPDocument::_updateDocument(int update_flags)
+bool SPDocument::_updateDocument(int update_flags, unsigned int object_modified_tag)
 {
+    if (has_yaxis_orientation_changed()) {
+        auto shift = update_desktop_affine();
+
+        // fix elements that rely on Y-axis orientation having certain value
+        auto nv = getNamedView();
+        nv->fix_guidelines();
+        nv->updateViewPort();
+        // repaint pages
+        for (auto& child : nv->children) {
+            child.requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
+        }
+        // refresh display
+        _y_axis_flipped.emit(shift);
+    }
+
     /* Process updates */
-    if (this->root->uflags || this->root->mflags) {
-        if (this->root->uflags) {
+    if (root->uflags || root->mflags) {
+        if (root->uflags) {
             SPItemCtx ctx;
             setupViewport(&ctx);
 
             DocumentUndo::ScopedInsensitive _no_undo(this);
 
-            this->root->updateDisplay((SPCtx *)&ctx, update_flags);
+            root->updateDisplay(&ctx, update_flags);
         }
-        this->_emitModified();
+        _emitModified(object_modified_tag);
     }
 
-    return !(this->root->uflags || this->root->mflags);
+    return !(root->uflags || root->mflags);
 }
 
 /**
@@ -1452,8 +1491,10 @@ SPDocument::_updateDocument(int update_flags)
  * usually should not take more than a few loops, and certainly never
  * more than 32 iterations.  So we bail out if we hit 32 iterations,
  * since this typically indicates we're stuck in an update loop.
+ * Optional 'object_modified_tag' (see sp-object.h) can be passed to
+ * report along with modification flags.
  */
-gint SPDocument::ensureUpToDate()
+gint SPDocument::ensureUpToDate(unsigned int object_modified_tag)
 {
     // Bring the document up-to-date, specifically via the following:
     //   1a) Process all document updates.
@@ -1462,7 +1503,7 @@ gint SPDocument::ensureUpToDate()
     int counter = 32;
     for (unsigned int pass = 1; pass <= 2; ++pass) {
         // Process document updates.
-        while (!_updateDocument(0)) {
+        while (!_updateDocument(0, object_modified_tag)) {
             if (counter == 0) {
                 g_warning("More than 32 iteration while updating document '%s'", document_filename);
                 break;
@@ -2250,9 +2291,9 @@ sigc::connection SPDocument::connectSavedOrModified(sigc::slot<void ()> &&slot)
     return _saved_or_modified_signal.connect(std::move(slot));
 }
 
-void SPDocument::_emitModified() {
+void SPDocument::_emitModified(unsigned int object_modified_tag) {
     static guint const flags = SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_CHILD_MODIFIED_FLAG | SP_OBJECT_PARENT_MODIFIED_FLAG;
-    root->emitModified(0);
+    root->emitModified(object_modified_tag);
     modified_signal.emit(flags);
     clearNodeCache();
 }
@@ -2295,6 +2336,18 @@ SPDocument::install_reference_document::install_reference_document(SPDocument* i
 
 SPDocument::install_reference_document::~install_reference_document() {
     _parent->set_reference_document(nullptr);
+}
+
+bool SPDocument::get_origin_follows_page() {
+    if (auto nv = getNamedView()) {
+        return nv->get_origin_follows_page();
+    }
+    // named view not ready yet during document build; sp-grid may ask for origin correction
+    return true;
+}
+
+void SPDocument::set_origin_follows_page(bool on) {
+    getNamedView()->set_origin_follows_page(on);
 }
 
 /*

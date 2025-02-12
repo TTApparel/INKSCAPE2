@@ -140,6 +140,16 @@ void Export::onNotebookPageSwitch(Widget *page, unsigned page_number)
     }
 }
 
+/**
+ * Convert path to absolute path.
+ *
+ * @arg doc Document. Relative paths are interpreted relative to the document path.
+ * @arg filename File path which may be relative.
+ * Value is in platform-native encoding (see Glib::filename_to_utf8).
+ *
+ * @returns File path changed to absolute path.
+ * Value is in platform-native encoding (see Glib::filename_to_utf8).
+ */
 std::string Export::absolutizePath(SPDocument *doc, const std::string &filename)
 {
     std::string path;
@@ -174,7 +184,12 @@ bool Export::unConflictFilename(SPDocument *doc, std::string &filename, std::str
     return false;
 }
 
-// Checks if the directory exists and if not, tries to create the directory and if failed, displays an error message.
+/**
+ * Checks if the directory exists and if not, tries to create the directory and if failed, displays an error message.
+ *
+ * @arg filename - File path (may be absolute or relative to current document).
+ * Value is in platform-native encoding (see Glib::filename_to_utf8).
+ */
 bool Export::checkOrCreateDirectory(std::string const &filename)
 {
     SPDesktop *desktop = SP_ACTIVE_DESKTOP;
@@ -197,6 +212,12 @@ bool Export::checkOrCreateDirectory(std::string const &filename)
     return true;
 }
 
+/**
+ * Export to raster graphics
+ *
+ * @arg filename Filename. Path is absolute or relative to the current document.
+ * Value is in UTF8 encoding
+ */
 bool Export::exportRaster(
         Geom::Rect const &area, unsigned long int const &width, unsigned long int const &height,
         float const &dpi, guint32 bg_color, Glib::ustring const &filename, bool overwrite,
@@ -244,6 +265,8 @@ bool Export::exportRaster(
     }
 
     auto fn = Glib::path_get_basename(path);
+    /// Path to temporary PNG file.
+    /// Value is in platform-native encoding (see Glib::filename_to_utf8).
     auto png_filename = path;
     {
         // Select the extension and set the filename to a temporary file
@@ -257,15 +280,15 @@ bool Export::exportRaster(
         selected = *items;
     }
 
-    ExportResult result = sp_export_png_file(desktop->getDocument(), png_filename.c_str(), area, width, height, pHYs,
-                                             pHYs, // previously xdpi, ydpi.
-                                             bg_color, callback, data, true, selected,
-                                             use_interlacing, color_type, bit_depth, zlib, antialiasing);
+    ExportResult result = sp_export_png_file(
+        desktop->getDocument(), Glib::filename_to_utf8(png_filename).c_str(), area, width, height, pHYs,
+        pHYs, // previously xdpi, ydpi.
+        bg_color, callback, data, true, selected, use_interlacing, color_type, bit_depth, zlib, antialiasing);
 
     bool failed = result == EXPORT_ERROR; // || prog_dialog->get_stopped();
 
     if (failed) {
-        Glib::ustring safeFile = Inkscape::IO::sanitizeString(path.c_str());
+        Glib::ustring safeFile = Inkscape::IO::sanitizeString(Glib::filename_to_utf8(path).c_str());
         Glib::ustring error = g_strdup_printf(_("Could not export to filename <b>%s</b>.\n"), safeFile.c_str());
 
         desktop->messageStack()->flash(Inkscape::ERROR_MESSAGE, error.c_str());
@@ -316,6 +339,12 @@ bool Export::exportVector(
     return exportVector(extension, doc, filename, overwrite, items, pages);
 }
 
+/**
+ * Export to vector graphics
+ *
+ * @arg filename Filename. Path is absolute or relative to the current document.
+ * Value is in UTF8 encoding.
+ */
 bool Export::exportVector(
         Inkscape::Extension::Output *extension, SPDocument *copy_doc,
         Glib::ustring const &filename,
@@ -445,60 +474,64 @@ std::string Export::filePathFromObject(SPDocument *doc, SPObject *obj, const std
     if (obj && obj->getId()) {
         id = obj->getId();
     }
-    return prependDirectory(id, file_entry_text, doc);
+    return prependDirectory(Glib::filename_from_utf8(id), file_entry_text, doc);
 }
 
 /**
  * Adds the full directory path to the final part of a file name.
  *
  * @arg name - The final name part of a path, if absolute path, this is returned unchanged.
+ *             Value is in platform-native encoding (see Glib::filename_to_utf8).
  * @arg orig - The original filename, an optional path used previously which this name
  *             will be appanded in order to produce the full path.
+ *             Value is in platform-native encoding (see Glib::filename_to_utf8).
  * @arg doc - The document to take a fallback directory from if orig is empty.
+ *
+ * @returns
+ *  A path ending with `name` and starting with the directory part of
+ *    1. `name` (if it is an absolute path or empty)
+ *    2. `orig`
+ *    3. `doc`
+ *    or
+ *    4. the user home directory
+ *  Value is in platform-native encoding (see Glib::filename_to_utf8).
  */
-std::string Export::prependDirectory(Glib::ustring name, const std::string &orig, SPDocument *doc)
+
+// FIXME change type of name...?
+std::string Export::prependDirectory(const std::string &name, const std::string &orig, SPDocument *doc)
 {
-    if (Glib::path_is_absolute(Glib::filename_from_utf8(name)) || name.empty())
+    if (Glib::path_is_absolute(name) || name.empty())
         return name;
 
     std::string directory;
 
     if (!orig.empty()) {
-        if (name.size() < orig.size() && std::equal(name.rbegin(), name.rend(), orig.rbegin())) {
-            // Original string ends with requested name, return as it's not different
-            return orig;
-        }
         directory = Glib::path_get_dirname(orig);
+        // Note: Glib::path_get_dirname() returns "." if there is no directory component
     }
-
-    if (directory.empty() && doc) {
+    if (directory.empty() || directory == ".") {
         /* Grab document directory */
         const gchar *docFilename = doc->getDocumentFilename();
         if (docFilename) {
             directory = Glib::path_get_dirname(docFilename);
         }
     }
-
-    if (directory.empty()) {
+    if (directory.empty() || directory == ".") {
         directory = Inkscape::IO::Resource::homedir_path();
     }
 
-    if (Glib::path_is_absolute(Glib::filename_from_utf8(orig)))
-        return orig;
-    auto dir = Glib::build_filename(directory, Glib::filename_from_utf8(name));
-    if (orig.empty())
-        return dir;
-    return Glib::canonicalize_filename(dir, orig);
+    return Glib::build_filename(directory, name);
 }
 
-std::string Export::defaultFilename(SPDocument *doc, std::string &filename_entry_text, std::string extension)
+std::string Export::defaultFilename(SPDocument *doc, const std::string &filename_entry_text,
+                                    const std::string &extension)
 {
     std::string filename;
     if (doc && doc->getDocumentFilename()) {
         filename = doc->getDocumentFilename();
         //appendExtensionToFilename(filename, extension);
     } else if (doc) {
-        filename = prependDirectory(_("bitmap"), filename_entry_text, doc);
+        filename = prependDirectory(Glib::filename_from_utf8(_("bitmap")), filename_entry_text, doc);
         filename = filename + extension;
     }
     return filename;

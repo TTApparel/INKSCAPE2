@@ -6,6 +6,15 @@ confinement: strict
 base: core24
 compression: lzo
 
+# ----
+# hacks to make `evince` work for the print preview
+layout:
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/evince/4/backends:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/evince/4/backends
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/glib-2.0:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/glib-2.0
+# ----
+
 plugs:
   dot-config-inkscape:
     interface: personal-files
@@ -18,6 +27,14 @@ plugs:
     interface: content
     target: $SNAP/data-dir/icons
     default-provider: gtk-common-themes
+# ----
+# hack needed to ensure that the "cups" slot is available on the host, see https://snapcraft.io/docs/cups-interface
+  foo-install-cups:
+    interface: content
+    content: foo
+    default-provider: cups
+    target: $SNAP_DATA/foo
+# ----
 
 slots:
   inkscape-dbus:
@@ -67,24 +84,118 @@ parts:
       - libgsl27
       - libgslcblas0
       - libmagick++-6.q16-9
-      - libpoppler-glib8
       - libpotrace0
       - libproxy1v5
       - librevenge-0.0-0
       - libspelling-1-1
       - libvisio-0.1-1
       - libwpg-0.3-3
-      - libxslt1.1
       - imagemagick
       - libimage-magick-perl
       - libwmf-bin
       - transfig
       - libsvg-perl
       - libxml-xql-perl
+# ----
+# needed by the print preview feature
+      - evince
+      - libglib2.0-0t64
+# ----
     prime:
       - -lib/inkscape/*.a
       - -*canberra*so* # We don't have sound permissions anyway
-      - -usr/lib/*/gtk-2.0
+# HACK: remove all libraries that are already provided by the snap gnome extension
+# The list can be generated with:
+# snap run --shell inkscape
+# $ cd /snap/inkscape/current/usr/lib/; for i in **/lib*.so*; do if [ -e /snap/gnome-46-2404/current/usr/lib/$i ]; then echo $i; fi; done
+# and some manual string modifications.
+# (note that the string "gnome-46-2404" may need to be updated in the future, check $GTK_PATH within the snap environment.)
+      - -usr/lib/*/gtk-*/
+      - -usr/lib/*/libICE.*
+      - -usr/lib/*/libLerc.*
+      - -usr/lib/*/libSM.*
+      - -usr/lib/*/libXcursor.*
+      - -usr/lib/*/libXi.*
+      - -usr/lib/*/libXinerama.*
+      - -usr/lib/*/libXrandr.*
+      - -usr/lib/*/libXrender.*
+      - -usr/lib/*/libXt.*
+      - -usr/lib/*/libaom.*
+      - -usr/lib/*/libaspell.*
+      - -usr/lib/*/libavahi-client.*
+      - -usr/lib/*/libavahi-common.*
+      - -usr/lib/*/libcairo-gobject.*
+      - -usr/lib/*/libcairo-script-interpreter.*
+      - -usr/lib/*/libcairo.*
+      - -usr/lib/*/libcolord.*
+      - -usr/lib/*/libcolordprivate.*
+      - -usr/lib/*/libcups.*
+      - -usr/lib/*/libcurl-gnutls.*
+      - -usr/lib/*/libdatrie.*
+      - -usr/lib/*/libdconf.*
+      - -usr/lib/*/libde265.*
+      - -usr/lib/*/libdeflate.*
+      - -usr/lib/*/libenchant-2.*
+      - -usr/lib/*/libepoxy.*
+      - -usr/lib/*/libexslt.*
+      - -usr/lib/*/libfontconfig.*
+      - -usr/lib/*/libfreebl3.*
+      - -usr/lib/*/libfreeblpriv3.*
+      - -usr/lib/*/libfribidi.*
+      - -usr/lib/*/libgdbm.*
+      - -usr/lib/*/libgdbm_compat.*
+      - -usr/lib/*/libgdk_pixbuf-2.0.*
+      - -usr/lib/*/libgomp.*
+      - -usr/lib/*/libgraphene-1.0.*
+      - -usr/lib/*/libgraphite2.*
+      - -usr/lib/*/libgtk-4.*
+      - -usr/lib/*/libgtksourceview-5.*
+      - -usr/lib/*/libharfbuzz.*
+      - -usr/lib/*/libheif.*
+      - -usr/lib/*/libhunspell-1.7.*
+      - -usr/lib/*/libjbig.*
+      - -usr/lib/*/libjpeg.*
+      - -usr/lib/*/liblber.*
+      - -usr/lib/*/liblcms2.*
+      - -usr/lib/*/libldap.*
+      - -usr/lib/*/libltdl.*
+      - -usr/lib/*/libmpfr.*
+      - -usr/lib/*/libmpfr.*
+      - -usr/lib/*/libnghttp2.*
+      - -usr/lib/*/libnspr4.*
+      - -usr/lib/*/libnss3.*
+      - -usr/lib/*/libnssckbi.*
+      - -usr/lib/*/libnssdbm3.*
+      - -usr/lib/*/libnssutil3.*
+      - -usr/lib/*/libopenjp2.*
+      - -usr/lib/*/libopenjp2.*
+      - -usr/lib/*/libpango-1.0.*
+      - -usr/lib/*/libpangocairo-1.0.*
+      - -usr/lib/*/libpangoft2-1.0.*
+# not removed because we install some perl libs, and then rather supply all than only half of them.
+#      - -usr/lib/*/libperl.*
+      - -usr/lib/*/libpixman-1.*
+      - -usr/lib/*/libplc4.*
+      - -usr/lib/*/libplds4.*
+      - -usr/lib/*/libpoppler-glib.*
+      - -usr/lib/*/libpoppler.*
+      - -usr/lib/*/libproxy.*
+      - -usr/lib/*/libpsl.*
+      - -usr/lib/*/libpspell.*
+      - -usr/lib/*/librtmp.*
+      - -usr/lib/*/libsasl2.*
+      - -usr/lib/*/libsharpyuv.*
+      - -usr/lib/*/libsmime3.*
+      - -usr/lib/*/libsoftokn3.*
+      - -usr/lib/*/libssh.*
+      - -usr/lib/*/libssl3.*
+      - -usr/lib/*/libthai.*
+      - -usr/lib/*/libtiff.*
+      - -usr/lib/*/libwebp.*
+      - -usr/lib/*/libwebpdemux.*
+      - -usr/lib/*/libwebpmux.*
+      - -usr/lib/*/libxcb-render.*
+      - -usr/lib/*/libxslt.*
     override-build: |
       sed -i.bak -e 's|Icon=${INKSCAPE_ICONPATH}|Icon=${SNAP}/share/inkscape/branding/inkscape.svg|g' $SNAPCRAFT_PART_SRC/org.inkscape.Inkscape.desktop.template
       craftctl default

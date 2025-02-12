@@ -124,6 +124,8 @@ PageToolbar::PageToolbar(Glib::RefPtr<Gtk::Builder> const &builder)
     _margin_bottom.signal_value_changed().connect(sigc::mem_fun(*this, &PageToolbar::marginBottomEdited));
     _margin_left.signal_value_changed().connect(sigc::mem_fun(*this, &PageToolbar::marginLeftEdited));
 
+    dynamic_cast<Gtk::Entry &>(*_combo_page_sizes.get_child()).set_completion(get_object<Gtk::EntryCompletion>(builder, "_sizes_searcher"));
+
     _combo_page_sizes.set_id_column(2);
     _combo_page_sizes.signal_changed().connect([this] {
         std::string preset_key = _combo_page_sizes.get_active_id();

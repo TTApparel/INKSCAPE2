@@ -31,9 +31,9 @@ public:
     DrawingGlyphs(Drawing &drawing);
     int tag() const override { return tag_of<decltype(*this)>; }
 
-    void setGlyph(std::shared_ptr<FontInstance> font, int glyph, Geom::Affine const &trans);
+    void setGlyph(std::shared_ptr<FontInstance> font, unsigned int glyph, Geom::Affine const &trans);
     void setStyle(SPStyle const *style, SPStyle const *context_style = nullptr) override; // Not to be used
-    Geom::IntRect getPickBox() const { return _pick_bbox; };
+    Geom::IntRect getPickBox() const { return bbox_pick_scaled; };
 
 protected:
     ~DrawingGlyphs() override = default;
@@ -42,17 +42,23 @@ protected:
     DrawingItem *_pickItem(Geom::Point const &p, double delta, unsigned flags) override;
 
     std::shared_ptr<void const> _font_data; // keeps alive pathvec, pathvec_ref, and pixbuf
-    int            _glyph;
+    unsigned int   _glyph;
     float          _width;          // These three are used to set up bounding box
     float          _asc;            //
     float          _dsc;            //
     float          _pl;             // phase length
-    Geom::IntRect  _pick_bbox;
 
     double design_units;
-    Geom::PathVector const *pathvec; // pathvector of actual glyph
-    Geom::PathVector const *pathvec_ref; // pathvector of reference glyph 42
-    Inkscape::Pixbuf const *pixbuf; // pixbuf, if SVG font
+    Geom::PathVector const *pathvec = nullptr; // pathvector of glyph.
+    Inkscape::Pixbuf const *pixbuf = nullptr;  // pixbuf, if SVG font
+    Geom::Rect              bbox_exact;        // Exact bounding box of glyph.
+    Geom::Rect              bbox_pick;         // Pick bounding box of glyph.
+    Geom::Rect              bbox_draw;         // Draw bounding box of glyph (adds space for text decorations)
+    // Geom::IntRect        bbox_exact_scaled;
+    Geom::IntRect           bbox_pick_scaled;
+    Geom::IntRect           bbox_draw_scaled;
+
+    char*                   font_descr; // For debugging
 
     friend class DrawingText;
 };
@@ -64,7 +70,8 @@ public:
     DrawingText(Drawing &drawing);
     int tag() const override { return tag_of<decltype(*this)>; }
 
-    bool addComponent(std::shared_ptr<FontInstance> const &font, int glyph, Geom::Affine const &trans, float width, float ascent, float descent, float phase_length);
+    bool addComponent(std::shared_ptr<FontInstance> const &font, int unsigned glyph,
+                      Geom::Affine const &trans, float width, float ascent, float descent, float phase_length);
     void setStyle(SPStyle const *style, SPStyle const *context_style = nullptr) override;
     void setChildrenStyle(SPStyle const *context_style) override;
 

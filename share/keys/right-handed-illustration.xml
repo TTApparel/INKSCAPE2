@@ -164,9 +164,6 @@ Future improvements:
   <bind gaction="app.pattern-to-object"                     keys="&lt;alt&gt;&lt;shift&gt;i, &lt;alt&gt;&lt;shift&gt;I" />
   <bind gaction="app.object-set-clip"                            keys="&lt;ctrl&gt;&lt;alt&gt;&lt;shift&gt;Q, &lt;ctrl&gt;&lt;alt&gt;&lt;shift&gt;q" />
   <bind gaction="app.object-release-clip" />
-  <!-- FIXME: currently these bypass the verbs, so the verbs are not bound to ctrl+[] as they should be -->
-  <bind gaction="app.object-rotate-90-cw" />
-  <bind gaction="app.object-rotate-90-ccw" />
 
 
 <!-- Path -->

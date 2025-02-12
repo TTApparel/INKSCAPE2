@@ -23,11 +23,6 @@
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
-  <object class="GtkToggleButton" id="radio_button_group">
-    <property name="valign">center</property>
-    <property name="focusable">True</property>
-    <property name="active">True</property>
-  </object>
   <object class="GtkBox" id="arc-toolbar">
     <property name="halign">start</property>
     <property name="valign">center</property>
@@ -139,7 +134,6 @@
         <property name="focusable">True</property>
         <property name="tooltip-text" translatable="yes">Switch to slice (closed shape with two radii)</property>
         <property name="has-frame">False</property>
-        <property name="group">radio_button_group</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -156,7 +150,7 @@
         <property name="focusable">True</property>
         <property name="tooltip-text" translatable="yes">Switch to arc (unclosed shape)</property>
         <property name="has-frame">False</property>
-        <property name="group">radio_button_group</property>
+        <property name="group">slice_btn</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -173,7 +167,7 @@
         <property name="focusable">True</property>
         <property name="tooltip-text" translatable="yes">Switch to chord (closed shape)</property>
         <property name="has-frame">False</property>
-        <property name="group">radio_button_group</property>
+        <property name="group">slice_btn</property>
         <style>
             <class name="priority1"/>
         </style>

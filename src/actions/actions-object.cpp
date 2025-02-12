@@ -262,7 +262,7 @@ object_rotate_90_cw(InkscapeApplication *app)
 
     // Object Rotate 90
     auto desktop = selection->desktop();
-    selection->rotate((!desktop || desktop->is_yaxisdown()) ? 90 : -90);
+    selection->rotateAnchored((!desktop || desktop->is_yaxisdown()) ? 90 : -90);
 }
 
 void
@@ -272,7 +272,7 @@ object_rotate_90_ccw(InkscapeApplication *app)
 
     // Object Rotate 90 CCW
     auto desktop = selection->desktop();
-    selection->rotate((!desktop || desktop->is_yaxisdown()) ? -90 : 90);
+    selection->rotateAnchored((!desktop || desktop->is_yaxisdown()) ? -90 : 90);
 }
 
 void
@@ -294,7 +294,7 @@ object_flip_horizontal(InkscapeApplication *app)
     }
 
     // Object Flip Horizontal
-    selection->setScaleRelative(center, Geom::Scale(-1.0, 1.0));
+    selection->scaleRelative(center, Geom::Scale(-1.0, 1.0));
     Inkscape::DocumentUndo::done(app->get_active_document(), _("Flip horizontally"), INKSCAPE_ICON("object-flip-horizontal"));
 }
 
@@ -317,7 +317,7 @@ object_flip_vertical(InkscapeApplication *app)
     }
 
     // Object Flip Vertical
-    selection->setScaleRelative(center, Geom::Scale(1.0, -1.0));
+    selection->scaleRelative(center, Geom::Scale(1.0, -1.0));
     Inkscape::DocumentUndo::done(app->get_active_document(), _("Flip vertically"), INKSCAPE_ICON("object-flip-vertical"));
 }
 
@@ -436,6 +436,7 @@ add_actions_object(InkscapeApplication* app)
     gapp->add_action(                "object-set-inverse-mask",         sigc::bind(sigc::ptr_fun(&object_mask_set_inverse),       app));
     gapp->add_action(                "object-release-mask",             sigc::bind(sigc::ptr_fun(&object_mask_release),           app));
 
+    // Depricated, see app.transform-rotate(90)
     gapp->add_action(                "object-rotate-90-cw",             sigc::bind(sigc::ptr_fun(&object_rotate_90_cw),           app));
     gapp->add_action(                "object-rotate-90-ccw",            sigc::bind(sigc::ptr_fun(&object_rotate_90_ccw),          app));
     gapp->add_action(                "object-flip-horizontal",          sigc::bind(sigc::ptr_fun(&object_flip_horizontal),        app));

@@ -160,8 +160,8 @@ public:
     Application(bool use_gui);
     ~Application();
 
-    Application(Application const&); // no copy
-    Application& operator=(Application const&); // no assign
+    Application(Application const&) = delete; // no copy
+    Application& operator=(Application const&) = delete; // no assign
     Application* operator&() const; // no pointer access
     std::set<SPDocument *> _document_set;
     std::vector<SPDesktop *> *_desktops = nullptr;

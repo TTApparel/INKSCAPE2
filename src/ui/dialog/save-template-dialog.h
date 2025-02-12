@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /** @file
- * TODO: insert short description here
+ * "Save document as template" dialog
  *//*
  * Authors: see git history
  *
@@ -10,48 +10,44 @@
 #ifndef INKSCAPE_SEEN_UI_DIALOG_SAVE_TEMPLATE_H
 #define INKSCAPE_SEEN_UI_DIALOG_SAVE_TEMPLATE_H
 
-#include <glibmm/refptr.h>
+#include <gtkmm/dialog.h>
+#include <glibmm/i18n.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/sizegroup.h>
+#include <ui/operation-blocker.h>
 
-namespace Gtk {
-class Builder;
-class CheckButton;
-class Dialog;
-class Entry;
-class Window;
-}
+#include "ui/widget/document-templates.h"
+#include "ui/widget/ink-spin-button.h"
 
 namespace Inkscape::UI::Dialog {
 
-class SaveTemplate
-{
-
+class SaveTemplate : Gtk::Dialog {
 public:
+    SaveTemplate(Gtk::Window& parent);
 
     static void save_document_as_template(Gtk::Window &parentWindow);
 
-protected:
-
-    void on_name_changed();
-
 private:
-
-    Glib::RefPtr<Gtk::Builder> builder;
-
-    Gtk::Dialog &dialog;
-
-    Gtk::Entry &name;
-    Gtk::Entry &author;
-    Gtk::Entry &description;
-    Gtk::Entry &keywords;
-
-    Gtk::CheckButton &set_default_template;
-
-    SaveTemplate(Gtk::Window &parent);
+    void update_save_widgets();
     void save_template(Gtk::Window &parent);
 
+    Gtk::Grid _content;
+    Gtk::CheckButton _set_as_default{_("Set as default template")};
+    Gtk::Label _name{_("_Name"), true};
+    Gtk::Entry _filename;
+    Gtk::Label _desc_label{_("_Description"), true};
+    Gtk::Entry _description;
+    UI::Widget::DocumentTemplates _list;
+    Gtk::Button _save{_("Save")};
+    Gtk::Button _cancel{_("Cancel")};
+    Glib::RefPtr<Gtk::SizeGroup> _btn_group = Gtk::SizeGroup::create(Gtk::SizeGroup::Mode::HORIZONTAL);
+    OperationBlocker _update;
+    std::shared_ptr<Extension::TemplatePreset> _current_preset;
 };
+
 } // namespace Inkscape:UI::Dialog
-#endif // SEEN_TOOLBAR_SNAP_H
+
+#endif // INKSCAPE_SEEN_UI_DIALOG_SAVE_TEMPLATE_H
 
 /*
   Local Variables:

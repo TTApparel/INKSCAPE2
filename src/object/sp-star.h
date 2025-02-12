@@ -38,11 +38,6 @@ public:
 	double rounded;
 	double randomized;
 
-// CPPIFY: This derivation is a bit weird.
-// parent_class = reinterpret_cast<SPShapeClass *>(g_type_class_ref(SP_TYPE_SHAPE));
-// So shouldn't star be derived from shape instead of polygon?
-// What does polygon have that shape doesn't?
-
 	void build(SPDocument *document, Inkscape::XML::Node *repr) override;
 	Inkscape::XML::Node* write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr, unsigned int flags) override;
 	void set(SPAttr key, char const* value) override;
@@ -55,6 +50,8 @@ public:
     void update_patheffect(bool write) override;
 	void set_shape() override;
 	Geom::Affine set_transform(Geom::Affine const& xform) override;
+	double getSideLength() const;
+	void setSideLength(double length);
 };
 
 void sp_star_position_set (SPStar *star, int sides, Geom::Point center, double r1, double r2, double arg1, double arg2, bool isflat, double rounded, double randomized);

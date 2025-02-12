@@ -11,12 +11,19 @@ types in a utf8 filename into a file dialog. This needs to be
 converted to a std::string in the locale encoding before using it to
 open a file. Glib provides functions to handle translating the utf8
 encoded strings to/from the locally used encoding (e.g.
-Glib::filename_from_utf8()).
+Glib::filename_from_utf8()). In the Glib documentation, the local
+encoding is often called "platform-native".
 
 Gtk4 file dialogs do not use filenames directly. Instead they use
 Gio::File's. Gio::File's handle string type conversions for you. You
 can directly obtain the correct string for system use (get_path()) or
 for GUI use (get_parse_name()).
+
+Currently Inkscape contains some old code parts where it is not clear
+which encoding a file path has, or where the encoding is not converted
+correctly. Rewriting to use Gio::File would avoid these issues.
+Note that Gio::File only supports absolute paths, so it can not
+represent a relative path or a part (fragment) of a path.
 
 SVG files generally contain utf8 encoded strings. So constructing a
 filename for opening a file from an 'id' would require converting the
@@ -43,7 +50,7 @@ To do:
 1. Move all file related code here (other than extensions).
 2. Move extension input/output code into subdirectories within src/extensions/internal and share/extensions.
 3. Separate out creating a document and creating a document window. The former belongs here, the later in src/ui.
-4. Use std::string for all file names and use glibmm file utilities.
+4. Use std::string for all file names and use glibmm file utilities. For absolute paths, it is even better to use Gio::File objects.
 5. Use Glib::ustring for URI's and use Inkscape's URI utilities (if not available in glibmm).
 6. Rewrite file export code to share a common base and to allow easy export of objects. Should be Gio::Action based.
    Things like cropping, selecting an object, hiding other objects, etc. should be done before the document is passed

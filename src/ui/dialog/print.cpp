@@ -172,6 +172,7 @@ void Print::draw_page(const Glib::RefPtr<Gtk::PrintContext>& context, int page_n
             rect = page->getDesktopRect();
         }
 
+        /// Path to temporary PNG file. Value is in platform-native encoding (see Glib::filename_to_utf8).
         std::string tmp_png;
         std::string tmp_base = "inkscape-print-png-XXXXXX";
 
@@ -192,7 +193,7 @@ void Print::draw_page(const Glib::RefPtr<Gtk::PrintContext>& context, int page_n
                 bgcolor |= SP_COLOR_F_TO_U(opacity);
             }
 
-            sp_export_png_file(_workaround._doc, tmp_png.c_str(), rect,
+            sp_export_png_file(_workaround._doc, Glib::filename_to_utf8(tmp_png).c_str(), rect,
                 (unsigned long)(Inkscape::Util::Quantity::convert(rect.width(), "px", "in") * dpi),
                 (unsigned long)(Inkscape::Util::Quantity::convert(rect.height(), "px", "in") * dpi),
                                dpi, dpi, bgcolor, nullptr, nullptr, true, {});

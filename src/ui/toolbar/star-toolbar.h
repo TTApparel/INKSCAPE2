@@ -45,6 +45,7 @@ namespace Tools { class ToolBase; }
 namespace Widget {
 class Label;
 class SpinButton;
+class UnitTracker;
 } // namespace Widget
 } // namespace UI
 namespace XML { class Node; }
@@ -61,6 +62,7 @@ public:
     ~StarToolbar() override;
 
     void setDesktop(SPDesktop *desktop) override;
+    void setActiveUnit(Util::Unit const *unit) override;
 
 private:
     StarToolbar(Glib::RefPtr<Gtk::Builder> const &builder);
@@ -74,6 +76,9 @@ private:
     UI::Widget::SpinButton &_spoke_item;
     UI::Widget::SpinButton &_roundedness_item;
     UI::Widget::SpinButton &_randomization_item;
+    UI::Widget::SpinButton &_length_item;
+
+    std::unique_ptr<UI::Widget::UnitTracker> _tracker;
 
     XML::Node *_repr = nullptr;
     void _attachRepr(XML::Node *repr);
@@ -82,6 +87,7 @@ private:
     bool _batchundo = false;
     OperationBlocker _blocker;
     sigc::connection _selection_changed_conn;
+    sigc::connection _selection_modified_conn;
 
     void setup_derived_spin_button(UI::Widget::SpinButton &btn, Glib::ustring const &name, double default_value,
                                    ValueChangedMemFun value_changed_mem_fun);
@@ -90,8 +96,10 @@ private:
     void proportion_value_changed();
     void rounded_value_changed();
     void randomized_value_changed();
+    void length_value_changed();
     void _setDefaults();
     void _selectionChanged(Selection *selection);
+    void _selectionModified(Selection *selection);
 
     void notifyAttributeChanged(XML::Node &node, GQuark name, Util::ptr_shared old_value, Util::ptr_shared new_value) override;
 };

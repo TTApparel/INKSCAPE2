@@ -31,7 +31,7 @@ LPESimplify::LPESimplify(LivePathEffectObject *lpeobject)
                     &wr, this, 360.)
     , helper_size(_("Handle size"), _("Size of the handles in the effect visualization (not editable)"), "helper_size", &wr, this, 10)
     , simplify_individual_paths(_("Paths separately"), _("When there are multiple paths in the selection, simplify each one separately."), "simplify_individual_paths",
-                                &wr, this, false, "", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline"))
+                                &wr, this, false)
     , simplify_just_coalesce(_("Just coalesce"), _("Simplify just coalesce"), "simplify_just_coalesce", &wr, this,
                              false, "", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline"))
 {

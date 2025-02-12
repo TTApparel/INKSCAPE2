@@ -208,7 +208,7 @@ void SprayTool::update_cursor(bool /*with_shift*/) {
             this->message_context->setF(Inkscape::NORMAL_MESSAGE, _("%s. Drag, click or click and scroll to spray <b>clones</b> of the initial selection. Right-click + move to update single click item."), sel_message);
             break;
         case SPRAY_MODE_SINGLE_PATH:
-            this->message_context->setF(Inkscape::NORMAL_MESSAGE, _("%s. Drag, click or click and scroll to spray into a <b>single path</b>. Right-click + move to update single click item.."), sel_message);
+            this->message_context->setF(Inkscape::NORMAL_MESSAGE, _("%s. Drag, click or click and scroll to spray into a <b>single path</b>. Right-click + move to update single click item."), sel_message);
             break;
         default:
             break;

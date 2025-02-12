@@ -56,7 +56,7 @@ private:
 
         _factory = Gtk::SignalListItemFactory::create();
 
-        _factory->signal_setup().connect([this](const Glib::RefPtr<Gtk::ListItem>& list_item) {
+        _connections.emplace_back(_factory->signal_setup().connect([this](const Glib::RefPtr<Gtk::ListItem>& list_item) {
             auto box = Gtk::make_managed<Gtk::CenterBox>();
             box->add_css_class("item-box");
             box->set_orientation(Gtk::Orientation::VERTICAL);
@@ -76,9 +76,9 @@ private:
             }
 
             list_item->set_child(*box);
-        });
+        }));
 
-        _factory->signal_bind().connect([this](const Glib::RefPtr<Gtk::ListItem>& list_item) {
+        _connections.emplace_back(_factory->signal_bind().connect([this](const Glib::RefPtr<Gtk::ListItem>& list_item) {
             auto item = list_item->get_item();
 
             auto box = dynamic_cast<Gtk::CenterBox*>(list_item->get_child());
@@ -116,14 +116,14 @@ private:
             }
 
             if (_track_items) _bound_items[box] = item;
-        });
+        }));
 
-        _factory->signal_unbind().connect([this](const Glib::RefPtr<Gtk::ListItem>& list_item) {
+        _connections.emplace_back(_factory->signal_unbind().connect([this](const Glib::RefPtr<Gtk::ListItem>& list_item) {
             if (_track_items) {
                 auto box = dynamic_cast<Gtk::CenterBox*>(list_item->get_child());
                 _bound_items.erase(box);
             }
-        });
+        }));
     }
 
     std::function<ItemData (Glib::RefPtr<Glib::ObjectBase>&)> _get_item_data;
@@ -132,6 +132,7 @@ private:
     bool _enable_labels = true;
     bool _track_items = false;
     std::unordered_map<Gtk::Widget*, Glib::RefPtr<Glib::ObjectBase>> _bound_items;
+    std::vector<sigc::scoped_connection> _connections;
 };
 
 } // namespace

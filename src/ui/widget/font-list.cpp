@@ -206,16 +206,6 @@ void CellFontRenderer::snapshot_vfunc(Glib::RefPtr<Gtk::Snapshot> const &snapsho
         snapshot->append_layout(layout, fg);
         snapshot->restore();
     }
-
-}
-
-static void set_icon(Gtk::Button& btn, gchar const* pixmap) {
-    if (Gtk::Image* img = sp_get_icon_image(pixmap, Gtk::IconSize::NORMAL)) {
-        btn.set_child(*img);
-    }
-    else {
-        g_warning("No icon found: %s", pixmap);
-    }
 }
 
 const char* get_sort_icon(Inkscape::FontOrder order) {

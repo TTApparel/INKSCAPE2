@@ -549,10 +549,12 @@ private:
     sigc::scoped_connection _reconstruction_start_connection;
     sigc::scoped_connection _reconstruction_finish_connection;
     sigc::scoped_connection _schedule_zoom_from_document_connection;
+    sigc::scoped_connection _y_axis_flipped;
 
     bool drawing_handler(Inkscape::CanvasEvent const &event, Inkscape::DrawingItem *item);
     void reconstruction_start();
     void reconstruction_finish();
+    void handle_y_axis_flip(double yshift);
 
     // pinch zoom
     std::optional<double> _begin_zoom;

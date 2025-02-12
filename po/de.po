@@ -38585,7 +38585,7 @@ msgid ""
 "report\">file a bug</a> and include the backtrace from the area below."
 msgstr ""
 "Wenn dieser Absturz reproduzierbar auftritt, <a href=\"https://inkscape.org/"
-"report>melde bitte einen Programmfehler</a> und füge die untenstehenden "
+"report\">melde bitte einen Programmfehler</a> und füge die untenstehenden "
 "technischen Informationen über den Fehler in Deine Meldung mit ein."
 
 #: ../share/ui/dialog-css.glade:28

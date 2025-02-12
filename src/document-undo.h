@@ -38,9 +38,9 @@ public:
     static void clearRedo(SPDocument *document);
 
     /* undo_icon is only used in History dialog. */
-    static void done(SPDocument *document, Glib::ustring const &event_description, Glib::ustring const &undo_icon);
+    static void done(SPDocument *document, Glib::ustring const &event_description, Glib::ustring const &undo_icon, unsigned int object_modified_tag = 0);
 
-    static void maybeDone(SPDocument *document, const gchar *keyconst, Glib::ustring const &event_description, Glib::ustring const &undo_icon);
+    static void maybeDone(SPDocument *document, const gchar *keyconst, Glib::ustring const &event_description, Glib::ustring const &undo_icon, unsigned int object_modified_tag = 0);
 
 private:
     static void finish_incomplete_transaction(SPDocument &document);

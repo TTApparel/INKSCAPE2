@@ -595,6 +595,9 @@ static SPStyleProp const props[] = {
     // rendering mode
     {SPAttr::INKSCAPE_CLIP_TO_PAGE_RENDERING, "inkscape:clip-to-page"},
     {SPAttr::INKSCAPE_ANTIALIAS_RENDERING, "inkscape:antialias-rendering"},
+    // named view settings
+    {SPAttr::INKSCAPE_ORIGIN_CORRECTION, "origin-correction"},
+    {SPAttr::INKSCAPE_Y_AXIS_DOWN, "y-axis-down"},
 };
 
 #define n_attrs (sizeof(props) / sizeof(props[0]))

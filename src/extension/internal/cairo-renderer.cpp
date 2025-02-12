@@ -13,6 +13,8 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
+#include <locale>
+#include <sstream>
 #ifdef HAVE_CONFIG_H
 # include "config.h"  // only include where actually required!
 #endif
@@ -100,6 +102,44 @@ CairoRenderContext CairoRenderer::createContext()
     return CairoRenderContext{this};
 }
 
+/** CairoTagNumpunct and CairoTagStringStream below are used for number to string formatting when
+ * setting tag's attribute for Cairo.
+ *
+ * Cairo 1.16 has a bug and requires the decimal separator to be the one of the current C locale.
+ * 
+ * For later versions of Cairo, we always use "." as a decimal separator.
+ *
+ * @see https://gitlab.freedesktop.org/cairo/cairo/-/issues/347
+ * @see https://gitlab.com/inkscape/inkscape/-/issues/5354
+ */
+#if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1, 16, 0) && CAIRO_VERSION < CAIRO_VERSION_ENCODE(1, 17, 0)
+#define _CAIRO_1_16
+/** This facet causes the decimal separator to be the one of the current C locale.
+ */
+struct CairoTagNumpunct : std::numpunct<char>
+{
+    protected:
+      char do_decimal_point() const override {
+        return *std::localeconv()->decimal_point;
+      }
+};
+#endif
+
+/** Used for formatting number to string when sending tag' attributes to Cairo.
+ */
+class CairoTagStringStream : public std::ostringstream
+{
+public:
+    CairoTagStringStream()
+    {
+        #if defined _CAIRO_1_16
+        imbue(std::locale(std::locale::classic(), new CairoTagNumpunct));
+        #else
+        imbue(std::locale::classic());
+        #endif
+    }
+};
+
 /* The below functions are copy&pasted plus slightly modified from *_invoke_print functions. */
 static void sp_item_invoke_render(SPItem const *item, CairoRenderContext *ctx, SPItem const *origin = nullptr, SPPage const *page = nullptr);
 static void sp_group_render(SPGroup const *group, CairoRenderContext *ctx, SPItem const *origin = nullptr, SPPage const *page = nullptr);
@@ -111,17 +151,6 @@ static void sp_flowtext_render(SPFlowtext const *flowtext, CairoRenderContext *c
 static void sp_image_render(SPImage const *image, CairoRenderContext *ctx);
 static void sp_symbol_render(SPSymbol const *symbol, CairoRenderContext *ctx, SPItem const *origin, SPPage const *page);
 static void sp_asbitmap_render(SPItem const *item, CairoRenderContext *ctx, SPPage const *page = nullptr);
-
-static void sp_shape_render_invoke_marker_rendering(SPMarker *marker, Geom::Affine tr, CairoRenderContext *ctx, SPItem const *origin)
-{
-    if (auto marker_item = sp_item_first_item_child(marker)) {
-        tr = marker_item->transform * marker->c2p * tr;
-        Geom::Affine old_tr = marker_item->transform;
-        marker_item->transform = tr;
-        ctx->getRenderer()->renderItem(ctx, marker_item, origin);
-        marker_item->transform = old_tr;
-    }
-}
 
 /** Compute the final page dimensions in the resulting PS or PDF.
  *
@@ -270,75 +299,16 @@ static void sp_shape_render(SPShape const *shape, CairoRenderContext *ctx, SPIte
         ctx->renderPathVector(pathv, style, pbox, CairoRenderContext::FILL_ONLY);
     }
 
-    // TODO: Factor marker rendering out into a separate function; reduce code duplication.
-    // START marker
-    bool has_stroke = style->stroke_width.computed > 0.0;
-    for (int marker_type : {SP_MARKER_LOC, SP_MARKER_LOC_START}) {
-        if (!has_stroke)
-            continue;
-        if (SPMarker *marker = shape->_marker[marker_type]) {
-            Geom::Affine tr(sp_shape_marker_get_transform_at_start(pathv.begin()->front()));
-            tr = marker->get_marker_transform(tr, style->stroke_width.computed, true);
-            sp_shape_render_invoke_marker_rendering(marker, tr, ctx, origin ? origin : shape);
-        }
-    }
-    // MID marker
-    for (int marker_type : {SP_MARKER_LOC, SP_MARKER_LOC_MID}) {
-        SPMarker *marker = shape->_marker[marker_type];
-        if (!marker || !has_stroke) {
-            continue;
-        }
-        for(Geom::PathVector::const_iterator path_it = pathv.begin(); path_it != pathv.end(); ++path_it) {
-            // START position
-            if ( path_it != pathv.begin()
-                 && ! ((path_it == (pathv.end()-1)) && (path_it->size_default() == 0)) ) // if this is the last path and it is a moveto-only, there is no mid marker there
-            {
-                Geom::Affine tr(sp_shape_marker_get_transform_at_start(path_it->front()));
-                tr = marker->get_marker_transform(tr, style->stroke_width.computed, false);
-                sp_shape_render_invoke_marker_rendering(marker, tr, ctx, origin ? origin : shape);
+    // Render markers
+    bool has_stroke = style->stroke_width.computed > 0.f;
+    if (shape && shape->hasMarkers() && has_stroke) {
+        for (auto const &[_, marker, tr] : shape->get_markers()) {
+            if (auto marker_item = sp_item_first_item_child(marker)) {
+                auto const old_tr = marker_item->transform;
+                marker_item->transform = old_tr * marker->c2p * tr;
+                ctx->getRenderer()->renderItem(ctx, marker_item, origin ? origin : shape);
+                marker_item->transform = old_tr;
             }
-            // MID position
-            if (path_it->size_default() > 1) {
-                Geom::Path::const_iterator curve_it1 = path_it->begin();      // incoming curve
-                Geom::Path::const_iterator curve_it2 = ++(path_it->begin());  // outgoing curve
-                while (curve_it2 != path_it->end_default())
-                {
-                    /* Put marker between curve_it1 and curve_it2.
-                     * Loop to end_default (so including closing segment), because when a path is closed,
-                     * there should be a midpoint marker between last segment and closing straight line segment */
-                    Geom::Affine tr(sp_shape_marker_get_transform(*curve_it1, *curve_it2));
-                    tr = marker->get_marker_transform(tr, style->stroke_width.computed, false);
-                    sp_shape_render_invoke_marker_rendering(marker, tr, ctx, origin ? origin : shape);
-
-                    ++curve_it1;
-                    ++curve_it2;
-                }
-            }
-            // END position
-            if ( path_it != (pathv.end()-1) && !path_it->empty()) {
-                Geom::Curve const &lastcurve = path_it->back_default();
-                Geom::Affine tr = sp_shape_marker_get_transform_at_end(lastcurve);
-                tr = marker->get_marker_transform(tr, style->stroke_width.computed, false);
-                sp_shape_render_invoke_marker_rendering(marker, tr, ctx, origin ? origin : shape);
-            }
-        }
-    }
-    // END marker
-    for (int marker_type : {SP_MARKER_LOC, SP_MARKER_LOC_END}) {
-        if (!has_stroke)
-            continue;
-        if (SPMarker *marker = shape->_marker[marker_type]) {
-            /* Get reference to last curve in the path.
-             * For moveto-only path, this returns the "closing line segment". */
-            Geom::Path const &path_last = pathv.back();
-            unsigned int index = path_last.size_default();
-            if (index > 0) {
-                index--;
-            }
-            Geom::Curve const &lastcurve = path_last[index];
-            Geom::Affine tr = sp_shape_marker_get_transform_at_end(lastcurve);
-            tr = marker->get_marker_transform(tr, style->stroke_width.computed, false);
-            sp_shape_render_invoke_marker_rendering(marker, tr, ctx, origin ? origin : shape);
         }
     }
 
@@ -446,10 +416,12 @@ static void sp_anchor_render(SPAnchor const *a, CairoRenderContext *ctx, SPItem 
         }
         // Write a box for this hyperlink so it's contained and positioned correctly.
         if (auto vbox = a->visualBounds()) {
-            // Convert from 92dpi (svg) to 72dpi (pdf) and apply item transforms as we are writing out the box directly.
-            auto static doc_scale = Geom::Scale(72.0 / 96.0);
-            auto bbox = *vbox * ctx->getItemTransform() * doc_scale;
-            link += Glib::ustring::compose(" rect=[%1 %2 %3 %4]", bbox.left(), bbox.top(), bbox.width(), bbox.height());
+            CairoTagStringStream os;
+
+            // Apply transforms as we are writing out the box directly.
+            auto bbox = *vbox * ctx->getTransform();
+            os << " rect=[" << bbox.left() << " " << bbox.top() << " " <<  bbox.width() << " " << bbox.height() << "]";
+            link += os.str();
         }
         ctx->tagBegin(link.c_str());
     }

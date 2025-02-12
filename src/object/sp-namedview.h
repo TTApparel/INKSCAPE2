@@ -52,39 +52,31 @@ public:
     ~SPNamedView() override;
     int tag() const override { return tag_of<decltype(*this)>; }
 
-    unsigned int editable : 1;
-
-    SVGBool showguides;
-    SVGBool lockguides;
-    SVGBool grids_visible;
-    SVGBool clip_to_page; // if true, clip rendered content to pages' boundaries
-    SVGBool antialias_rendering = true;
-    SVGBool desk_checkerboard;
-
-    double zoom;
-    double rotation; // Document rotation in degrees (positive is clockwise)
-    double cx;
-    double cy;
-    int window_width;
-    int window_height;
-    int window_x;
-    int window_y;
-    int window_maximized;
-
+    bool editable = true;
+    SVGBool showguides{true};
+    SVGBool lockguides{false};
+    SVGBool grids_visible{false};
+    SVGBool clip_to_page{false}; // if true, clip rendered content to pages' boundaries
+    SVGBool antialias_rendering{true};
+    SVGBool desk_checkerboard{false};
+    double zoom = 0;
+    double rotation = 0; // Document rotation in degrees (positive is clockwise)
+    double cx = 0;
+    double cy = 0;
+    int window_width = 0;
+    int window_height = 0;
+    int window_x = 0;
+    int window_y = 0;
+    int window_maximized = 0;
     SnapManager snap_manager;
-
-    Inkscape::Util::Unit const *display_units;   // Units used for the UI (*not* the same as units of SVG coordinates)
+    Inkscape::Util::Unit const *display_units = nullptr;   // Units used for the UI (*not* the same as units of SVG coordinates)
     // Inkscape::Util::Unit const *page_size_units; // Only used in "Custom size" part of Document Properties dialog 
-    
-    GQuark default_layer_id;
-
+    GQuark default_layer_id = 0;
     double connector_spacing;
-
     std::vector<SPGuide *> guides;
     std::vector<SPGrid *> grids;
     std::vector<SPDesktop *> views;
-
-    int viewcount;
+    int viewcount = 0;
 
     void show(SPDesktop *desktop);
     void hide(SPDesktop const *desktop);
@@ -126,6 +118,14 @@ public:
     void set_clip_to_page(SPDesktop* desktop, bool enable);
     // immediate show/hide guides request, not recorded in a named view
     void temporarily_show_guides(bool show);
+    // coordinate system origin correction
+    bool get_origin_follows_page() const { return _origin_correction; }
+    void set_origin_follows_page(bool on);
+    // Y axis orientation
+    bool is_y_axis_down() const { return _y_axis_down; }
+    void set_y_axis_down(bool down);
+    // fix guidelines positions after Y axis flip
+    void fix_guidelines();
 
     SPGrid *getFirstEnabledGrid();
 
@@ -140,14 +140,16 @@ private:
 
     friend class SPDocument;
 
-    Inkscape::CanvasPage *_viewport = nullptr;
+    std::unique_ptr<Inkscape::CanvasPage> _viewport;
     bool _sync_grids = true;
-
     std::optional<Colors::Color> _desk_color;
     std::optional<Colors::Color> _guide_color;
     std::optional<Colors::Color> _guide_hi_color;
     double _guide_opacity = 0.6;
     double _guide_hi_opacity = 0.5;
+    // if true, move coordinate system origin to the current page; if false - keep origin on front page
+    SVGBool _origin_correction{true};
+    SVGBool _y_axis_down{true};
 
 protected:
     void build(SPDocument *document, Inkscape::XML::Node *repr) override;

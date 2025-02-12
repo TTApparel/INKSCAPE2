@@ -39,7 +39,8 @@ Inkscape::Pixbuf *sp_generate_internal_bitmap(SPDocument *document,
                                               std::vector<SPItem const *> items,
                                               bool opaque,
                                               uint32_t const *checkerboard_color,
-                                              double device_scale)
+                                              double device_scale,
+                                              std::optional<Antialiasing> antialias)
 {
     // Geometry
     if (area.hasZeroArea()) {
@@ -63,6 +64,7 @@ Inkscape::Pixbuf *sp_generate_internal_bitmap(SPDocument *document,
     auto invoke_hide_guard = scope_exit([&] { document->getRoot()->invoke_hide(dkey); });
     drawing.root()->setTransform(affine);
     drawing.setExact(); // Maximum quality for blurs.
+    drawing.setAntialiasingOverride(antialias);
 
     // Hide all items we don't want, instead of showing only requested items,
     // because that would not work if the shown item references something in defs.

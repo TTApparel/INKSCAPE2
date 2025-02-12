@@ -523,6 +523,74 @@ void SPStar::update_patheffect(bool write) {
 }
 
 /**
+ * Calculate the average side length of the polygon.
+ *
+ * For spoked polygons (stars) this is the radius delta; for non-spoked
+ * polygons this is the regular side length directly.
+ *
+ * @returns the average length of the polygon sides.
+ */
+double SPStar::getSideLength() const
+{
+    if (!flatsided) {
+        // Pointy star
+        double totalLength = 0.0;
+        auto tr = i2doc_affine();
+        
+        for (gint i = 0; i < sides; i++) {
+            Geom::Point outer1 = sp_star_get_xy(this, SP_STAR_POINT_KNOT1, i, false) * tr;
+            Geom::Point inner1 = sp_star_get_xy(this, SP_STAR_POINT_KNOT2, i, false) * tr;
+            
+            totalLength += Geom::distance(outer1, inner1);
+
+            Geom::Point outer2 = sp_star_get_xy(this, SP_STAR_POINT_KNOT1, (i + 1) % sides, false) * tr;
+            totalLength += Geom::distance(inner1, outer2);
+        }
+        
+        // Return the average side length (since we have 2 * sides distances, divide by 2 * sides)
+        return totalLength / (2 * sides);
+    }
+    
+    double diameter = 0.0;
+    auto tr = i2doc_affine();
+    for (gint i = 0; i < sides; i++) {
+        diameter += Geom::distance(sp_star_get_xy(this, SP_STAR_POINT_KNOT1, i, false) * tr,
+                                   sp_star_get_xy(this, SP_STAR_POINT_KNOT1, (i + 1) % sides, false) * tr);
+    }
+    return diameter / sides;
+}
+
+/**
+ * Set the average side length of the polygon.
+ *
+ * For spoked polygons (stars) this is the radius delta; for non-spoked
+ * polygons this is the regular side length directly.
+ *
+ * @param length the new average length of the polygon sides.
+ */
+void SPStar::setSideLength(double length) {
+    double currentLength = getSideLength();
+    if (currentLength <= 0 || length <= 0) {
+        return; // Prevent division by zero or invalid scaling
+    }
+
+    double scale = length / currentLength;
+
+    if (!flatsided) {
+        // Pointy star
+        r[0] *= scale;
+        r[1] *= scale;
+    } else {
+        // Flat star
+        r[0] *= scale;
+    }
+
+    this -> set_shape();
+
+    requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
+}
+
+/**
  * sp_star_get_xy: Get X-Y value as item coordinate system
  * @star: star item
  * @point: point type to obtain X-Y value

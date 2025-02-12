@@ -16,6 +16,7 @@
 #include <vector>
 #include <cstdint>
 #include <2geom/forward.h>
+#include "display/drawing-item.h"
 
 class SPDocument;
 class SPItem;
@@ -27,5 +28,6 @@ Inkscape::Pixbuf *sp_generate_internal_bitmap(SPDocument *document,
                                               std::vector<SPItem const *> items = {},
                                               bool set_opaque = false,
                                               uint32_t const *checkerboard_color = nullptr,
-                                              double device_scale = 1.0);
+                                              double device_scale = 1.0,
+                                              std::optional<Antialiasing> antialias = {});
 #endif // INKSCAPE_HELPER_PIXBUF_OPS_H

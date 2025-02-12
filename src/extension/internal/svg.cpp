@@ -125,7 +125,10 @@ Svg::init()
     \brief     This function takes in a filename of a SVG document and
                turns it into a SPDocument.
     \param     mod   Module to use
-    \param     uri   The path or URI to the file (UTF-8)
+    \param     uri   The path or URI to the file. 
+                     FIXME: Path in UTF8 or in platform-native encoding?
+                     It seems like the variable is used as both.
+                     Please change to Gio::File here and in the called functions to avoid the confusion.
 
     This function is really simple, it just calls sp_document_new...
     That's BS, it does all kinds of things for importing documents

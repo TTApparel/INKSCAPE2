@@ -131,15 +131,23 @@ private:
     ExtensionList &si_extension_cb;
 
     Gtk::Entry &si_filename_entry;
+    Gtk::Button &si_filename_button;
     Gtk::Button &si_export;
     Gtk::ProgressBar &progress_bar;
     Gtk::Widget &progress_box;
     Gtk::Button &cancel_button;
     UI::Widget::ColorPicker &_background_color;
 
-    bool filename_modified = false;
-    Glib::ustring original_name;
+    /// True if the value of the selected filename was changed by the user since the last export.
+    /// False when the filename is e.g. an auto-generated suggestion or remembered in the document attributes.
+    bool filename_modified_by_user = false;
+    /// Last value of filename entry field that was set programmatically. Used to detect modification by the user.
+    Glib::ustring filename_entry_original_value;
+
     Glib::ustring doc_export_name;
+    /// File path as returned by the file chooser.
+    /// Value is in platform-native encoding (see Glib::filename_to_utf8).
+    std::string filepath_native;
 
     Inkscape::Preferences *prefs = nullptr;
     std::map<selection_mode, Glib::ustring> selection_names;
@@ -147,7 +155,6 @@ private:
 
     void setup();
     void setupUnits();
-    void setupExtensionList();
     void setupSpinButtons();
     void toggleSpinButtonVisibility();
     void refreshPreview();
@@ -167,13 +174,12 @@ private:
     void onExtensionChanged();
     void onExport();
     void onCancel();
-    void onBrowse(Gtk::Entry::IconPosition pos);
-    void on_inkscape_selection_modified(Inkscape::Selection *selection, guint flags);
-    void on_inkscape_selection_changed(Inkscape::Selection *selection);
+    void onBrowse();
 
     void refreshArea();
     void refreshPage();
     void loadExportHints();
+    void setFilename(std::string filename, bool modified_by_user);
     void saveExportHints(SPObject *target);
     void areaXChange(sb_type type);
     void areaYChange(sb_type type);

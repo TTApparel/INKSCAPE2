@@ -161,7 +161,6 @@ public:
     void _toggleDirection(Gtk::ToggleButton *vertical);
     void _showWidgets();
 
-    void _selectObjects(int, int);
     // Variables
     double _scrollpos{0.0};
     bool _scrollock{false};

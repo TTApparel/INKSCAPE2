@@ -52,7 +52,9 @@ cairo_pattern_t *DrawingLinearGradient::create_pattern(cairo_t *, Geom::OptRect 
     // add stops
     for (auto &stop : stops) {
         // multiply stop opacity by paint opacity
-        ink_cairo_pattern_add_color_stop(pat, stop.offset, *stop.color, opacity);
+        if (stop.color.has_value()) {
+            ink_cairo_pattern_add_color_stop(pat, stop.offset, *stop.color, opacity);
+        }
     }
 
     return pat;
@@ -110,7 +112,9 @@ cairo_pattern_t *DrawingRadialGradient::create_pattern(cairo_t *ct, Geom::OptRec
     // add stops
     for (auto &stop : stops) {
         // multiply stop opacity by paint opacity
-        ink_cairo_pattern_add_color_stop(pat, stop.offset, *stop.color, opacity);
+        if (stop.color.has_value()) {
+            ink_cairo_pattern_add_color_stop(pat, stop.offset, *stop.color, opacity);
+        }
     }
 
     return pat;

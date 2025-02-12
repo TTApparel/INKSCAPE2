@@ -480,13 +480,9 @@
                         <property name="row-spacing">5</property>
                         <property name="column-spacing">4</property>
                         <child>
-                          <object class="GtkEntry" id="si_filename">
-                            <property name="focusable">True</property>
-                            <property name="hexpand">True</property>
-                            <property name="secondary-icon-name">folder-open</property>
-                            <property name="secondary-icon-tooltip-text" translatable="yes">Browse export directory</property>
-                            <property name="placeholder-text" translatable="yes">Filename</property>
-                            <property name="width-chars">0</property>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Export format</property>
+                            <property name="halign">start</property>
                             <layout>
                               <property name="column">0</property>
                               <property name="row">0</property>
@@ -505,22 +501,55 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkButton" id="si_export">
-                            <property name="label" translatable="yes">Export</property>
-                            <property name="focusable">True</property>
-                            <layout>
-                              <property name="column">0</property>
-                              <property name="row">1</property>
-                              <property name="column-span">3</property>
-                            </layout>
-                          </object>
-                        </child>
-                        <child>
                           <object class="GtkBox" id="si_prefs">
                             <property name="orientation">vertical</property>
                             <layout>
                               <property name="column">2</property>
                               <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Filename</property>
+                            <property name="halign">start</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="si_filename">
+                            <property name="focusable">True</property>
+                            <property name="hexpand">True</property>
+                            <property name="width-chars">0</property>
+                            <property name="placeholder-text" translatable="yes">(No file selected)</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="si_filename_button">
+                            <property name="label" translatable="yes">Choose...</property>
+                            <property name="focusable">True</property>
+                            <layout>
+                              <property name="column">2</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="si_export">
+                            <property name="label" translatable="yes">Export</property>
+                            <property name="hexpand">True</property>
+                            <property name="focusable">True</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">2</property>
+                              <property name="column-span">3</property>
                             </layout>
                           </object>
                         </child>

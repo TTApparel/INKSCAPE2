@@ -262,7 +262,7 @@ file_save(Gtk::Window &parentWindow,
                                   checkoverwrite, official,
                                   save_method);
     } catch (Inkscape::Extension::Output::no_extension_found &e) {
-        gchar *text = g_strdup_printf(_("No Inkscape extension found to save document (%s).  This may have been caused by an unknown filename extension."), display_name.c_str());
+        gchar *text = g_strdup_printf(_("No Inkscape extension found to save document (%s).  This may have been caused by an unknown or missing filename extension."), display_name.c_str());
         SP_ACTIVE_DESKTOP->messageStack()->flash(Inkscape::ERROR_MESSAGE, _("Document not saved."));
         sp_ui_error_dialog(text);
         g_free(text);

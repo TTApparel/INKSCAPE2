@@ -265,7 +265,7 @@ int XmlSource::close()
  * The default namespace can also be specified, if desired.
  * XIncude is dangerous to support during use-cases like automated file format conversion, so it is off by default.
  *
- * \param filename The actual file to read from.
+ * \param filename The actual file to read from. UTF8 encoded.
  *
  * \param default_ns Default namespace for the document, can be nullptr.
  *

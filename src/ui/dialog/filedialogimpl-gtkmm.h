@@ -183,13 +183,13 @@ private:
      * Callback for filefilter.
      */
     void filefilterChanged();
-    bool from_filefilter_changed = false;
+    void setFilterFromExtension(Inkscape::Extension::Extension *key);
 
     /**
      * Callback for filename.
      */
     void filenameChanged();
-    bool from_filename_changed = false;
+    void setFilenameFromExtension(Inkscape::Extension::Extension *key);
 };
 
 } // namespace Dialog

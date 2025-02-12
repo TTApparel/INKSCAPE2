@@ -144,6 +144,12 @@ public:
      */
     bool isTriggeredBy(Gtk::EventControllerKey const &controller,
                        unsigned keyval, unsigned keycode, Gdk::ModifierType state) const;
+
+    /**
+    * @brief Returns all keyboard shortcuts for the action in the form of text.
+    * @return a vector containing a Glib::ustring for each of the keybindings present for the action.
+    */
+    std::vector<Glib::ustring> getShortcutText() const;
 };
 
 } // namespace Inkscape::Util

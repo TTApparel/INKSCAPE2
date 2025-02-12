@@ -7,7 +7,6 @@
 
 #include "document-resources.h"
 
-#include <atomic>
 #include <cairo.h>
 #include <cairomm/enums.h>
 #include <cairomm/refptr.h>
@@ -220,19 +219,19 @@ void extract_colors(Gtk::Window* parent, const std::vector<int>& colors, const c
     save_gimp_palette(fname, colors, name);
 }
 
-void delete_object(SPObject* object, Inkscape::Selection* selection) {
+static void delete_object(SPObject* object, Inkscape::Selection* selection) {
     if (!object || !selection) return;
 
     auto document = object->document;
 
     if (auto pattern = cast<SPPattern>(object)) {
-        // delete action fails for patterns; remove them by deleting their nodes
-        sp_repr_unparent(pattern->getRepr());
+        // delete action fails for patterns; remove them by deleting them directly
+        pattern->deleteObject(true);
         DocumentUndo::done(document, _("Delete pattern"), INKSCAPE_ICON("document-resources"));
     }
     else if (auto gradient = cast<SPGradient>(object)) {
-        // delete action fails for gradients; remove them by deleting their nodes
-        sp_repr_unparent(gradient->getRepr());
+        // delete action fails for gradients; remove them by deleting them directly
+        gradient->deleteObject(true);
         DocumentUndo::done(document, _("Delete gradient"), INKSCAPE_ICON("document-resources"));
     }
     else {
@@ -567,8 +566,9 @@ DocumentResources::DocumentResources()
     _delete.signal_clicked().connect([this]{
         // delete selected object
         if (auto rsrc = selected_item()) {
-            // SPObject* object = row[g_item_columns.object];
             delete_object(rsrc->object, getDesktop()->getSelection());
+            // do not wait for refresh on idle, as double click delete button can cause crash
+            refresh_current_page();
         }
     });
 

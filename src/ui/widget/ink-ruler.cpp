@@ -278,7 +278,7 @@ Ruler::draw_scale(const::Cairo::RefPtr<::Cairo::Context>& cr_in)
 
     // Figure out scale. Largest ticks must be far enough apart to fit largest text in vertical ruler.
     // We actually require twice the distance.
-    unsigned int scale = std::ceil (_max_size); // Largest number
+    unsigned int scale = std::ceil(std::abs(_max_size)); // Largest number
     Glib::ustring scale_text = std::to_string(scale);
     unsigned int digits = scale_text.length() + 1; // Add one for negative sign.
     unsigned int minimum = digits * _font_size * 2;

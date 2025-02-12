@@ -47,7 +47,7 @@ private:
     ScalarParam steps;
     ScalarParam smooth_angles;
     ScalarParam helper_size;
-    ToggleButtonParam simplify_individual_paths;
+    BoolParam simplify_individual_paths;
     ToggleButtonParam simplify_just_coalesce;
 
     double radius_helper_nodes;

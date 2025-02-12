@@ -63,10 +63,17 @@ void sp_ui_error_dialog(char const *message)
     Inkscape::UI::dialog_run(dlg);
 }
 
+/**
+ * If necessary, ask the user if a file may be overwritten.
+ * 
+ * @arg filename path to file.
+ * Value is in platform-native encoding (see Glib::filename_to_utf8).
+ * @returns true if it is okay to write to the file.
+ * This means that the file does not exist yet or the user confirmed that overwriting is okay.
+ */
 bool sp_ui_overwrite_file(std::string const &filename)
 {
-    // Fixme: Passing a std::string filename to an argument expecting utf8.
-    if (!Inkscape::IO::file_test(filename.c_str(), G_FILE_TEST_EXISTS)) {
+    if (!g_file_test(filename.c_str(), G_FILE_TEST_EXISTS)) {
         return true;
     }
 

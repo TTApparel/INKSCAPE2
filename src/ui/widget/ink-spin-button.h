@@ -21,7 +21,14 @@ public:
     // Number of decimal digits to use for formatting values
     void set_digits(int digits);
     int get_digits() const;
-    void update();
+    // Set range of allowed input values (as an alternative to specifying 'adjustment')
+    void set_range(double min, double max);
+    // Set the step increment of the spin button
+    void set_step(double step_increment);
+    // Set new value
+    void set_value(double new_value);
+    // Get current value
+    double get_value() const;
     // Specify optional suffix to show after the value
     void set_suffix(const std::string& suffix, bool add_half_space = true);
     // Specify optional prefix to show in front of the value
@@ -30,6 +37,8 @@ public:
     void set_has_frame(bool frame = true);
     // Set to true to hide insignificant zeros after decimal point
     void set_trim_zeros(bool trim);
+    // Set scaling factor to multiply all values before presenting them; by default it is 1.0
+    void set_scaling_factor(double factor);
     // Which widget to focus if defocusing this spin button;
     // if not set explicitly, next available focusable widget will be used
     void set_defocus_widget(Gtk::Widget* widget) { _defocus_widget = widget; }
@@ -37,12 +46,25 @@ public:
     void set_dont_evaluate(bool flag) { _dont_evaluate = flag; }
     // Set distance in pixels of drag travel to adjust full button range; the lower the value the more sensitive the dragging gets
     void set_drag_sensitivity(double distance);
-
+    // Specify label to show inside spin button
+    void set_label(const std::string& label);
+    // Signal fired when numerical value changes
+    sigc::signal<void (double)> signal_value_changed() const;
+    // Base spin button's min size on the pattern provided; ex: "99.99"
+    void set_min_size(const std::string& pattern);
+    // Set callback function that parses text and returns "double" value; it may throw std::exception on failure
+    void set_evaluator_function(std::function<double (const Glib::ustring&)> cb);
+    // Pass true to enable decrement/increment arrow buttons (on by default)
+    void set_has_arrows(bool enable = true);
+    // Pass true to make Enter key exit editing mode
+    void set_enter_exit_edit(bool enable = true);
     // ----------- PROPERTIES ------------
     // Glib::PropertyProxy<int> property_digits() { return prop_digits.get_proxy(); }
 
 private:
     void construct();
+    void update(bool fire_change_notification = true);
+    void set_new_value(double new_value);
     Gtk::SizeRequestMode get_request_mode_vfunc() const override;
     void measure_vfunc(Gtk::Orientation orientation, int for_size, int& minimum, int& natural, int& minimum_baseline, int& natural_baseline) const override;
     void size_allocate_vfunc(int width, int height, int baseline) override;
@@ -52,6 +74,7 @@ private:
     Gtk::Label _value;
     Gtk::Button _plus;
     Gtk::Entry _entry;
+    Gtk::Label _label;
 
     // ------------- CONTROLLERS -------------
 
@@ -92,11 +115,12 @@ private:
     void on_editing_done();
     void enter_edit();
     void exit_edit();
+    void cancel_editing();
     bool defocus();
     void show_arrows(bool on = true);
+    void show_label(bool on = true);
     bool commit_entry();
     void change_value(double inc, Gdk::ModifierType state);
-    void set_value(double new_value);
     std::string format(double value, bool with_prefix_suffix, bool with_markup, bool trim_zeros) const;
     void start_spinning(double steps, Gdk::ModifierType state, Glib::RefPtr<Gtk::GestureClick>& gesture);
     void stop_spinning();
@@ -109,15 +133,23 @@ private:
     std::string _suffix; // suffix to show after the number, if any
     std::string _prefix; // prefix to show before the number, if any
     bool _trim_zeros = true;    // hide insignificant zeros in decimal fraction
+    double _scaling_factor = 1.0; // multiplier for value formatting
     sigc::connection _connection;
-    int _buttons_width = 0;     // width of increment/decrement button
+    int _button_width = 0;     // width of increment/decrement button
     int _entry_height = 0;      // natural height of Gtk::Entry
     int _baseline = 0;
+    int _label_width = 0;
+    bool _enable_arrows = true;
     sigc::scoped_connection _spinning;
     Gtk::Widget* _defocus_widget = nullptr;
     bool _dont_evaluate = false; // turn off expression evaluator?
+    bool _enter_exit_edit = false;
     Glib::RefPtr<Gdk::Cursor> _old_cursor;
     Glib::RefPtr<Gdk::Cursor> _current_cursor;
+    struct Point { double x = 0; double y = 0; } _drag_start;
+    sigc::signal<void (double)> _signal_value_changed;
+    std::string _min_size_pattern;
+    std::function<double (const Glib::ustring&)> _evaluator; // evaluator callback
 
     // ----------- PROPERTIES ------------
     int prop_digits = 0;

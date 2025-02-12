@@ -1170,7 +1170,9 @@ SPGradient::create_preview_pattern(double width)
         pat = cairo_pattern_create_linear(0, 0, width, 0);
 
         for (auto & stop : vector.stops) {
-            ink_cairo_pattern_add_color_stop(pat, stop.offset, *stop.color);
+            if (stop.color.has_value()) {
+                ink_cairo_pattern_add_color_stop(pat, stop.offset, *stop.color);
+            }
         }
     } else if (unsigned const num_columns = array.patch_columns()) {
         // For the moment, use the top row of nodes for preview.
@@ -1180,7 +1182,9 @@ SPGradient::create_preview_pattern(double width)
 
         for (unsigned i = 0; i < num_columns + 1; ++i) {
             SPMeshNode* node = array.node( 0, i*3 );
-            ink_cairo_pattern_add_color_stop(pat, i * offset, *node->color);
+            if (node->color.has_value()) {
+                ink_cairo_pattern_add_color_stop(pat, i * offset, *node->color);
+            }
         }
     }
 

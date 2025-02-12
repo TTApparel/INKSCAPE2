@@ -35,6 +35,7 @@
 #include "object/sp-root.h"
 
 #include "ui/interface.h"
+#include <glibmm/convert.h>
 
 /* This is an example of how to use libpng to read and write PNG files.
  * The file libpng.txt is much more verbose then this.  If you have not
@@ -120,6 +121,11 @@ void PngTextList::add(gchar const* key, gchar const* text)
     }
 }
 
+/**
+ * Write to PNG.
+ * 
+ * @arg filename Filename and path. Value is in UTF8 encoding.
+ */
 static bool
 sp_png_write_rgba_striped(SPDocument *doc,
                           gchar const *filename, unsigned long int width, unsigned long int height, double xdpi, double ydpi,
@@ -384,6 +390,7 @@ ExportResult sp_export_png_file(SPDocument *doc, gchar const *filename,
  * Export an area to a PNG file
  *
  * @param area Area in document coordinates
+ * @param filename Filename and path. Value is UTF8 encoded.
  */
 ExportResult sp_export_png_file(SPDocument *doc, gchar const *filename,
                                 Geom::Rect const &area,
@@ -399,7 +406,7 @@ ExportResult sp_export_png_file(SPDocument *doc, gchar const *filename,
     g_return_val_if_fail(height >= 1, EXPORT_ERROR);
     g_return_val_if_fail(!area.hasZeroArea(), EXPORT_ERROR);
 
-    if (!force_overwrite && !sp_ui_overwrite_file(filename)) {
+    if (!force_overwrite && !sp_ui_overwrite_file(Glib::filename_from_utf8(filename))) {
         // aborted overwrite
 	return EXPORT_ABORTED;
     }

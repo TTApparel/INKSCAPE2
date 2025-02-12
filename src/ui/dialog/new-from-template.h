@@ -14,30 +14,28 @@
 
 #include <gtkmm/dialog.h>
 #include <gtkmm/button.h>
+#include <glibmm/i18n.h>
 
-namespace Inkscape {
-namespace UI {
-namespace Widget {
-class TemplateList;
-}
+#include "ui/widget/document-templates.h"
+
+namespace Inkscape::UI {
 
 class NewFromTemplate : public Gtk::Dialog
 {
-
-friend class TemplateLoadTab;
 public:
-    static void load_new_from_template();
-    ~NewFromTemplate() override{};
+    static void load_new_from_template(Gtk::Window& parent);
+    ~NewFromTemplate() override = default;
 
 private:
-    NewFromTemplate();
-    Gtk::Button _create_template_button;
-    Inkscape::UI::Widget::TemplateList *templates;
+    NewFromTemplate(Gtk::Window& parent);
+    UI::Widget::DocumentTemplates _list;
+    Gtk::Button _create_template_button{_("Create from template")};
+    Gtk::Button _cancel{_("Cancel")};
 
     void _createFromTemplate();
-    void _onClose();
+    void _onClose(int responseCode);
 };
 
-}
-}
+} // namespace
+
 #endif

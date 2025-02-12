@@ -184,8 +184,6 @@ File, Edit, View, Modify, Text, Xtras, Window, Help.
   <bind gaction="app.pattern-to-object"             keys="&lt;alt&gt;&lt;shift&gt;i, &lt;alt&gt;&lt;shift&gt;I" />
   <bind gaction="app.object-set-clip" />
   <bind gaction="app.object-release-clip" />
-  <bind gaction="app.object-rotate-90-cw" />
-  <bind gaction="app.object-rotate-90-ccw" />
 
 <!-- Path -->
 

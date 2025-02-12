@@ -145,8 +145,8 @@ public:
     bool rerouting_handler();
 
     void requestModified();
-    bool _updateDocument(int flags); // Used by stand-alone sp_document_idle_handler
-    int ensureUpToDate();
+    bool _updateDocument(int flags, unsigned int object_modified_tag = 0); // Used by stand-alone sp_document_idle_handler
+    int ensureUpToDate(unsigned int object_modified_tag = 0);
 
     bool addResource(char const *key, SPObject *object);
     bool removeResource(char const *key, SPObject *object);
@@ -179,6 +179,12 @@ private:
     std::deque<SPItem*> const &get_flat_item_list(unsigned int dkey, bool into_groups, bool active_only) const;
 
     SPDocument *_searchForChild(std::string const &filename, SPDocument const *avoid = nullptr);
+    /** Detect Y-axis orientation change.
+     * \return true if change has been detected */
+    bool has_yaxis_orientation_changed();
+    /** Update desktop transform after Y-axis orientation change.
+     * \return shift to apply to display to keep content from scrolling */
+    double update_desktop_affine();
 
 public:
     void clearNodeCache() { _node_cache.clear(); }
@@ -269,6 +275,11 @@ public:
     bool is_yaxisdown() const { return yaxisdir() > 0; }
     /// "1" if the desktop Y-axis points down, "-1" if it points up.
     double yaxisdir() const { return _doc2dt[3]; }
+    // return true if coordinate system origin needs to move to current page
+    bool get_origin_follows_page();
+    void set_origin_follows_page(bool on);
+    // signal emitted when Y-axis orientation gets flipped
+    sigc::signal<void (double)> get_y_axis_flipped() { return _y_axis_flipped; }
 
     // Find items -----------------------------
     void bindObjectToId(char const *id, SPObject *object);
@@ -468,6 +479,7 @@ private:
 
     sigc::signal<void ()> destroySignal;
     sigc::signal<void ()> _saved_or_modified_signal;
+    sigc::signal<void (double)> _y_axis_flipped;
 
 public:
     /**
@@ -493,7 +505,7 @@ public:
     std::map<std::string, std::vector<SPObject *> > resources;
     ResourcesChangedSignalMap resources_changed_signals; // Used by Extension::Internal::Filter
 
-    void _emitModified();  // Used by SPItem
+    void _emitModified(unsigned int object_modified_tag = 0);  // Used by SPItem
     void emitReconstructionStart();
     void emitReconstructionFinish();
 };

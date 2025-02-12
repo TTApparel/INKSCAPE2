@@ -606,7 +606,7 @@ void SPPage::update(SPCtx * /*ctx*/, unsigned int /*flags*/)
     if (document->getPageManager().showDefaultLabel()) {
         alt = g_strdup_printf("%d", getPagePosition());
     }
-    _canvas_item->update(getDesktopRect(), getDesktopMargin(), getDesktopBleed(), lbl ? lbl : alt);
+    _canvas_item->update(getDesktopRect(), getDesktopMargin(), getDesktopBleed(), lbl ? lbl : alt, false, document->is_yaxisdown());
     g_free(alt);
 }
 

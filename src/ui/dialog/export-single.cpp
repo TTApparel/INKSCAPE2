@@ -13,8 +13,6 @@
 
 #include "export-single.h"
 
-#include <png.h>
-
 #include <glibmm/convert.h>
 #include <glibmm/i18n.h>
 #include <glibmm/miscutils.h>
@@ -26,25 +24,26 @@
 #include <gtkmm/label.h>
 #include <gtkmm/menubutton.h>
 #include <gtkmm/progressbar.h>
-#include <gtkmm/togglebutton.h>
 #include <gtkmm/recentmanager.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/spinbutton.h>
+#include <gtkmm/togglebutton.h>
+#include <png.h>
 #include <sigc++/adaptors/bind.h>
 #include <sigc++/functors/mem_fun.h>
 
 #include "desktop.h"
 #include "document-undo.h"
 #include "document.h"
-#include "inkscape-window.h"
-#include "page-manager.h"
-#include "preferences.h"
-#include "selection.h"
-
 #include "extension/output.h"
+#include "inkscape-window.h"
+#include "io/sandbox.h"
 #include "object/sp-namedview.h"
 #include "object/sp-page.h"
 #include "object/sp-root.h"
+#include "page-manager.h"
+#include "preferences.h"
+#include "selection.h"
 #include "ui/builder-utils.h"
 #include "ui/dialog/export.h"
 #include "ui/dialog/filedialog.h"
@@ -60,7 +59,7 @@ using Inkscape::UI::Widget::UnitMenu;
 
 namespace Inkscape::UI::Dialog {
 
-SingleExport::SingleExport(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder>& builder)
+SingleExport::SingleExport(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder> &builder)
     : Gtk::Box(cobject)
     , pages_list        (get_widget<Gtk::FlowBox>         (builder, "si_pages"))
     , pages_list_box    (get_widget<Gtk::ScrolledWindow>  (builder, "si_pages_box"))
@@ -74,6 +73,7 @@ SingleExport::SingleExport(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Buil
 
     , si_extension_cb   (get_derived_widget<ExtensionList>(builder, "si_extention"))
     , si_filename_entry (get_widget<Gtk::Entry>           (builder, "si_filename"))
+    , si_filename_button(get_widget<Gtk::Button>          (builder, "si_filename_button"))
     , si_export         (get_widget<Gtk::Button>          (builder, "si_export"))
 
     , progress_bar      (get_widget<Gtk::ProgressBar>     (builder, "si_progress"))
@@ -111,7 +111,12 @@ SingleExport::SingleExport(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Buil
     spin_labels[SPIN_WIDTH]     = &get_widget<Gtk::Label>(builder, "si_label_width");
 
     auto &pref_button_box = get_widget<Gtk::Box>(builder, "si_prefs");
-    pref_button_box.append(*si_extension_cb.getPrefButton());
+    auto &pref_button = *si_extension_cb.getPrefButton();
+    pref_button_box.append(pref_button);
+    pref_button.set_expand(false);
+    pref_button_box.set_expand(false);
+    pref_button.set_valign(Gtk::Align::BASELINE_CENTER);
+    pref_button_box.set_valign(Gtk::Align::BASELINE_CENTER);
 
     setup();
 }
@@ -183,6 +188,15 @@ void SingleExport::setup()
     setPagesMode(false);
     setExporting(false);
 
+    // Make the filename entry box read-only when the filesystem is sandboxed.
+    // "Sandboxed" means that the user can't access arbitrary paths but only those
+    // that come from the file chooser.
+    if (Inkscape::IO::Sandbox::filesystem_is_sandboxed()) {
+        si_filename_entry.set_editable(false);
+        si_filename_entry.set_can_focus(false);
+        si_filename_entry.set_has_frame(false);
+    }
+
     // Refresh the filename when the user selects a different page
     _pages_list_changed = pages_list.signal_selected_children_changed().connect([this]() {
         loadExportHints();
@@ -197,9 +211,9 @@ void SingleExport::setup()
     extensionConn = si_extension_cb.signal_changed().connect(sigc::mem_fun(*this, &SingleExport::onExtensionChanged));
     exportConn = si_export.signal_clicked().connect(sigc::mem_fun(*this, &SingleExport::onExport));
     filenameConn = si_filename_entry.signal_changed().connect(sigc::mem_fun(*this, &SingleExport::onFilenameModified));
-    browseConn = si_filename_entry.signal_icon_release().connect(sigc::mem_fun(*this, &SingleExport::onBrowse));
     cancelConn = cancel_button.signal_clicked().connect(sigc::mem_fun(*this, &SingleExport::onCancel));
     si_filename_entry.signal_activate().connect(sigc::mem_fun(*this, &SingleExport::onExport));
+    browseConn = si_filename_button.signal_clicked().connect(sigc::mem_fun(*this, &SingleExport::onBrowse));
     si_show_preview.signal_toggled().connect(sigc::mem_fun(*this, &SingleExport::refreshPreview));
     si_hide_all.signal_toggled().connect(sigc::mem_fun(*this, &SingleExport::refreshPreview));
     _background_color.connectChanged([=, this](Colors::Color const &color){
@@ -392,11 +406,17 @@ void SingleExport::onPagesSelected(SPPage *page) {
     refreshArea();
 }
 
+/**
+ * Update suggested DPI and filename when the selection has changed.
+ */
 void SingleExport::loadExportHints()
 {
-    if (filename_modified || !_document || !_desktop) return;
+    if (!_document || !_desktop)
+        return;
 
-    std::string old_filename = Glib::filename_from_utf8(si_filename_entry.get_text());
+    /// Current file path (before the new suggested filename is determined). Value is in platform-native encoding.
+    std::string old_raw_filepath = filepath_native;
+    /// Suggested new file path. Value is in platform-native encoding.
     std::string filename;
     Geom::Point dpi;
     switch (current_key) {
@@ -411,7 +431,9 @@ void SingleExport::loadExportHints()
                     page_filename = pages[0]->getLabel();
                 }
 
-                filename = Export::prependDirectory(page_filename, old_filename, _document);
+                filename =
+                    Export::prependDirectory(Glib::filename_from_utf8(page_filename), old_raw_filepath, _document);
+
                 break;
             }
             // No or many pages means output is drawing, continue.
@@ -420,7 +442,8 @@ void SingleExport::loadExportHints()
         case SELECTION_DRAWING:
         {
             dpi = _document->getRoot()->getExportDpi();
-            filename = Export::prependDirectory(_document->getRoot()->getExportFilename(), old_filename, _document);
+            filename = Export::prependDirectory(Glib::filename_from_utf8(_document->getRoot()->getExportFilename()),
+                                                old_raw_filepath, _document);
             break;
         }
         case SELECTION_SELECTION:
@@ -434,12 +457,13 @@ void SingleExport::loadExportHints()
                     dpi = item->getExportDpi();
                 }
                 if (filename.empty()) {
-                    filename = Export::prependDirectory(item->getExportFilename(), old_filename, _document);
+                    filename = Export::prependDirectory(Glib::filename_from_utf8(item->getExportFilename()),
+                                                        old_raw_filepath, _document);
                 }
             }
 
             if (filename.empty()) {
-                filename = Export::filePathFromObject(_document, selection->firstItem(), old_filename);
+                filename = Export::filePathFromObject(_document, selection->firstItem(), old_raw_filepath);
             }
             break;
         }
@@ -447,27 +471,84 @@ void SingleExport::loadExportHints()
             break;
     }
     if (filename.empty()) {
-        filename = Export::defaultFilename(_document, old_filename, ".png");
+        filename = old_raw_filepath;
+        si_extension_cb.removeExtension(filename);
+        filename = Export::defaultFilename(_document, filename, ".png");
     }
     if (auto ext = si_extension_cb.getExtension()) {
         si_extension_cb.removeExtension(filename);
         ext->add_extension(filename);
     }
 
-    original_name = filename;
-    auto filename_utf8 = Glib::filename_to_utf8(filename);
-    si_filename_entry.set_text(filename_utf8);
-    si_filename_entry.set_position(filename_utf8.length());
+    if (!filename_modified_by_user) {
+        // If the filename was NOT manually modified by the user
+        // since the last export, then update the filename edit box
+        // and internal filename value to the new suggested filename.
+        setFilename(filename, false);
+    }
 
     if (dpi.x() != 0.0) { // XXX Should this deal with dpi.y() ?
         spin_buttons[SPIN_DPI]->set_value(dpi.x());
     }
 }
 
+/**
+ * Set filename and update filename entry box.
+ *
+ * The value of `filename_modified_by_user` will be updated.
+ *
+ * @param filename
+ *     Raw file path.
+ *     Value is in platform-native encoding (see Glib::filename_to_utf8).
+ * @param is_user_input
+ *     True if the new filename comes from user input (by file chooser, editing the text box, or by pushing the Export
+ * button). False if the new value is auto-generated.
+ */
+void SingleExport::setFilename(std::string filename, bool is_user_input)
+{
+    // Update modification status:
+    if (filepath_native != filename) {
+        // Filename was changed.
+        // If it was changed based on user input, then set the "modified by user" flag.
+        // Else, reset the flag.
+        filename_modified_by_user = is_user_input;
+    }
+
+    // Update filename:
+    if (!is_user_input && Inkscape::IO::Sandbox::filesystem_is_sandboxed()) {
+        // With a sandboxed filesystem, autogenerated filenames don't work.
+        // We can only use files coming from the file chooser dialog.
+        // Therefore, if the filename changed and it is not from user input,
+        // make the filename invalid to force that the user opens the file dialog again.
+        if (filepath_native != filename) {
+            filename = "";
+        }
+    }
+    filepath_native = filename;
+
+    // Determine filename label for filename entry box:
+    Glib::ustring filename_label = Glib::filename_to_utf8(filename);
+    if (Inkscape::IO::Sandbox::filesystem_is_sandboxed()) {
+        // In a sandboxed filesystem, the file entry box is not editable.
+        // We show a nice label instead of the raw path.
+        filename_label = Inkscape::IO::Sandbox::filesystem_get_display_path(Gio::File::create_for_path(filename));
+    }
+
+    // Set value of filename entry box:
+    if (si_filename_entry.get_text().raw() != filename_label.raw()) {
+        auto old_block_state = filenameConn.blocked();
+        filenameConn.block();
+        si_filename_entry.set_text(filename_label);
+        si_filename_entry.set_position(filename_label.length());
+        filenameConn.block(old_block_state);
+        filename_entry_original_value = filename_label;
+    }
+}
+
 void SingleExport::saveExportHints(SPObject *target)
 {
     if (target) {
-        target->setExportFilename(si_filename_entry.get_text());
+        target->setExportFilename(Glib::filename_to_utf8(filepath_native));
         target->setExportDpi(Geom::Point(
             spin_buttons[SPIN_DPI]->get_value(),
             spin_buttons[SPIN_DPI]->get_value()
@@ -559,19 +640,19 @@ void SingleExport::onDpiChange(sb_type type)
     blockSpinConns(false);
 }
 
+/**
+ * Filename in filename entry field was changed.
+ */
 void SingleExport::onFilenameModified()
 {
     extensionConn.block();
 
     Glib::ustring filename = si_filename_entry.get_text();
-
-    if (original_name == filename) {
-        filename_modified = false;
-    } else {
-        filename_modified = true;
+    if (filename_entry_original_value.raw() != filename.raw()) {
+        // Textbox entry was changed
+        setFilename(filename, true);
+        si_extension_cb.setExtensionFromFilename(filename);
     }
-
-    si_extension_cb.setExtensionFromFilename(filename);
 
     extensionConn.unblock();
 }
@@ -596,6 +677,11 @@ void SingleExport::onExport()
     if (!_desktop || !_document)
         return;
 
+    if (filepath_native.empty()) {
+        // No file selected yet - call file chooser first
+        onBrowse();
+    }
+
     auto &page_manager = _document->getPageManager();
     auto selection = _desktop->getSelection();
     bool exportSuccessful = false;
@@ -606,11 +692,17 @@ void SingleExport::onExport()
 
     bool selected_only = si_hide_all.get_active();
     Unit const *unit = units.getUnit();
-    Glib::ustring filename = si_filename_entry.get_text();
 
-    if (!Export::checkOrCreateDirectory(filename)) {
+    if (!Export::checkOrCreateDirectory(filepath_native)) {
         return;
     }
+
+    /// Label for displaying to user
+    Glib::ustring filename_label =
+        Inkscape::IO::Sandbox::filesystem_get_display_path(Gio::File::create_for_path(filepath_native));
+
+    /// File path converted to UTF8
+    Glib::ustring filename_utf8 = Glib::filename_to_utf8(filepath_native);
 
     setExporting(true, _("Exporting"));
 
@@ -627,17 +719,16 @@ void SingleExport::onExport()
 
         float dpi = spin_buttons[SPIN_DPI]->get_value();
 
-        setExporting(true, Glib::ustring::compose(_("Exporting %1 (%2 x %3)"), filename, width, height));
+        setExporting(true, Glib::ustring::compose(_("Exporting %1 (%2 x %3)"), filename_label, width, height));
 
         std::vector<SPItem const *> selected(selection->items().begin(), selection->items().end());
 
-        exportSuccessful = Export::exportRaster(
-            area, width, height, dpi, _background_color.get_current_color().toRGBA(),
-            filename, false, onProgressCallback, this,
-            omod, selected_only ? &selected : nullptr);
+        exportSuccessful = Export::exportRaster(area, width, height, dpi,
+                                                _background_color.get_current_color().toRGBA(), filename_utf8, false,
+                                                onProgressCallback, this, omod, selected_only ? &selected : nullptr);
 
     } else {
-        setExporting(true, Glib::ustring::compose(_("Exporting %1"), filename));
+        setExporting(true, Glib::ustring::compose(_("Exporting %1"), filename_label));
 
         auto copy_doc = _document->copy();
 
@@ -653,18 +744,17 @@ void SingleExport::onExport()
             if (page_manager.getPageCount() == 1) {
                 pages.emplace_back(page_manager.getPage(0));
             }
-            exportSuccessful = Export::exportVector(omod, copy_doc.get(), filename, false, items, pages);
+            exportSuccessful = Export::exportVector(omod, copy_doc.get(), filename_utf8, false, items, pages);
         } else {
             // To get the right kind of export, we're going to make a page
             // This allows all the same raster options to work for vectors
             auto const page = copy_doc->getPageManager().newDocumentPage(area);
-            exportSuccessful = Export::exportVector(omod, copy_doc.get(), filename, false, items, page);
+            exportSuccessful = Export::exportVector(omod, copy_doc.get(), filename_utf8, false, items, page);
         }
     }
     // Save the export hints back to the svg document
     if (exportSuccessful) {
-
-        std::string path = Export::absolutizePath(_document, Glib::filename_from_utf8(filename));
+        std::string path = Export::absolutizePath(_document, filepath_native);
         auto recentmanager = Gtk::RecentManager::get_default();
         if (recentmanager && Glib::path_is_absolute(path)) {
             Glib::ustring uri = Glib::filename_to_uri(path);
@@ -699,12 +789,11 @@ void SingleExport::onExport()
         }
     }
     setExporting(false);
-    original_name = filename;
-    filename_modified = false;
+    filename_modified_by_user = false;
     interrupted = false;
 }
 
-void SingleExport::onBrowse(Gtk::Entry::IconPosition pos)
+void SingleExport::onBrowse()
 {
     if (!_app || !_app->get_active_window() || !_document) {
         return;
@@ -714,14 +803,13 @@ void SingleExport::onBrowse(Gtk::Entry::IconPosition pos)
 
     browseConn.block();
 
-    std::string filename = Glib::filename_from_utf8(si_filename_entry.get_text());
-
-    if (filename.empty()) {
-        filename = Export::defaultFilename(_document, filename, ".png");
+    auto previous_filename = filepath_native;
+    if (previous_filename.empty()) {
+        previous_filename = Export::defaultFilename(_document, filepath_native, ".png");
     }
 
     auto dialog = Inkscape::UI::Dialog::FileSaveDialog::create(
-        *window, filename, Inkscape::UI::Dialog::EXPORT_TYPES, _("Select a filename for exporting"), "", "",
+        *window, previous_filename, Inkscape::UI::Dialog::EXPORT_TYPES, _("Select a filename for exporting"), "", "",
         Inkscape::Extension::FILE_SAVE_METHOD_EXPORT);
 
     // Tell the browse dialog what extension to start with
@@ -732,17 +820,14 @@ void SingleExport::onBrowse(Gtk::Entry::IconPosition pos)
     if (dialog->show()) {
         auto file = dialog->getFile();
         if (file) {
-            filename = file->get_path();
+            auto filename = file->get_path();
             // Once complete, we use the extension selected to save the file
             if (auto ext = dialog->getExtension()) {
                 si_extension_cb.set_active_id(ext->get_id());
             } else {
                 si_extension_cb.setExtensionFromFilename(filename);
             }
-
-            Glib::ustring filename_utf8 = Glib::filename_to_utf8(filename);
-            si_filename_entry.set_text(filename_utf8);
-            si_filename_entry.set_position(filename_utf8.length());
+            setFilename(filename, true);
         }
 
         // deleting dialog before exporting is important
@@ -1043,6 +1128,7 @@ void SingleExport::setDocument(SPDocument *document)
         // Refresh values to sync them with defaults.
         onPagesChanged();
         refreshArea();
+        filename_modified_by_user = false;
         loadExportHints();
     } else {
         _preview_drawing.reset();

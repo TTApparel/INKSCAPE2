@@ -62,6 +62,13 @@ void Inkscape::IO::dump_fopen_call( char const *utf8name, char const *id )
 #endif
 }
 
+/**
+ * Open a file with g_fopen().
+ * 
+ * \param utf8name Filename in UTF8 encoding
+ * \param mode see g_fopen()
+ * \returns see g_fopen()
+ */
 FILE *Inkscape::IO::fopen_utf8name( char const *utf8name, char const *mode )
 {
     FILE* fp = nullptr;

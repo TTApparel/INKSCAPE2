@@ -25,6 +25,8 @@
 #include <harfbuzz/hb-ft.h>
 #include <harfbuzz/hb-ot.h>
 
+#include <glibmm/regex.h>
+
 // SVG in OpenType
 #include "io/stream/gzipstream.h"
 #include "io/stream/bufferstream.h"
@@ -58,6 +60,21 @@ Glib::ustring extract_tag( guint32 *tag ) {
     return tag_name;
 }
 
+void readOpenTypeTableList(hb_font_t* hb_font, std::unordered_set<std::string>& list) {
+
+    hb_face_t* hb_face = hb_font_get_face (hb_font);
+
+    static const unsigned int MAX_TABLES = 100;
+    unsigned int table_count = MAX_TABLES;
+    hb_tag_t table_tags[MAX_TABLES];
+    auto count = hb_face_get_table_tags(hb_face, 0, &table_count, table_tags);
+
+    for (unsigned int i = 0; i < count; ++i) {
+        char buf[5] = {}; // 4 characters plus null termination.
+        hb_tag_to_string(table_tags[i], buf);
+        list.emplace(buf);
+    }
+}
 
 // Later (see get_glyphs) we need to lookup the Unicode codepoint for a glyph
 // but there's no direct API for that. So, we need a way to iterate over all
@@ -106,7 +123,7 @@ void get_glyphs(GlyphToUnicodeMap& glyphMap, HbSet& set, Glib::ustring& characte
     }
 }
 
-SVGTableEntry::~SVGTableEntry() = default;
+SVGGlyphEntry::~SVGGlyphEntry() = default;
 
 // Make a list of all tables found in the GSUB
 // This list includes all tables regardless of script or language.
@@ -362,7 +379,8 @@ void readOpenTypeFvarNamed(const FT_Face ft_face,
 
 // Get SVG glyphs out of an OpenType font.
 void readOpenTypeSVGTable(hb_font_t* hb_font,
-                          std::map<int, SVGTableEntry>& glyphs) {
+                          std::map<unsigned int, SVGGlyphEntry>& glyphs,
+                          std::map<int, std::string>& svgs) {
 
     hb_face_t* hb_face = hb_font_get_face (hb_font);
 
@@ -434,13 +452,24 @@ void readOpenTypeSVGTable(hb_font_t* hb_font,
             }
         }
 
+        // Make all glyphs hidden (for SVG files with multiple glyphs, we'll need to pickout just one).
+        static auto regex = Glib::Regex::create("(id=\"\\s*glyph\\d+\\s*\")", Glib::Regex::CompileFlags::OPTIMIZE);
+        svg = regex->replace(Glib::UStringView(svg), 0, "\\1 visibility=\"hidden\"", static_cast<Glib::Regex::MatchFlags>(0));
+
+        svgs[entry] = svg;
+
         for (unsigned int i = startGlyphID; i < endGlyphID+1; ++i) {
-            glyphs[i].svg = svg;
+            glyphs[i].entry_index = entry;
         }
 
-        // for (auto glyph : glyphs) {
+        // for (auto const& glyph : glyphs) {
         //     std::cout << "Glyph: " << glyph.first << std::endl;
-        //     std::cout << glyph.second.svg << std::endl;
+        //     auto length = svgs[glyph.second.entry_index].length();
+        //     if (length < 1000) {
+        //         std::cout << svgs[glyph.second.entry_index] << std::endl;
+        //     } else {
+        //         std::cout << "glyph svg string length: " << length << std::endl;
+        //     }
         // }
     }
 }

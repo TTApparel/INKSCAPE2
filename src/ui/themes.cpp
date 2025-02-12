@@ -616,7 +616,7 @@ void ThemeContext::adjustGlobalFontScale(double factor) {
 
     Inkscape::CSSOStringStream os;
     os.precision(3);
-    os << "widget, menuitem, popover { font-size: " << factor << "rem; }\n";
+    os << "widget, menuitem, popover, box { font-size: " << factor << "rem; }\n";
 
     os << ".mono-font {";
     auto desc = getMonospacedFont();

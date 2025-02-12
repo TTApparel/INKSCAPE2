@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "preferences.h"
 #include "toolbar.h"
 #include "ui/operation-blocker.h"
 
@@ -68,6 +69,7 @@ private:
 
     std::vector<Gtk::Widget *> _context_items;
 
+    PrefObserver _box_observer;
     OperationBlocker _blocker;
 
     std::string _action_key;

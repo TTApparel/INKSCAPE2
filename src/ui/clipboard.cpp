@@ -99,6 +99,7 @@
 #undef NOGDI
 #include <windows.h>
 #endif
+#include <glibmm/convert.h>
 
 using namespace Inkscape::Util;
 
@@ -178,6 +179,13 @@ void pump_until(F const &f)
 }
 
 // Fixme: Get rid of temporary files hack.
+/** Get a temporary file name.
+ * 
+ * @arg suffix file suffix. May only contain ASCII characters.
+ * 
+ * @returns Filename with absolute path.
+ * Value is in platform-native encoding (see Glib::filename_to_utf8).
+ */
 std::string get_tmp_filename(char const *suffix)
 {
     return Glib::build_filename(Glib::get_user_cache_dir(), suffix);
@@ -191,6 +199,7 @@ class ClipboardManagerImpl : public ClipboardManager
 public:
     void copy(ObjectSet *set) override;
     void copyPathParameter(Inkscape::LivePathEffect::PathParam *) override;
+    bool copyString(Glib::ustring str) override;
     void copySymbol(Inkscape::XML::Node* symbol, gchar const* style, SPDocument *source, const char* symbol_set, Geom::Rect const &bbox, bool set_clipboard) override;
     void insertSymbol(SPDesktop *desktop, Geom::Point const &shift_dt, bool read_clipboard) override;
     bool paste(SPDesktop *desktop, bool in_place, bool on_page) override;
@@ -368,6 +377,20 @@ void ClipboardManagerImpl::copyPathParameter(Inkscape::LivePathEffect::PathParam
 
     fit_canvas_to_drawing(_clipboardSPDoc.get());
     _setClipboardTargets();
+}
+
+/**
+ * @brief copies a string to the clipboard
+ *
+ * @param str string to copy
+ */
+bool ClipboardManagerImpl::copyString(Glib::ustring str) {
+    if (!str.empty()) {
+        _discardInternalClipboard();
+        _clipboard->set_text(str);
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -884,7 +907,7 @@ bool ClipboardManagerImpl::pasteSize(ObjectSet *set, bool separately, bool apply
         // resize the selection as a whole
         Geom::OptRect sel_size = set->preferredBounds();
         if (sel_size) {
-            set->setScaleRelative(sel_size->midpoint(),
+            set->scaleRelative(sel_size->midpoint(),
                                          _getScale(set->desktop(), min, max, *sel_size, apply_x, apply_y));
         }
     }
@@ -1137,6 +1160,7 @@ void ClipboardManagerImpl::_copySelection(ObjectSet *selection)
             auto &group = groups[item->parent];
             if (!group) {
                 group = _doc->createElement("svg:g");
+                group->setAttribute("id", item->parent->getId()); // avoid getting a clashing id
                 _root->appendChild(group);
                 Inkscape::GC::release(group);
 
@@ -1513,8 +1537,10 @@ bool ClipboardManagerImpl::_pasteImage(SPDocument *doc)
     auto prefs = Preferences::get();
     auto attr_saved = prefs->getString("/dialogs/import/link");
     bool ask_saved = prefs->getBool("/dialogs/import/ask");
+    auto mode_saved = prefs->getString("/dialogs/import/import_mode_svg");
     prefs->setString("/dialogs/import/link", "embed");
     prefs->setBool("/dialogs/import/ask", false);
+    prefs->setString("/dialogs/import/import_mode_svg", "embed");
 
     auto png = Extension::find_by_mime("image/png");
     png->set_gui(false);
@@ -1522,6 +1548,7 @@ bool ClipboardManagerImpl::_pasteImage(SPDocument *doc)
 
     prefs->setString("/dialogs/import/link", attr_saved);
     prefs->setBool("/dialogs/import/ask", ask_saved);
+    prefs->setString("/dialogs/import/import_mode_svg", mode_saved);
     png->set_gui(true);
 
     unlink(filename.c_str());
@@ -1774,7 +1801,7 @@ void ClipboardManagerImpl::_onGet(char const *mime_type, Glib::RefPtr<Gio::Outpu
             auto height = static_cast<unsigned long>(area.height() + 0.5);
 
             // read from namedview
-            auto const raster_file = get_tmp_filename("inkscape-clipboard-export-raster");
+            auto const raster_file = Glib::filename_to_utf8(get_tmp_filename("inkscape-clipboard-export-raster"));
             sp_export_png_file(_clipboardSPDoc.get(), raster_file.c_str(), area, width, height, dpi, dpi, bgcolor, nullptr, nullptr, true, {});
             (*out)->export_raster(_clipboardSPDoc.get(), raster_file.c_str(), filename.c_str(), true);
             unlink(raster_file.c_str());

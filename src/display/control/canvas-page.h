@@ -33,7 +33,7 @@ public:
     CanvasPage();
     ~CanvasPage();
 
-    void update(Geom::Rect size, Geom::OptRect margin, Geom::OptRect bleed, const char *txt, bool outline = false);
+    void update(Geom::Rect size, Geom::OptRect margin, Geom::OptRect bleed, const char *txt, bool outline, bool is_yaxisdown);
     void add(Geom::Rect size, CanvasItemGroup *background_group, CanvasItemGroup *foreground_group);
     void remove(UI::Widget::Canvas *canvas);
     void show();
@@ -47,7 +47,7 @@ public:
 
     bool is_selected = false;
 private:
-    void _updateTextItem(CanvasItemText *label, Geom::Rect page, std::string txt);
+    void _updateTextItem(CanvasItemText *label, Geom::Rect page, std::string txt, bool is_yaxisdown);
 
     // This may make this look like a CanvasItemGroup, but it's not one. This
     // isn't a collection of items, but a set of items in multiple Canvases.

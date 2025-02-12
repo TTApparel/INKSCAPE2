@@ -75,6 +75,34 @@ TEST_F(PreferencesTest, testOverwrite)
     ASSERT_EQ(prefs->getInt("/test/intvalue"), 321);
 }
 
+TEST_F(PreferencesTest, testHasPref)
+{
+    ASSERT_FALSE(prefs->hasPref("/test/value"));
+    prefs->setInt("/test/value", 5);
+    ASSERT_TRUE(prefs->hasPref("/test/value"));
+}
+
+TEST_F(PreferencesTest, testBoolFormat)
+{
+    ASSERT_TRUE(prefs->getBool("/test/boolvalue", true));
+    ASSERT_FALSE(prefs->getBool("/test/boolvalue", false));
+    prefs->setBool("/test/boolvalue", true);
+    ASSERT_TRUE(prefs->getBool("/test/boolvalue", false));
+    prefs->setBool("/test/boolvalue", false);
+    ASSERT_FALSE(prefs->getBool("/test/boolvalue", true));
+}
+
+TEST_F(PreferencesTest, testOptionalBool)
+{
+    ASSERT_FALSE(prefs->getOptionalBool("/test/opboolvalue"));
+    prefs->setBool("/test/opboolvalue", false);
+    ASSERT_TRUE(prefs->getOptionalBool("/test/opboolvalue"));
+    ASSERT_FALSE(*prefs->getOptionalBool("/test/opboolvalue"));
+    prefs->setBool("/test/opboolvalue", true);
+    ASSERT_TRUE(prefs->getOptionalBool("/test/opboolvalue"));
+    ASSERT_TRUE(*prefs->getOptionalBool("/test/opboolvalue"));
+}
+
 TEST_F(PreferencesTest, testIntFormat)
 {
     // test to catch thousand separators (wrong locale applied)

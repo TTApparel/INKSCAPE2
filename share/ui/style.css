@@ -760,6 +760,12 @@ button.square-button image {
 .heading.top {
     margin-top: 0.2em;
 }
+/* slightly smaller (sub)heading label in dialogs */
+.heading1 {
+    font-weight: bold;
+    font-size: 1em; /* make it optically comparable with non-bold */
+    margin-top: 0.5em;
+}
 
 /* single-level indentation for labels in a dialog */
 .indent {
@@ -1519,4 +1525,14 @@ listview row.top-separator {
 /* Eliminate mysterious blue frame that shows up in a list popup of the dropdownlist widget */
 #DropDownList listview row:focus {
     outline: none;
+}
+
+/* Giving dialog buttons sending responses min size to keep them wider */
+.dialog-cmd-button {
+    min-width: 5em;
+}
+
+/* Limit max size of rows in a stack sidebar to something more compact */
+.compact-stack-sidebar list row {
+    min-height: 2.25em;
 }

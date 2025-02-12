@@ -233,29 +233,29 @@ std::string generate_label(KeyMask mask, std::string sep)
         return "-";
     }
     if(mask == NEVER) {
-        ret.append("[NEVER]");
+        ret.append(_("[NEVER]"));
         return ret;
     }
-    if(mask & CTRL) ret.append("Ctrl");
+    if(mask & CTRL) ret.append(_("Ctrl"));
     if(mask & SHIFT) {
         if(!ret.empty()) ret.append(sep);
-        ret.append("Shift");
+        ret.append(_("Shift"));
     }
     if(mask & ALT) {
         if(!ret.empty()) ret.append(sep);
-        ret.append("Alt");
+        ret.append(_("Alt"));
     }
     if(mask & SUPER) {
         if(!ret.empty()) ret.append(sep);
-        ret.append("Super");
+        ret.append(_("Super"));
     }
     if(mask & HYPER) {
         if(!ret.empty()) ret.append(sep);
-        ret.append("Hyper");
+        ret.append(_("Hyper"));
     }
     if(mask & META) {
         if(!ret.empty()) ret.append(sep);
-        ret.append("Meta");
+        ret.append(_("Meta"));
     }
     return ret;
 }

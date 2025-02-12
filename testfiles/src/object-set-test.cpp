@@ -628,14 +628,14 @@ TEST_F(ObjectSetTest, Moves) {
     EXPECT_EQ(15,r1->x.value);
     Geom::Point p(20,20);
     Geom::Scale s(2);
-    set->setScaleRelative(p,s);
+    set->scaleRelative(p,s);
     EXPECT_EQ(10,r1->x.value);
     EXPECT_EQ(20,r1->width.value);
     set->toCurves();
     r1.release();
     auto x = set->singleItem();
     EXPECT_EQ(20,(*(x->documentVisualBounds()))[0].extent());
-    set->rotate(180);
+    set->rotateRelative(*set->center(), 180);
     EXPECT_EQ(20,(*(x->documentVisualBounds()))[0].extent());
     set->deleteItems();
 }

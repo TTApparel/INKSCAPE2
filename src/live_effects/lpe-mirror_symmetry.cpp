@@ -26,16 +26,19 @@
 
 #include <2geom/affine.h>
 #include <2geom/path-intersection.h>
+#include <2geom/rect.h>
 
 #include "display/curve.h"
 #include "helper/geom.h"
 #include "object/sp-item-group.h"
 #include "object/sp-lpe-item.h"
 #include "object/sp-path.h"
+#include "object/sp-page.h"
 #include "object/sp-text.h"
 #include "path/path-boolop.h"
 #include "svg/svg.h"
 #include "ui/pack.h"
+#include "page-manager.h"
 
 namespace Inkscape {
 namespace LivePathEffect {
@@ -289,24 +292,30 @@ LPEMirrorSymmetry::doBeforeEffect (SPLPEItem const* lpeitem)
             }
             center_point.param_setValue(Geom::middle_point((Geom::Point)start_point, (Geom::Point)end_point), true);
             previous_center = Geom::middle_point((Geom::Point)start_point, (Geom::Point)end_point);
-        } else if ( mode == MT_V){
+        } else { // MT_V or MT_H (horizontal or vertical page center)
             SPDocument *document = getSPDoc();
             if (document) {
+                auto &pageManager = document->getPageManager();
+                SPPage *page = pageManager.getPageFor(sp_lpe_item, false);
+                Geom::OptRect pageRect;
+
+                if (page == nullptr) {
+                    pageRect = document->preferredBounds();
+                } else {
+                    pageRect = page->getDocumentRect();
+                }
+
+                Geom::Point sp, ep;
+                if (mode == MT_V) { // The mirror line is the vertical page center.
+                    sp = Geom::Point(pageRect->midpoint().x(), pageRect->top());
+                    ep = Geom::Point(sp.x(),                   pageRect->bottom());
+                } else { // The mirror line is the horizontal page center.
+                    sp = Geom::Point(pageRect->left(),  pageRect->midpoint().y());
+                    ep = Geom::Point(pageRect->right(), sp.y());
+                }
                 Geom::Affine transform = i2anc_affine(lpeitem, nullptr).inverse();
-                Geom::Point sp = Geom::Point(document->getWidth().value("px")/2.0, 0) * transform;
-                start_point.param_setValue(sp, true);
-                Geom::Point ep = Geom::Point(document->getWidth().value("px")/2.0, document->getHeight().value("px")) * transform;
-                end_point.param_setValue(ep, true);
-                center_point.param_setValue(Geom::middle_point((Geom::Point)start_point, (Geom::Point)end_point), true);
-            }
-        } else { //horizontal page
-            SPDocument *document = getSPDoc();
-            if (document) {
-                Geom::Affine transform = i2anc_affine(lpeitem, nullptr).inverse();
-                Geom::Point sp = Geom::Point(0, document->getHeight().value("px")/2.0) * transform;
-                start_point.param_setValue(sp, true);
-                Geom::Point ep = Geom::Point(document->getWidth().value("px"), document->getHeight().value("px")/2.0) * transform;
-                end_point.param_setValue(ep, true);
+                start_point.param_setValue(sp * transform, true);
+                end_point.param_setValue(ep * transform, true);
                 center_point.param_setValue(Geom::middle_point((Geom::Point)start_point, (Geom::Point)end_point), true);
             }
         }

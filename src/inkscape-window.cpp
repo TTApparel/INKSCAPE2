@@ -41,6 +41,7 @@
 #include "actions/actions-paths.h"  // TEMP
 #include "actions/actions-selection-window.h"
 #include "actions/actions-tools.h"
+#include "actions/actions-transform.h"
 #include "actions/actions-view-mode.h"
 #include "actions/actions-view-window.h"
 #include "inkscape.h"
@@ -83,12 +84,13 @@ InkscapeWindow::InkscapeWindow(SPDesktop *desktop)
     add_actions_help_url(this);             // Actions to help url.
     add_actions_layer(this);                // Actions for layer.
     add_actions_node_align(this);           // Actions to align and distribute nodes (requiring Node tool).
+    add_actions_page_tools(this);           // Actions specific to pages tool and toolbar
     add_actions_path(this);                 // Actions for paths. TEMP
     add_actions_select_window(this);        // Actions with desktop selection
     add_actions_tools(this);                // Actions to switch between tools.
+    add_actions_transform(this);            // Actions for transforming against the screen zoom
     add_actions_view_mode(this);            // Actions to change how Inkscape canvas is displayed.
     add_actions_view_window(this);          // Actions to add/change window of Inkscape
-    add_actions_page_tools(this);           // Actions specific to pages tool and toolbar
 
     // Add document action group to window and export to DBus.
     add_document_actions();
@@ -137,7 +139,7 @@ InkscapeWindow::InkscapeWindow(SPDesktop *desktop)
     // ================== Shortcuts ==================
     auto& shortcuts_instance = Inkscape::Shortcuts::getInstance();
     _shortcut_controller = Gtk::ShortcutController::create(shortcuts_instance.get_liststore());
-    _shortcut_controller->set_scope(Gtk::ShortcutScope::GLOBAL);
+    _shortcut_controller->set_scope(Gtk::ShortcutScope::LOCAL);
     _shortcut_controller->set_propagation_phase(Gtk::PropagationPhase::BUBBLE);
     add_controller(_shortcut_controller);
 

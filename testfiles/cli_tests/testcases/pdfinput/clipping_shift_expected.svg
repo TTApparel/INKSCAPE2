@@ -41,7 +41,7 @@
        id="clipPath16">
       <path
          d="M 300.852,324 171.863,312.695 128.094,366.84 162,270 85.254,194.086 c 92.742,59.496 150.328,45.219 172.754,-42.84 -3.305,70.168 -33.891,159.852 42.844,172.754 z m 0,0 z"
-         transform="matrix(1,0,0,-1,-203.33601,300.00001)"
+         transform="matrix(1,0,0,-1,-200.00001,300.00001)"
          id="path16" />
     </clipPath>
     <clipPath
@@ -56,7 +56,7 @@
        id="clipPath19">
       <path
          d="M 300.852,324 171.863,312.695 128.094,366.84 162,270 85.254,194.086 c 92.742,59.496 150.328,45.219 172.754,-42.84 -3.305,70.168 -33.891,159.852 42.844,172.754 z m 0,0 z"
-         transform="matrix(1,0,0,-1,-103.336,250)"
+         transform="matrix(1,0,0,-1,-100,250)"
          id="path19" />
     </clipPath>
   </defs>
@@ -112,11 +112,11 @@
     <text
        id="text6"
        xml:space="preserve"
-       transform="matrix(1.3333333,0,0,1.3333333,177.78133,882.66667)"><tspan
+       transform="matrix(1.3333333,0,0,1.3333333,173.33333,882.66667)"><tspan
          id="tspan6"
          style="font-variant:normal;font-weight:normal;font-size:12px;font-family:Helvetica;writing-mode:lr-tb;fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none"
          x="0"
-         y="0">Unclipped Text </tspan></text>
+         y="0"> Unclipped Text </tspan></text>
     <path
        id="path7"
        d="M 100,100 H 400 V 400 H 100 Z"
@@ -147,11 +147,11 @@
     <text
        id="text12"
        xml:space="preserve"
-       transform="matrix(1.3333333,0,0,1.3333333,377.78133,816)"><tspan
+       transform="matrix(1.3333333,0,0,1.3333333,373.33333,816)"><tspan
          id="tspan12"
          style="font-variant:normal;font-weight:normal;font-size:12px;font-family:Helvetica;writing-mode:lr-tb;fill:#bf00ff;fill-opacity:1;fill-rule:nonzero;stroke:none"
          x="0"
-         y="0">Unclipped Text </tspan></text>
+         y="0"> Unclipped Text </tspan></text>
     <path
        id="path13"
        d="M 300.852,324 171.863,312.695 128.094,366.84 162,270 85.254,194.086 c 92.742,59.496 150.328,45.219 172.754,-42.84 -3.305,70.168 -33.891,159.852 42.844,172.754 z m 0,0 z"
@@ -166,12 +166,12 @@
     <text
        id="text15"
        xml:space="preserve"
-       transform="matrix(1.3333333,0,0,1.3333333,271.11467,256)"
+       transform="matrix(1.3333333,0,0,1.3333333,266.66667,256)"
        clip-path="url(#clipPath16)"><tspan
          id="tspan15"
          style="font-variant:normal;font-weight:normal;font-size:12px;font-family:Helvetica;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
          x="0"
-         y="0">Clipped by curve </tspan></text>
+         y="0"> Clipped by curve </tspan></text>
     <path
        id="path17"
        d="M 200,250 H 100 Z"
@@ -181,12 +181,12 @@
     <text
        id="text18"
        xml:space="preserve"
-       transform="matrix(1.3333333,0,0,1.3333333,137.78133,322.66667)"
+       transform="matrix(1.3333333,0,0,1.3333333,133.33333,322.66667)"
        clip-path="url(#clipPath19)"><tspan
          id="tspan18"
          style="font-variant:normal;font-weight:normal;font-size:12px;font-family:Helvetica;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
          x="0"
-         y="0">Clipped by straight line </tspan></text>
+         y="0"> Clipped by straight line </tspan></text>
     <path
        id="path20"
        d="m 220,250 -20,25 z"
@@ -195,34 +195,34 @@
     <text
        id="text20"
        xml:space="preserve"
-       transform="matrix(1.3333333,0,0,1.3333333,537.78133,96)"><tspan
+       transform="matrix(1.3333333,0,0,1.3333333,533.33333,96)"><tspan
          id="tspan20"
          style="font-variant:normal;font-weight:normal;font-size:12px;font-family:Helvetica;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
          x="0"
-         y="0">Black: Clipping paths </tspan></text>
+         y="0"> Black: Clipping paths </tspan></text>
     <text
        id="text21"
        xml:space="preserve"
-       transform="matrix(1.3333333,0,0,1.3333333,537.78133,122.66667)"><tspan
+       transform="matrix(1.3333333,0,0,1.3333333,533.33333,122.66667)"><tspan
          id="tspan21"
          style="font-variant:normal;font-weight:normal;font-size:12px;font-family:Helvetica;writing-mode:lr-tb;fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none"
          x="0"
-         y="0">Red: Clipped lines </tspan></text>
+         y="0"> Red: Clipped lines </tspan></text>
     <text
        id="text22"
        xml:space="preserve"
-       transform="matrix(1.3333333,0,0,1.3333333,537.78133,149.33333)"><tspan
+       transform="matrix(1.3333333,0,0,1.3333333,533.33333,149.33333)"><tspan
          id="tspan22"
          style="font-variant:normal;font-weight:normal;font-size:12px;font-family:Helvetica;writing-mode:lr-tb;fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:none"
          x="0"
-         y="0">Blue: Unclipped lines </tspan></text>
+         y="0"> Blue: Unclipped lines </tspan></text>
     <text
        id="text23"
        xml:space="preserve"
-       transform="matrix(1.3333333,0,0,1.3333333,537.78133,176)"><tspan
+       transform="matrix(1.3333333,0,0,1.3333333,533.33333,176)"><tspan
          id="tspan23"
          style="font-variant:normal;font-weight:normal;font-size:12px;font-family:Helvetica;writing-mode:lr-tb;fill:#bf00ff;fill-opacity:1;fill-rule:nonzero;stroke:none"
          x="0"
-         y="0">Purple: Shifted unclipped lines </tspan></text>
+         y="0"> Purple: Shifted unclipped lines </tspan></text>
   </g>
 </svg>

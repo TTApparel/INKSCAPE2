@@ -2287,35 +2287,40 @@ void PdfParser::doShowText(GooString *s) {
         // Get next unicode character, returning number of bytes used.
         int n = font->getNextChar(p, len, &code, &u, &uLen, &dx, &dy, &originX, &originY);
 
+        dx *= state->getFontSize();
+        dy *= state->getFontSize();
+        originX *= state->getFontSize();
+        originY *= state->getFontSize();
+
+        // Save advances for SVG output with 'dx' and 'dy' attributes.
+        auto ax = dx;
+        auto ay = dy;
+
         if (wMode != 0) {
             // Vertical text (or invalid value).
-            dx *= state->getFontSize();
-            dy = dy * state->getFontSize() + state->getCharSpace();
+            dy += state->getCharSpace();
             if (n == 1 && *p == ' ') {
                 dy += state->getWordSpace();
             }
         } else {
             // Horizontal text.
-            dx = dx * state->getFontSize() + state->getCharSpace();
+            dx += state->getCharSpace();
             if (n == 1 && *p == ' ') {
                 dx += state->getWordSpace();
             }
-            dx *= state->getHorizScaling();
-            dy *= state->getFontSize();
+            dx *= state->getHorizScaling(); // Applies to glyphs and char/word spacing.
+            ax *= state->getHorizScaling();
         }
 
         double tdx, tdy;
         state->textTransformDelta(dx, dy, &tdx, &tdy);
-
-        originX *= state->getFontSize();
-        originY *= state->getFontSize();
 
         double tOriginX, tOriginY;
         state->textTransformDelta(originX, originY, &tOriginX, &tOriginY);
 
         // In Gfx.cc this is drawChar(...)
         builder->addChar(state, state->getCurX() + riseX, state->getCurY() + riseY,
-                         dx, dy, tOriginX, tOriginY, code, n, u, uLen);
+                         dx, dy, ax, ay, tOriginX, tOriginY, code, n, u, uLen);
 
         // Move onto next unicode character.
         state->shift(tdx, tdy);

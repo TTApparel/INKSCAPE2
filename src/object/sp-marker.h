@@ -61,7 +61,7 @@ public:
 	markerOrient orient_mode : 2;
 	SVGAngle orient;
 
-    Geom::Affine get_marker_transform(const Geom::Affine &base, double linewidth, bool for_display = false);
+    Geom::Affine get_marker_transform(Geom::Affine const &base, double linewidth, bool for_display = false) const;
 
 	/* Private views indexed by key that corresponds to a
 	 * particular marker type (start, mid, end) on a particular
@@ -101,7 +101,7 @@ void sp_validate_marker(SPMarker *sp_marker, SPDocument *doc);
 void sp_marker_show_dimension (SPMarker *marker, unsigned int key, unsigned int size);
 Inkscape::DrawingItem *sp_marker_show_instance (SPMarker *marker, Inkscape::DrawingItem *parent,
 				      unsigned int key, unsigned int pos, unsigned int z_order,
-				      Geom::Affine const &base, float linewidth);
+				      Geom::Affine const &marker_transform, float linewidth);
 void sp_marker_hide (SPMarker *marker, unsigned int key);
 const char *generate_marker (std::vector<Inkscape::XML::Node*> &reprs, Geom::Rect bounds, SPDocument *document, Geom::Point center, Geom::Affine move);
 SPObject *sp_marker_fork_if_necessary(SPObject *marker);

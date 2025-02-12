@@ -1231,7 +1231,7 @@
           <attribute name="label" translatable="yes">Tutorials</attribute>
 	  <section>
             <item>
-              <attribute name="label" translatable="yes">Beginner's Guide</attribute>
+              <attribute name="label" translatable="yes">Beginners' Guide</attribute>
               <attribute name="action">win.help-url-beginners-guide</attribute>
             </item>
 	  </section>

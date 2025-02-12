@@ -6,7 +6,7 @@
 # Jose Antonio Salgueiro Aquino <developer@telefonica.net>, 2003.
 # Francisco Javier F. Serrador <serrador@arrakis.es>, 2003.
 # José Esteban Quintanilla Ramírez <imagen.imperio@gmail.com>, 2019.
-# Lucas Vieites <lucas.vieites@gmail.com>, 2003-2023.
+# Lucas Vieites <lucas.vieites@gmail.com>, 2003-2024.
 #
 msgid ""
 msgstr ""
@@ -20488,7 +20488,7 @@ msgstr "Ayudante de máscara"
 #: ../src/object/sp-item-group.cpp:309
 msgctxt "Noun"
 msgid "Group"
-msgstr "Agrupar"
+msgstr "Grupo"
 
 #: ../src/object/sp-item-group.cpp:316 ../src/object/sp-switch.cpp:74
 #, c-format

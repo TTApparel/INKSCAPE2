@@ -41,6 +41,9 @@ namespace Inkscape::IO::Resource {
 
 #define INKSCAPE_PROFILE_DIR "inkscape"
 
+/**
+ * @returns Path. Value is in platform-native encoding (see Glib::filename_to_utf8).
+ */
 gchar *_get_path(Domain domain, Type type, char const *filename, char const *extra=nullptr)
 {
     if (domain == USER || domain == SHARED) {

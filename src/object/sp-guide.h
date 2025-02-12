@@ -63,6 +63,8 @@ public:
     void set_locked(const bool locked, bool const commit);
     bool getLocked() const { return locked; }
 
+    void fix_orientation();
+
     static SPGuide *createSPGuide(SPDocument *doc, Geom::Point const &pt1, Geom::Point const &pt2);
     SPGuide *duplicate();
 

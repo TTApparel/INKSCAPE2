@@ -530,6 +530,8 @@ GlyphsPanel::GlyphsPanel()
     table->attach(*box, 0, row, 3, 1);
 
     row++;
+
+    rebuild();
 }
 
 GlyphsPanel::~GlyphsPanel() = default;

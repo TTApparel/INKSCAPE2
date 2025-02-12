@@ -220,12 +220,28 @@ SelectorsDialog::SelectorsDialog()
     m_styletextwatcher = std::make_unique<NodeObserver>(this);
 
     // Tree
+    _store = TreeStore::create(this);
+    _treeView.set_model(_store);
+
     auto const addRenderer = Gtk::make_managed<UI::Widget::IconRenderer>();
     addRenderer->add_icon("edit-delete");
     addRenderer->add_icon("list-add");
     addRenderer->add_icon("empty-icon");
-    _store = TreeStore::create(this);
-    _treeView.set_model(_store);
+    addRenderer->signal_activated().connect([this](Glib::ustring const &path) {
+        _vscroll();
+        Gtk::TreeModel::iterator iter = _store->get_iter(path);
+        Gtk::TreeModel::Row row = *iter;
+        if (!row.parent()) {
+            _addToSelector(row);
+        } else {
+            _removeFromSelector(row);
+        }
+        _vadj->set_value(std::min(_scrollpos, _vadj->get_upper()));
+        _updating = true;
+        _del.set_visible(true);
+        _updating = false;
+        _selectRow();
+    });
 
     // ALWAYS be a single selection widget
     _treeView.get_selection()->set_mode(Gtk::SelectionMode::SINGLE);
@@ -247,11 +263,6 @@ SelectorsDialog::SelectorsDialog()
         col->add_attribute(label->property_weight(), _mColumns._colSelected);
     }
     _treeView.set_expander_column(*(_treeView.get_column(1)));
-
-    auto const click = Gtk::GestureClick::create();
-    click->set_button(1); // left
-    click->signal_released().connect(sigc::mem_fun(*this, &SelectorsDialog::onTreeViewClickReleased));
-    _treeView.add_controller(click);
 
     _treeView.signal_row_expanded().connect(sigc::mem_fun(*this, &SelectorsDialog::_rowExpand));
     _treeView.signal_row_collapsed().connect(sigc::mem_fun(*this, &SelectorsDialog::_rowCollapse));
@@ -948,58 +959,6 @@ void SelectorsDialog::_removeClass(SPObject *obj, const Glib::ustring &className
 }
 
 /**
- * @param eventX
- * @param eventY
- * This function selects objects in the drawing corresponding to the selector
- * selected in the treeview.
- */
-void SelectorsDialog::_selectObjects(int eventX, int eventY)
-{
-    g_debug("SelectorsDialog::_selectObjects: %d, %d", eventX, eventY);
-    Gtk::TreeViewColumn *col = _treeView.get_column(1);
-    Gtk::TreeModel::Path path;
-    int x2 = 0;
-    int y2 = 0;
-    // To do: We should be able to do this via passing in row.
-    if (!_treeView.get_path_at_pos(eventX, eventY, path, col, x2, y2)) {
-        return;
-    }
-
-    if (_lastpath.size() && _lastpath == path) {
-        return;
-    }
-
-    if (!(col == _treeView.get_column(1) && x2 > 25)) {
-        return;
-    }
-
-    getDesktop()->getSelection()->clear();
-
-    Gtk::TreeModel::iterator iter = _store->get_iter(path);
-    if (!iter) {
-        return;
-    }
-
-    auto const &row = *iter;
-    if (row[_mColumns._colObj]) {
-        getDesktop()->getSelection()->add(row[_mColumns._colObj]);
-    }
-
-    auto const children = row.children();
-    if (children.empty() || children.size() == 1) {
-        _del.set_visible(true);
-    }
-
-    for (auto const &child : children) {
-        if (child[_mColumns._colObj]) {
-            getDesktop()->getSelection()->add(child[_mColumns._colObj]);
-        }
-    }
-
-    _lastpath = path;
-}
-
-/**
  * This function opens a dialog to add a selector. The dialog is prefilled
  * with an 'id' selector containing a list of the id's of selected objects
  * or with a 'class' selector if no objects are selected.
@@ -1164,48 +1123,6 @@ void SelectorsDialog::_delSelector()
     _del.set_visible(false);
     _scrollock = false;
     _vadj->set_value(std::min(_scrollpos, _vadj->get_upper()));
-}
-
-/**
- * Handles the event when '+' button in front of a selector name is clicked or when a '-' button in
- * front of a child object is clicked. In the first case, the selected objects on the desktop (if
- * any) are added as children of the selector in the treeview. In the latter case, the object
- * corresponding to the row is removed from the selector.
- *
- * This function also detects single or double click on a selector in any row. Clicking
- * on a selector selects the matching objects on the desktop. A double click will
- * in addition open the CSS dialog.
- */
-void SelectorsDialog::onTreeViewClickReleased(int /*n_press*/, double x, double y)
-{
-    g_debug("SelectorsDialog::onTreeViewClickReleased: Entrance");
-
-    // was separate function _handleButtonEvent()
-    _scrollock = true;
-    Gtk::TreeViewColumn *col = nullptr;
-    Gtk::TreeModel::Path path;
-    int x2 = 0;
-    int y2 = 0;
-    if (_treeView.get_path_at_pos(x, y, path, col, x2, y2) &&
-        col == _treeView.get_column(0))
-    {
-        _vscroll();
-        Gtk::TreeModel::iterator iter = _store->get_iter(path);
-        Gtk::TreeModel::Row row = *iter;
-        if (!row.parent()) {
-            _addToSelector(row);
-        } else {
-            _removeFromSelector(row);
-        }
-        _vadj->set_value(std::min(_scrollpos, _vadj->get_upper()));
-    }
-
-    // was separate function _buttonEventsSelectObjs()
-    _updating = true;
-    _del.set_visible(true);
-    _selectObjects(x, y);
-    _updating = false;
-    _selectRow();
 }
 
 // -------------------------------------------------------------------

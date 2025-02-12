@@ -373,6 +373,15 @@ public:
      */
 
     /**
+     * Return true if there is a value at this prefs-path
+     *
+     * @param pref_path Path to preference to check.
+     */
+    bool hasPref(Glib::ustring const &pref_path) {
+        return getEntry(pref_path).isValid();
+    }
+
+    /**
      * Retrieve a Boolean value.
      *
      * @param pref_path Path to the retrieved preference.
@@ -380,6 +389,18 @@ public:
      */
     bool getBool(Glib::ustring const &pref_path, bool def=false) {
         return getEntry(pref_path).getBool(def);
+    }
+
+    /**
+     * Retrieve a Boolean value, if it exists.
+     *
+     * @param pref_path Path to the retrieved preference.
+     */
+    std::optional<bool> getOptionalBool(Glib::ustring const &pref_path) {
+        if (hasPref(pref_path)) {
+            return getBool(pref_path);
+        }
+        return {};
     }
 
     /**

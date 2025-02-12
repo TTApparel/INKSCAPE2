@@ -62,10 +62,6 @@ public:
     LivePathEffectEditor();
     ~LivePathEffectEditor() final;
 
-    LivePathEffectEditor(LivePathEffectEditor const &d) = delete;
-    LivePathEffectEditor operator=(LivePathEffectEditor const &d) = delete;
-
-    static LivePathEffectEditor &getInstance() { return *new LivePathEffectEditor(); }
     void move_list(int origin, int dest);
 
     using LPEExpander = std::pair<Gtk::Expander *, PathEffectSharedPtr>;
