@@ -31,12 +31,12 @@ namespace Inkscape::LivePathEffect {
 
 LPETransform2Pts::LPETransform2Pts(LivePathEffectObject *lpeobject) :
     Effect(lpeobject),
-    elastic(_("Elastic"), _("Elastic transform mode"), "elastic", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    from_original_width(_("From original width"), _("From original width"), "from_original_width", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    lock_length(_("Lock length"), _("Lock length to current distance"), "lock_length", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    lock_angle(_("Lock angle"), _("Lock angle"), "lock_angle", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    flip_horizontal(_("Flip horizontal"), _("Flip horizontal"), "flip_horizontal", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    flip_vertical(_("Flip vertical"), _("Flip vertical"), "flip_vertical", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
+    elastic(_("Elastic"), _("Elastic transform mode"), "elastic", &wr, this, false),
+    from_original_width(_("From original width"), _("From original width"), "from_original_width", &wr, this, false),
+    lock_length(_("Lock length"), _("Lock length to current distance"), "lock_length", &wr, this, false),
+    lock_angle(_("Lock angle"), _("Lock angle"), "lock_angle", &wr, this, false),
+    flip_horizontal(_("Flip horizontal"), _("Flip horizontal"), "flip_horizontal", &wr, this, false),
+    flip_vertical(_("Flip vertical"), _("Flip vertical"), "flip_vertical", &wr, this, false),
     start(_("Start"), _("Start point"), "start", &wr, this, "Start point"),
     end(_("End"), _("End point"), "end", &wr, this, "End point"),
     stretch(_("Stretch"), _("Stretch the result"), "stretch", &wr, this, 1),
@@ -292,34 +292,21 @@ Gtk::Widget *LPETransform2Pts::newWidget()
     auto const vbox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 6);
     vbox->set_margin(5);
 
-    auto const button1 = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL,0);
-    auto const button2 = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL,0);
-    auto const button3 = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL,0);
-    auto const button4 = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL,0);
-
     for (auto const param: param_vector) {
         if (!param->widget_is_visible) continue;
 
         auto const widg = param->param_newWidget();
         if (!widg) continue;
 
-        auto parent = vbox;
-
         if (param->param_key == "first_knot" || param->param_key == "last_knot") {
             auto &scalar = dynamic_cast<UI::Widget::Scalar &>(*widg);
             Gtk::manage(&scalar);
             scalar.signal_value_changed().connect(sigc::mem_fun(*this, &LPETransform2Pts::updateIndex));
             scalar.getSpinButton().set_width_chars(3);
-        } else if (param->param_key == "from_original_width" || param->param_key == "elastic") {
-            parent = button1;
-        } else if (param->param_key == "flip_horizontal" || param->param_key == "flip_vertical") {
-            parent = button2;
-        } else if (param->param_key == "lock_angle" || param->param_key == "lock_length") {
-            parent = button3;
         }
 
-        g_assert(parent);
-        UI::pack_start(*parent, *widg, true, true, 2);
+        g_assert(vbox);
+        UI::pack_start(*vbox, *widg, true, true, 2);
 
         if (auto const tip = param->param_getTooltip()) {
             widg->set_tooltip_markup(*tip);
@@ -329,14 +316,11 @@ Gtk::Widget *LPETransform2Pts::newWidget()
         }
     }
 
+    // Add Reset button at the bottom
     auto const reset = Gtk::make_managed<Gtk::Button>(Glib::ustring(_("Reset")));
     reset->signal_clicked().connect(sigc::mem_fun(*this, &LPETransform2Pts::reset));
-    UI::pack_start(*button4, *reset, true, true, 2);
+    UI::pack_start(*vbox, *reset, true, true, 2);
 
-    UI::pack_start(*vbox, *button1, true, true, 2);
-    UI::pack_start(*vbox, *button2, true, true, 2);
-    UI::pack_start(*vbox, *button3, true, true, 2);
-    UI::pack_start(*vbox, *button4, true, true, 2);
     return vbox;
 }
 
