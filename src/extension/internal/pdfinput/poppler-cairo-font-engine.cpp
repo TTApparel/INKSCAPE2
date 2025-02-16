@@ -407,14 +407,22 @@ CairoFreeTypeFont *CairoFreeTypeFont::create(GfxFont *gfxFont, XRef *xref, FT_Li
             break;
         case fontCIDType2:
         case fontCIDType2OT:
+#if POPPLER_CHECK_VERSION(25,2,0)
+            if (!gfxcid->getCIDToGID().empty()) {
+                const auto src = gfxcid->getCIDToGID();
+                codeToGID = std::move(src);
+            }
+#else
             if (gfxcid->getCIDToGID()) {
                 n = gfxcid->getCIDToGIDLen();
                 if (n) {
-                    const int *src = gfxcid->getCIDToGID();
+                    const auto src = gfxcid->getCIDToGID();
                     codeToGID.reserve(n);
                     codeToGID.insert(codeToGID.begin(), src, src + n);
                 }
-            } else {
+            }
+#endif
+            else {
 #if POPPLER_CHECK_VERSION(22, 1, 0)
                 std::unique_ptr<FoFiTrueType> ff;
 #else
@@ -429,13 +437,18 @@ CairoFreeTypeFont *CairoFreeTypeFont::create(GfxFont *gfxFont, XRef *xref, FT_Li
                     goto err2;
                 }
 #if POPPLER_CHECK_VERSION(22, 1, 0)
-                int *src = gfxcid->getCodeToGIDMap(ff.get(), &n);
+                auto src = gfxcid->_POPPLER_GET_CODE_TO_GID_MAP(ff.get(), &n);
 #else
-                int *src = gfxcid->getCodeToGIDMap(ff, &n);
+                auto src = gfxcid->_POPPLER_GET_CODE_TO_GID_MAP(ff, &n);
 #endif
+
+#if POPPLER_CHECK_VERSION(25,2,0)
+                codeToGID = std::move(src);
+#else
                 codeToGID.reserve(n);
                 codeToGID.insert(codeToGID.begin(), src, src + n);
                 gfree(src);
+#endif
             }
             /* Fall through */
         case fontTrueType:
@@ -457,13 +470,17 @@ CairoFreeTypeFont *CairoFreeTypeFont::create(GfxFont *gfxFont, XRef *xref, FT_Li
             /* This might be set already for the CIDType2 case */
             if (fontType == fontTrueType || fontType == fontTrueTypeOT) {
 #if POPPLER_CHECK_VERSION(22, 1, 0)
-                int *src = gfx8bit->getCodeToGIDMap(ff.get());
+                auto src = gfx8bit->getCodeToGIDMap(ff.get());
 #else
-                int *src = gfx8bit->getCodeToGIDMap(ff);
+                auto src = gfx8bit->getCodeToGIDMap(ff);
 #endif
+#if POPPLER_CHECK_VERSION(25,2,0)
+                codeToGID = std::move(src);
+#else
                 codeToGID.reserve(256);
                 codeToGID.insert(codeToGID.begin(), src, src + 256);
                 gfree(src);
+#endif
             }
             font_face = getFreeTypeFontFace(fontEngine, lib, fileName, std::move(font_data));
             if (!font_face) {
@@ -481,10 +498,14 @@ CairoFreeTypeFont *CairoFreeTypeFont::create(GfxFont *gfxFont, XRef *xref, FT_Li
                     ff1c = FoFiType1C::load(fileName.c_str());
                 }
                 if (ff1c) {
-                    int *src = ff1c->getCIDToGIDMap(&n);
+                    auto src = ff1c->_POPPLER_GET_CID_TO_GID_MAP(&n);
+#if POPPLER_CHECK_VERSION(25,2,0)
+                    codeToGID = std::move(src);
+#else
                     codeToGID.reserve(n);
                     codeToGID.insert(codeToGID.begin(), src, src + n);
                     gfree(src);
+#endif
                     delete ff1c;
                 }
             }
@@ -497,14 +518,21 @@ CairoFreeTypeFont *CairoFreeTypeFont::create(GfxFont *gfxFont, XRef *xref, FT_Li
             break;
 
         case fontCIDType0COT:
+#if POPPLER_CHECK_VERSION(25,2,0)
+            if (!gfxcid->getCIDToGID().empty()) {
+                const auto src = gfxcid->getCIDToGID();
+                codeToGID = std::move(src);
+            }
+#else
             if (gfxcid->getCIDToGID()) {
                 n = gfxcid->getCIDToGIDLen();
                 if (n) {
-                    const int *src = gfxcid->getCIDToGID();
+                    const auto src = gfxcid->getCIDToGID();
                     codeToGID.reserve(n);
                     codeToGID.insert(codeToGID.begin(), src, src + n);
                 }
             }
+#endif
 
             if (codeToGID.empty()) {
                 if (!useCIDs) {
@@ -520,10 +548,14 @@ CairoFreeTypeFont *CairoFreeTypeFont::create(GfxFont *gfxFont, XRef *xref, FT_Li
                     }
                     if (ff) {
                         if (ff->isOpenTypeCFF()) {
-                            int *src = ff->getCIDToGIDMap(&n);
+                            auto src = ff1c->_POPPLER_GET_CID_TO_GID_MAP(&n);
+#if POPPLER_CHECK_VERSION(25,2,0)
+                            codeToGID = std::move(src);
+#else
                             codeToGID.reserve(n);
                             codeToGID.insert(codeToGID.begin(), src, src + n);
                             gfree(src);
+#endif
                         }
                     }
                 }
