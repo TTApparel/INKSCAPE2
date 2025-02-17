@@ -14,6 +14,7 @@
 
 #include <gtkmm/box.h>
 #include <gtkmm/entry.h>
+#include <gtkmm/grid.h>
 
 #include "display/curve.h"
 #include "helper/geom.h"
@@ -292,6 +293,14 @@ Gtk::Widget *LPETransform2Pts::newWidget()
     auto const vbox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 6);
     vbox->set_margin(5);
 
+    // Create a grid for checkboxes
+    auto const grid = Gtk::make_managed<Gtk::Grid>();
+    grid->set_row_spacing(10);
+    grid->set_column_spacing(30);
+    grid->set_margin_top(5);
+
+    int row = 0, col = 0;
+
     for (auto const param: param_vector) {
         if (!param->widget_is_visible) continue;
 
@@ -304,9 +313,33 @@ Gtk::Widget *LPETransform2Pts::newWidget()
             scalar.signal_value_changed().connect(sigc::mem_fun(*this, &LPETransform2Pts::updateIndex));
             scalar.getSpinButton().set_width_chars(3);
         }
+        else if (param->param_key == "elastic" ||
+            param->param_key == "from_original_width" ||
+            param->param_key == "lock_length" ||
+            param->param_key == "lock_angle" ||
+            param->param_key == "flip_horizontal" ||
+            param->param_key == "flip_vertical") 
+        {
+            grid->attach(*widg, col, row, 1, 1);
 
-        g_assert(vbox);
-        UI::pack_start(*vbox, *widg, true, true, 2);
+            row++;
+            if (row == 3) { 
+                row = 0, col = 1;
+            }
+            continue;
+        }
+
+        if(param->param_key != "elastic" &&
+            param->param_key != "from_original_width" &&
+            param->param_key != "lock_length" &&
+            param->param_key != "lock_angle" &&
+            param->param_key != "flip_horizontal" &&
+            param->param_key != "flip_vertical")
+        {
+
+            g_assert(vbox);
+            UI::pack_start(*vbox, *widg, true, true, 2);
+        }
 
         if (auto const tip = param->param_getTooltip()) {
             widg->set_tooltip_markup(*tip);
@@ -315,6 +348,9 @@ Gtk::Widget *LPETransform2Pts::newWidget()
             widg->set_has_tooltip(false);
         }
     }
+
+    // Add the grid to the vbox
+    UI::pack_start(*vbox, *grid, true, true, 2);
 
     // Add Reset button at the bottom
     auto const reset = Gtk::make_managed<Gtk::Button>(Glib::ustring(_("Reset")));
