@@ -18,6 +18,7 @@
 #define SEEN_GRADIENT_SELECTOR_H
 
 #include <vector>
+#include <gdkmm/pixbuf.h>
 #include <glibmm/refptr.h>
 #include <gtkmm/box.h>
 #include <gtkmm/treemodel.h>
