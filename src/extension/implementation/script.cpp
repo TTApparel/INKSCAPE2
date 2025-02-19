@@ -16,11 +16,12 @@
 #include "script.h"
 
 #include <memory>
+#include <boost/range/adaptor/reversed.hpp>
 #include <glib/gstdio.h>
 #include <glibmm/convert.h>
 #include <glibmm/fileutils.h>
-#include <glibmm/miscutils.h>
 #include <glibmm/main.h>
+#include <glibmm/miscutils.h>
 #include <gtkmm/enums.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/scrolledwindow.h>
@@ -28,6 +29,7 @@
 #include <gtkmm/window.h>
 
 #include "desktop.h"
+#include "event.h"
 #include "extension/db.h"
 #include "extension/effect.h"
 #include "extension/execution-env.h"
@@ -38,8 +40,9 @@
 #include "extension/template.h"
 #include "inkscape-window.h"
 #include "inkscape.h"
-#include "io/resource.h"
+#include "io/dir-util.h"
 #include "io/file.h"
+#include "io/resource.h"
 #include "layer-manager.h"
 #include "object/sp-namedview.h"
 #include "object/sp-page.h"
@@ -48,7 +51,6 @@
 #include "path-prefix.h"
 #include "preferences.h"
 #include "selection.h"
-#include "io/dir-util.h"
 #include "ui/desktop/menubar.h"
 #include "ui/dialog-events.h"
 #include "ui/dialog-run.h"
@@ -59,7 +61,17 @@
 #include "ui/tools/node-tool.h"
 #include "ui/util.h"
 #include "xml/attribute-record.h"
+#include "xml/event.h"
 #include "xml/rebase-hrefs.h"
+#include "xml/repr.h"
+#include "xml/simple-document.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#define KILL_PROCESS(pid) TerminateProcess(pid, 0)
+#else
+#define KILL_PROCESS(pid) kill(pid, SIGTERM)
+#endif
 
 namespace Inkscape::Extension::Implementation {
 
@@ -551,7 +563,7 @@ void Script::effect(Inkscape::Extension::Effect *module, ExecutionEnv *execution
 
         Glib::ustring empty;
         file_listener outfile;
-        execute(command, {}, empty, outfile);
+        execute(command, {}, empty, outfile, false, module->pipe_diffs);
 
         // Hack to allow for extension manager to reload extensions
         // TODO: Find a better way to do this, e.g. implement an action and have extensions (or users)
@@ -572,7 +584,7 @@ void Script::effect(Inkscape::Extension::Effect *module, ExecutionEnv *execution
             selection->clear();
         }
     }
-    _change_extension(module, executionEnv, desktop->getDocument(), params, module->ignore_stderr);
+    _change_extension(module, executionEnv, desktop->getDocument(), params, module->ignore_stderr, module->pipe_diffs);
 }
 
 /**
@@ -588,7 +600,7 @@ void Script::effect(Inkscape::Extension::Effect *mod, ExecutionEnv *executionEnv
  * Internally, any modification of an existing document, used by effect and resize_page extensions.
  */
 void Script::_change_extension(Inkscape::Extension::Extension *module, ExecutionEnv *executionEnv, SPDocument *doc,
-                               std::list<std::string> &params, bool ignore_stderr)
+                               std::list<std::string> &params, bool ignore_stderr, bool pipe_diffs)
 {
     module->paramListString(params);
     module->set_environment(doc);
@@ -610,7 +622,7 @@ void Script::_change_extension(Inkscape::Extension::Extension *module, Execution
     prefs->setBool("/options/svgoutput/disable_optimizations", false);
 
     file_listener fileout;
-    int data_read = execute(command, params, tempfile_in.get_filename(), fileout, ignore_stderr);
+    int data_read = execute(command, params, tempfile_in.get_filename(), fileout, ignore_stderr, pipe_diffs);
     if (data_read == 0) {
         return;
     }
@@ -677,7 +689,6 @@ bool Script::cancelProcessing () {
     return true;
 }
 
-
 /** \brief    This is the core of the extension file as it actually does
               the execution of the extension.
     \param    in_command  The command to be executed
@@ -705,11 +716,8 @@ bool Script::cancelProcessing () {
     At the very end (after the data has been copied) both of the files
     are closed, and we return to what we were doing.
 */
-int Script::execute (const std::list<std::string> &in_command,
-                 const std::list<std::string> &in_params,
-                 const Glib::ustring &filein,
-                 file_listener &fileout,
-                 bool ignore_stderr)
+int Script::execute(std::list<std::string> const &in_command, std::list<std::string> const &in_params,
+                    Glib::ustring const &filein, file_listener &fileout, bool ignore_stderr, bool pipe_diffs)
 {
     g_return_val_if_fail(!in_command.empty(), 0);
 
@@ -719,6 +727,12 @@ int Script::execute (const std::list<std::string> &in_command,
     std::string program = in_command.front();
     std::string script = interpreted ? in_command.back() : "";
     std::string working_directory = "";
+
+    auto const desktop = SP_ACTIVE_DESKTOP;
+    auto const document = desktop ? desktop->doc() : nullptr;
+    if (!document) {
+        pipe_diffs = false; // pipe_diffs mode requires a desktop and document to attach to
+    }
 
     // We should always have an absolute path here:
     //  - For interpreted scripts, see Script::resolveInterpreterExecutable()
@@ -751,7 +765,7 @@ int Script::execute (const std::list<std::string> &in_command,
 
     //for(int i=0;i<argv.size(); ++i){printf("%s ",argv[i].c_str());}printf("\n");
 
-    int stdout_pipe, stderr_pipe;
+    int stdout_pipe, stderr_pipe, stdin_pipe;
 
     try {
         auto spawn_flags = Glib::SpawnFlags::DEFAULT;
@@ -766,7 +780,7 @@ int Script::execute (const std::list<std::string> &in_command,
                                      spawn_flags,       // spawn flags
                                      sigc::slot<void()>(),
                                      &_pid,         // Pid
-                                     nullptr,       // STDIN
+                                     &stdin_pipe,   // STDIN
                                      &stdout_pipe,  // STDOUT
                                      &stderr_pipe); // STDERR
     } catch (Glib::Error const &e) {
@@ -774,17 +788,56 @@ int Script::execute (const std::list<std::string> &in_command,
         return 0;
     }
 
+    // Save the pid. (This function is reentrant, so _pid could be overwritten.)
+    auto const local_pid = _pid;
+
     // Create a new MainContext for the loop so that the original context sources are not run here,
     // this enforces that only the file_listeners should be read in this new MainLoop
-    Glib::RefPtr<Glib::MainContext> _main_context = Glib::MainContext::create();
-    _main_loop = Glib::MainLoop::create(_main_context, false);
+    // Unless in pipe_diffs mode, in which case use the application-wide main loop
+    auto const main_context = !pipe_diffs
+        ? Glib::MainContext::create()
+        : Glib::MainContext::get_default();
+
+    _main_loop = Glib::MainLoop::create(main_context, false);
 
     file_listener fileerr;
     fileout.init(stdout_pipe, _main_loop);
     fileerr.init(stderr_pipe, _main_loop);
 
+    std::optional<PreviewObserver> watch;
+    bool lost_document = false;
+    std::vector<sigc::scoped_connection> conns;
+
+    if (pipe_diffs) {
+        auto stdin_channel = Glib::IOChannel::create_from_fd(stdin_pipe);
+        stdin_channel->set_close_on_unref(false);
+        stdin_channel->set_encoding();
+#ifndef _WIN32
+        // does not seem to be needed on Windows
+        stdin_channel->set_flags(static_cast<Glib::IOFlags>(G_IO_FLAG_NONBLOCK));
+#endif
+        stdin_channel->set_buffered(false);
+
+        watch.emplace(std::move(stdin_channel));
+        document->addUndoObserver(*watch);
+
+        auto on_lose_document = [&] {
+            KILL_PROCESS(local_pid);
+            document->removeUndoObserver(*watch);
+            lost_document = true;
+            conns.clear();
+        };
+        conns.push_back(desktop->connectDestroy([=] (auto...) { on_lose_document(); }));
+        conns.push_back(desktop->connectDocumentReplaced([=] (auto...) { on_lose_document(); }));
+        conns.push_back(document->connectDestroy(on_lose_document));
+    }
+
     _canceled = false;
     _main_loop->run();
+
+    if (pipe_diffs && !lost_document) {
+        document->removeUndoObserver(*watch);
+    }
 
     // Ensure all the data is out of the pipe
     while (!fileout.isDead()) {
@@ -795,6 +848,10 @@ int Script::execute (const std::list<std::string> &in_command,
     }
 
     _main_loop.reset();
+
+    if (pipe_diffs && lost_document) {
+        throw Inkscape::Extension::Output::lost_document{};
+    }
 
     if (_canceled) {
         // std::cout << "Script Canceled" << std::endl;
@@ -867,6 +924,123 @@ bool Script::file_listener::toFile(const std::string &name) {
         return false;
     }
     return true;
+}
+
+Script::PreviewObserver::PreviewObserver(Glib::RefPtr<Glib::IOChannel> channel)
+    : _channel{std::move(channel)}
+{}
+
+void Script::PreviewObserver::notifyUndoCommitEvent(Event *ee)
+{
+    std::vector<XML::Event *> events;
+
+    // First collect all events
+    for (auto e = ee->event; e; e = e->next) {
+        events.push_back(e);
+    }
+
+    // Process events in reverse order (chronological order)
+    for (auto e : events | boost::adaptors::reversed) {
+        Inkscape::XML::Document *doc = new Inkscape::XML::SimpleDocument();
+        XML::Node *event_node = doc->createElement("event");
+        doc->addChildAtPos(event_node, 0);
+        Inkscape::GC::release(event_node);
+
+        // Add type and element ID
+        if (auto eadd = dynamic_cast<XML::EventAdd *>(e)) {
+            event_node->setAttribute("type", "add");
+            if (eadd->ref) {
+                event_node->setAttribute("after", eadd->ref->attribute("id"));
+            }
+            if (eadd->child) {
+                Inkscape::XML::Node *new_child = eadd->child->duplicate(doc);
+
+                event_node->appendChild(new_child);
+                Inkscape::GC::release(new_child);
+            }
+            if (eadd->repr) {
+                event_node->setAttribute("parent", eadd->repr->attribute("id"));
+            }
+        } else if (auto edel = dynamic_cast<XML::EventDel *>(e)) {
+            event_node->setAttribute("type", "delete");
+            if (edel->repr && edel->repr->attribute("id")) {
+                event_node->setAttribute("parent", edel->repr->attribute("id"));
+            }
+            if (edel->ref) {
+                event_node->setAttribute("after", edel->ref->attribute("id"));
+            }
+            if (edel->child) {
+                event_node->setAttribute("child", edel->child->attribute("id"));
+            }
+        } else if (auto echga = dynamic_cast<XML::EventChgAttr *>(e)) {
+            event_node->setAttribute("type", "attribute_change");
+            if (echga->repr && e->repr->attribute("id")) {
+                event_node->setAttribute("element-id", echga->repr->attribute("id"));
+            }
+            event_node->setAttribute("attribute-name", g_quark_to_string(echga->key));
+            event_node->setAttribute("old-value", &*(echga->oldval));
+            event_node->setAttribute("new-value", &*(echga->newval));
+        } else if (auto echgc = dynamic_cast<XML::EventChgContent *>(e)) {
+            event_node->setAttribute("type", "content_change");
+            if (e->repr && e->repr->attribute("id")) {
+                event_node->setAttribute("element-id", e->repr->attribute("id"));
+            }
+            event_node->setAttribute("old-content", &*(echgc->oldval));
+            event_node->setAttribute("new-content", &*(echgc->newval));
+        } else if (auto echgo = dynamic_cast<XML::EventChgOrder *>(e)) {
+            event_node->setAttribute("type", "order_change");
+            if (echgo->repr && echgo->repr->attribute("id")) {
+                event_node->setAttribute("element-id", e->repr->attribute("id"));
+            }
+            event_node->setAttribute("child", echgo->child->attribute("id"));
+            if (echgo->oldref) {
+                event_node->setAttribute("old-ref", echgo->oldref->attribute("id"));
+            }
+            if (echgo->newref) {
+                event_node->setAttribute("new-ref", echgo->newref->attribute("id"));
+            }
+        } else if (auto echgn = dynamic_cast<XML::EventChgElementName *>(e)) {
+            event_node->setAttribute("type", "element_name_change");
+            if (echgn->repr && echgn->repr->attribute("id")) {
+                event_node->setAttribute("element-id", e->repr->attribute("id"));
+            }
+            event_node->setAttribute("old-name", g_quark_to_string(echgn->old_name));
+            event_node->setAttribute("new-name", g_quark_to_string(echgn->new_name));
+        } else {
+            event_node->setAttribute("type", "unknown");
+        }
+
+        Glib::ustring xml_output = sp_repr_write_buf(event_node, 0, true, GQuark(0), 0, 0);
+        _channel->write(xml_output + "\n");
+
+        Inkscape::GC::release(doc);
+        delete doc;
+    }
+}
+
+void Script::PreviewObserver::notifyUndoEvent(Event *e)
+{
+    notifyUndoCommitEvent(e);
+}
+
+void Script::PreviewObserver::notifyRedoEvent(Event *e)
+{
+    notifyUndoCommitEvent(e);
+}
+
+void Script::PreviewObserver::notifyClearUndoEvent()
+{
+    // do nothing
+}
+
+void Script::PreviewObserver::notifyClearRedoEvent()
+{
+    // do nothing
+}
+
+void Script::PreviewObserver::notifyUndoExpired(Event *e)
+{
+    // do nothing
 }
 
 } // namespace Inkscape::Extension::Implementation

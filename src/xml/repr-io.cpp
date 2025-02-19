@@ -931,6 +931,19 @@ void sp_repr_write_stream( Node *repr, Writer &out, gint indent_level,
     }
 }
 
+Glib::ustring sp_repr_write_buf(Node *repr, int indent_level, bool add_whitespace, Glib::QueryQuark elide_prefix,
+                                int inlineattrs, int indent, char const *old_href_base,
+                                char const *new_href_base)
+{
+    Inkscape::IO::StringOutputStream souts;
+    Inkscape::IO::OutputStreamWriter outs(souts);
+
+    sp_repr_write_stream(repr, outs, indent_level, add_whitespace, elide_prefix, inlineattrs, indent, old_href_base,
+                         new_href_base);
+
+    outs.close();
+    return souts.getString();
+}
 
 void sp_repr_write_stream_element( Node * repr, Writer & out,
                                    gint indent_level, bool add_whitespace,

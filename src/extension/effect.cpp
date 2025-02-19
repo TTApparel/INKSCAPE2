@@ -18,6 +18,7 @@
 #include <glibmm/miscutils.h>
 
 #include "execution-env.h"
+#include "extension/output.h"
 #include "inkscape-application.h"
 #include "inkscape.h"
 #include "streq.h"
@@ -80,6 +81,9 @@ Effect::Effect(Inkscape::XML::Node *in_repr, ImplementationHolder implementation
                 _workingDialog = false;
                 if (!(child->attribute("show-stderr") && !strcmp(child->attribute("show-stderr"), "true"))) {
                     ignore_stderr = true;    
+                }
+                if (child->attribute("pipe-diffs") && !strcmp(child->attribute("pipe-diffs"), "true")) {
+                    pipe_diffs = true;
                 }
             }
             for (auto effect_child = child->firstChild(); effect_child != nullptr; effect_child = effect_child->next()) {
@@ -236,15 +240,16 @@ void Effect::effect(SPDesktop *desktop, SPDocument *document)
     if (document)
         executionEnv.set_document(document);
     timer->lock();
-    executionEnv.run();
-    if (executionEnv.wait()) {
-        executionEnv.commit();
-    } else {
-        executionEnv.cancel();
+    try {
+        executionEnv.run();
+        if (executionEnv.wait()) {
+            executionEnv.commit();
+        } else {
+            executionEnv.cancel();
+        }
+    } catch (Inkscape::Extension::Output::lost_document) {
     }
     timer->unlock();
-
-    return;
 }
 
 /** \brief  Sets which effect was called last

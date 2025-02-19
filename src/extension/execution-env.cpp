@@ -18,11 +18,12 @@
 #include "document-undo.h"
 #include "effect.h"
 #include "inkscape.h"
+#include "inkscape-window.h"
 #include "selection.h"
 
 #include "implementation/implementation.h"
 #include "prefdialog/prefdialog.h"
-#include "ui/widget/canvas.h"  // To get window (perverse!)
+#include "ui/widget/canvas.h" // To get window (perverse!)
 
 namespace Inkscape {
 namespace Extension {
@@ -138,9 +139,7 @@ ExecutionEnv::createWorkingDialog () {
     if (dlg) {
         _visibleDialog->set_transient_for(*dlg);
     } else {
-        // ToDo: Do we need to make the window transient for the main window here?
-        //       Currently imossible to test because of GUI freezing during save,
-        //       see https://bugs.launchpad.net/inkscape/+bug/967416
+        _visibleDialog->set_transient_for(*_desktop->getInkscapeWindow());
     }
 }
 
@@ -187,26 +186,26 @@ ExecutionEnv::reselect () {
 void
 ExecutionEnv::run () {
     _state = ExecutionEnv::RUNNING;
-    Inkscape::Selection *selection = nullptr;
 
     if (_desktop) {
         if (_show_working) {
             createWorkingDialog();
         }
-        selection = _desktop->getSelection();
+        auto selection = _desktop->getSelection();
         selection->setBackup();
-        _desktop->setWaitingCursor();
-
+        if (_show_working) {
+            _desktop->setWaitingCursor();
+        }
         _effect->get_imp()->effect(_effect, this, _desktop, _docCache);
-
-        _desktop->clearWaitingCursor();
+        if (_show_working) {
+            _desktop->clearWaitingCursor();
+        }
         selection->restoreBackup();
     } else {
         _effect->get_imp()->effect(_effect, this, _document);
     }
     _state = ExecutionEnv::COMPLETE;
     // _runComplete.signal();
-    return;
 }
 
 void
