@@ -627,7 +627,7 @@ LPESlice::splititem(SPItem* item, SPCurve * curve, std::pair<Geom::Line, size_t>
         c = shape->curve();
         if (c) {
             Geom::PathVector original_pathv = pathv_to_linear_and_cubic_beziers(c->get_pathvector());
-            sp_flatten(original_pathv, GetFillTyp(shape));
+            flatten(original_pathv, GetFillTyp(shape));
             Geom::PathVector path_out;
             Geom::Affine t = shape->transform * tpass;
             if (!is<SPGroup>(sp_lpe_item)) {

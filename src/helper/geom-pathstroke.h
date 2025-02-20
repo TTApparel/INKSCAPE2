@@ -15,7 +15,8 @@
 #include <functional>
 #include <2geom/path.h>
 #include <2geom/pathvector.h>
-#include "path/path-boolop.h"
+
+#include "livarot/LivarotDefs.h"
 
 namespace Inkscape {
 

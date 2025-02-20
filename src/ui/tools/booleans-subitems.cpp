@@ -54,7 +54,7 @@ static Geom::PathVector clean_pathvector(Geom::PathVector &&pathv)
  */
 SubItem &SubItem::operator+=(SubItem const &other)
 {
-    _paths = clean_pathvector(flattened(sp_pathvector_boolop(_paths, other._paths, bool_op_union, fill_nonZero, fill_nonZero, true), fill_nonZero));
+    _paths = clean_pathvector(flattened(sp_pathvector_boolop(_paths, other._paths, bool_op_union, fill_nonZero, fill_nonZero), fill_nonZero));
     return *this;
 }
 
@@ -282,7 +282,7 @@ WorkItems SubItem::build_flatten(std::vector<SPItem*> &&items)
 
             // Flatten the remaining pathvector according to its fill rule.
             auto fillrule = subitem->style->fill_rule.computed;
-            sp_flatten(pathv, sp_to_livarot(fillrule));
+            flatten(pathv, sp_to_livarot(fillrule));
 
             // Remove the union so far from the shape, then add the shape to the union so far.
             Geom::PathVector uniq;
@@ -291,8 +291,8 @@ WorkItems SubItem::build_flatten(std::vector<SPItem*> &&items)
                 uniq = pathv;
                 unioned = std::move(pathv);
             } else {
-                uniq = sp_pathvector_boolop(unioned, pathv, bool_op_diff, fill_nonZero, fill_nonZero, true);
-                unioned = sp_pathvector_boolop(unioned, pathv, bool_op_union, fill_nonZero, fill_nonZero, true);
+                uniq = sp_pathvector_boolop(unioned, pathv, bool_op_diff, fill_nonZero, fill_nonZero);
+                unioned = sp_pathvector_boolop(unioned, pathv, bool_op_union, fill_nonZero, fill_nonZero);
             }
 
             // Add the new SubItem.

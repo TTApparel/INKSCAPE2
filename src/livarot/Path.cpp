@@ -50,6 +50,8 @@ void Path::Reset()
     
     descr_cmd.clear();
     descr_flags = 0;
+
+    forced_subdivisions.clear();
 }
 
 void Path::Copy(Path * who)
@@ -66,6 +68,8 @@ void Path::Copy(Path * who)
     {
         descr_cmd.push_back(i->clone());
     }
+
+    forced_subdivisions = who->forced_subdivisions;
 }
 
 void Path::CloseSubpath()

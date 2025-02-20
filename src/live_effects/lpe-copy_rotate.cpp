@@ -113,12 +113,8 @@ bool LPECopyRotate::doOnOpen(SPLPEItem const *lpeitem)
     if (!is_load || is_applied) {
         return fixed;
     }
-    legacytest_livarotonly = false;
     Glib::ustring version = lpeversion.param_getSVGValue();
     if (version < "1.2") {
-        if (!SP_ACTIVE_DESKTOP) {
-            legacytest_livarotonly = true;
-        }
         if (!split_items) {
             return fixed;
         }
@@ -601,7 +597,7 @@ LPECopyRotate::doEffect_path (Geom::PathVector const & path_in)
         }
         Geom::PathVector triangle;
         triangle.push_back(divider);
-        path_out = sp_pathvector_boolop(path_out, triangle, bool_op_inters, fillrule, fillrule, legacytest_livarotonly);
+        path_out = sp_pathvector_boolop(path_out, triangle, bool_op_inters, fillrule, fillrule);
         if ( !split_items ) {
             path_out = doEffect_path_post(path_out, fillrule);
         } else {
@@ -686,7 +682,7 @@ LPECopyRotate::doEffect_path_post (Geom::PathVector const & path_in, FillRuleBoo
             Geom::PathVector join_pv = original_pathv * t;
             join_pv *= Geom::Translate(half_dir * rot * gap);
             if (!output_pv.empty()) {
-                output_pv = sp_pathvector_boolop(output_pv, join_pv, bool_op_union, fillrule, fillrule, legacytest_livarotonly);
+                output_pv = sp_pathvector_boolop(output_pv, join_pv, bool_op_union, fillrule, fillrule);
             } else {
                 output_pv = join_pv;
             }

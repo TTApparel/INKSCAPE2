@@ -105,18 +105,14 @@ LPEOffset::~LPEOffset() {
 
 bool LPEOffset::doOnOpen(SPLPEItem const *lpeitem)
 {
-    bool fixed = false;
     if (!is_load || is_applied) {
-        return fixed;
+        return false;
     }
-    // because offest changes on core we not keep 1.3 < full down compatibility
-    // so we take the oportunity to reset all previous "legacytest_livarotonly"
-    // and improve the LPE itself
     Glib::ustring version = lpeversion.param_getSVGValue();
     if (version < "1.3") {
         lpeversion.param_setValue("1.3", true);
     }
-    return fixed;
+    return false;
 }
 
 void

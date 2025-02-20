@@ -113,12 +113,8 @@ bool LPEBool::doOnOpen(SPLPEItem const *lpeitem)
     if (!is_load || is_applied) {
         return false;
     }
-    legacytest_livarotonly = false;
     Glib::ustring version = lpeversion.param_getSVGValue();
     if (version < "1.2") {
-        if (!SP_ACTIVE_DESKTOP) {
-            legacytest_livarotonly = true;
-        }
         lpeversion.param_setValue("1.2", true);
     }
     operand_item.start_listening(operand_item.getObject());
@@ -606,8 +602,7 @@ Geom::PathVector LPEBool::get_union(SPObject *root, SPObject *object, bool _from
             if (res.empty()) {
                 res = std::move(tmp);
             } else {
-                res = sp_pathvector_boolop(res, tmp, to_bool_op(bool_op_ex_union), fill_oddEven,
-                                           fill_oddEven, legacytest_livarotonly);
+                res = sp_pathvector_boolop(res, tmp, to_bool_op(bool_op_ex_union), fill_oddEven, fill_oddEven);
             }
         }
     }
@@ -621,8 +616,7 @@ Geom::PathVector LPEBool::get_union(SPObject *root, SPObject *object, bool _from
             if (res.empty()) {
                 res = std::move(tmp);
             } else {
-                res = sp_pathvector_boolop(res, tmp, to_bool_op(bool_op_ex_union), originfill,
-                                           GetFillTyp(shape), legacytest_livarotonly);
+                res = sp_pathvector_boolop(res, tmp, to_bool_op(bool_op_ex_union), originfill, GetFillTyp(shape));
             }
         }
         originfill = GetFillTyp(shape);
@@ -634,12 +628,11 @@ Geom::PathVector LPEBool::get_union(SPObject *root, SPObject *object, bool _from
         if (res.empty()) {
             res = std::move(tmp);
         } else {
-            res = sp_pathvector_boolop(res, tmp, to_bool_op(bool_op_ex_union), fill_oddEven,
-                                       fill_oddEven, legacytest_livarotonly);
+            res = sp_pathvector_boolop(res, tmp, to_bool_op(bool_op_ex_union), fill_oddEven, fill_oddEven);
         }
     }
     if (!clippv.empty()) {
-        res = sp_pathvector_boolop(clippv, res, to_bool_op(bool_op_ex_diff), fill_oddEven, fill_oddEven, legacytest_livarotonly);
+        res = sp_pathvector_boolop(clippv, res, to_bool_op(bool_op_ex_diff), fill_oddEven, fill_oddEven);
     }
     return res;
 }
@@ -690,15 +683,9 @@ void LPEBool::doEffect(SPCurve *curve)
         helperLineSatellites = false;
         if (op == bool_op_ex_cut) {
             if (onremove) {
-                path_out = sp_pathvector_boolop(path_a, path_b, to_bool_op(bool_op_ex_diff), fill_a, fill_b, legacytest_livarotonly);
+                path_out = sp_pathvector_boolop(path_a, path_b, to_bool_op(bool_op_ex_diff), fill_a, fill_b);
             } else {
-                bool error = false;
-                Geom::PathVector path_tmp = sp_pathvector_boolop(path_a, path_b, to_bool_op(op), fill_a, fill_b, legacytest_livarotonly, true, error);
-                for (auto pathit : path_tmp) {
-                    if (pathit.size() != 2 || !error) {
-                        path_out.push_back(pathit);
-                    }
-                }
+                path_out = sp_pathvector_boolop(path_a, path_b, to_bool_op(op), fill_a, fill_b);
             }
         /* } else if (op == bool_op_ex_slice) {
             path_out = sp_pathvector_boolop_slice_intersect(path_a, path_b, true, fill_a, fill_b);
@@ -713,17 +700,17 @@ void LPEBool::doEffect(SPCurve *curve)
          */
         } else if (op == bool_op_ex_cut_both){
             if (onremove) {
-                path_out = sp_pathvector_boolop(path_a, path_b, to_bool_op(bool_op_ex_diff), fill_a, fill_b, legacytest_livarotonly);
+                path_out = sp_pathvector_boolop(path_a, path_b, to_bool_op(bool_op_ex_diff), fill_a, fill_b);
             } else {
                 helperLineSatellites = true;
-                path_out = sp_pathvector_boolop(path_a, path_b, bool_op_diff,   fill_a, fill_b, legacytest_livarotonly);
-                auto tmp = sp_pathvector_boolop(path_a, path_b, bool_op_inters, fill_a, fill_b, legacytest_livarotonly);
+                path_out = sp_pathvector_boolop(path_a, path_b, bool_op_diff,   fill_a, fill_b);
+                auto tmp = sp_pathvector_boolop(path_a, path_b, bool_op_inters, fill_a, fill_b);
                 path_out.insert(path_out.end(),tmp.begin(),tmp.end());
                 /* auto tmp2 = sp_pathvector_boolop(path_a, path_b, (bool_op) bool_op_diff, fill_a, fill_b);
                 path_out.insert(path_out.end(),tmp2.begin(),tmp2.end()); */
             }
         } else {
-            path_out = sp_pathvector_boolop(path_a, path_b, (BooleanOp) op, fill_a, fill_b, legacytest_livarotonly);
+            path_out = sp_pathvector_boolop(path_a, path_b, (BooleanOp) op, fill_a, fill_b);
         }
         curve->set_pathvector(path_out * current_affine.inverse());
     }

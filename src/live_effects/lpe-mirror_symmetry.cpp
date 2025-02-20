@@ -665,7 +665,7 @@ LPEMirrorSymmetry::doEffect_path (Geom::PathVector const & path_in)
                         path.close();
                     }
                 }
-                sp_flatten(tmp_pathvector, fill_oddEven);
+                flatten(tmp_pathvector, fill_oddEven);
             }
             if (cs.size() == 0 && position == 1) {
                 tmp_pathvector.push_back(original);

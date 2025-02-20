@@ -19,29 +19,31 @@
 #include <2geom/bezier-curve.h>
 
 /// \todo un-inline this function
-inline bool is_straight_curve(Geom::Curve const & c)
+inline bool is_straight_curve(Geom::BezierCurve const &c)
 {
-    if( dynamic_cast<Geom::LineSegment const*>(&c) )
-    {
-        return true;
-    }
     // the curve can be a quad/cubic bezier, but could still be a perfect straight line
     // if the control points are exactly on the line connecting the initial and final points.
-    Geom::BezierCurve const *curve = dynamic_cast<Geom::BezierCurve const *>(&c);
-    if (curve) {
-        Geom::Line line(curve->initialPoint(), curve->finalPoint());
-        std::vector<Geom::Point> pts = curve->controlPoints();
-        for (unsigned i = 1; i < pts.size() - 1; ++i) {
-            if (!are_near(pts[i], line))
-                return false;
+    auto const line = Geom::Line{c.initialPoint(), c.finalPoint()};
+    for (int i = 1; i < c.order(); i++) {
+        if (!Geom::are_near(c[i], line)) {
+            return false;
         }
-        return true;
     }
-
-    return false;
+    return true;
 }
 
-#endif  // INKSCAPE_HELPER_GEOM_CURVES_H
+inline bool is_straight_curve(Geom::Curve const &c)
+{
+    if (dynamic_cast<Geom::LineSegment const *>(&c)) {
+        return true;
+    } else if (auto bezier = dynamic_cast<Geom::BezierCurve const *>(&c)) {
+        return is_straight_curve(*bezier);
+    } else {
+        return false;
+    }
+}
+
+#endif // INKSCAPE_HELPER_GEOM_CURVES_H
 
 /*
   Local Variables:

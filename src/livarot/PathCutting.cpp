@@ -318,34 +318,29 @@ Geom::PathVector Path::MakePathVector() const
     return pv;
 }
 
-void  Path::AddCurve(Geom::Curve const &c)
+void Path::AddCurve(Geom::Curve const &c)
 {
-    if( is_straight_curve(c) )
-    {
-        LineTo( c.finalPoint() );
-    }
-    /*
-    else if(Geom::QuadraticBezier const *quadratic_bezier = dynamic_cast<Geom::QuadraticBezier const  *>(c)) {
-        ...
-    }
-    */
-    else if(Geom::CubicBezier const *cubic_bezier = dynamic_cast<Geom::CubicBezier const *>(&c)) {
-        Geom::Point tmp = (*cubic_bezier)[3];
-        Geom::Point tms = 3 * ((*cubic_bezier)[1] - (*cubic_bezier)[0]);
-        Geom::Point tme = 3 * ((*cubic_bezier)[3] - (*cubic_bezier)[2]);
-        CubicTo (tmp, tms, tme);
-    }
-    else if(Geom::EllipticalArc const *elliptical_arc = dynamic_cast<Geom::EllipticalArc const *>(&c)) {
-        ArcTo( elliptical_arc->finalPoint(),
-               elliptical_arc->ray(Geom::X), elliptical_arc->ray(Geom::Y),
-               elliptical_arc->rotationAngle()*180.0/M_PI,  // convert from radians to degrees
-               elliptical_arc->largeArc(), !elliptical_arc->sweep() );
+    if (dynamic_cast<Geom::LineSegment const *>(&c)) {
+        LineTo(c.finalPoint());
+    } else if (auto cubic = dynamic_cast<Geom::CubicBezier const *>(&c)) {
+        if (is_straight_curve(*cubic)) {
+            LineTo(c.finalPoint());
+        } else {
+            CubicTo((*cubic)[3],
+                    3 * ((*cubic)[1] - (*cubic)[0]),
+                    3 * ((*cubic)[3] - (*cubic)[2]));
+        }
+    } else if (auto arc = dynamic_cast<Geom::EllipticalArc const *>(&c)) {
+        ArcTo(arc->finalPoint(),
+              arc->rays().x(), arc->rays().y(),
+              Geom::deg_from_rad(arc->rotationAngle()),
+              arc->largeArc(), !arc->sweep());
     } else { 
-        //this case handles sbasis as well as all other curve types
-        Geom::Path sbasis_path = Geom::cubicbezierpath_from_sbasis(c.toSBasis(), 0.1);
+        // This case handles sbasis as well as all other curve types.
+        auto const sbasis_path = Geom::cubicbezierpath_from_sbasis(c.toSBasis(), 0.1);
 
-        //recurse to convert the new path resulting from the sbasis to svgd
-        for(const auto & iter : sbasis_path) {
+        // Recurse to convert the new path resulting from the sbasis to svgd.
+        for (auto const &iter : sbasis_path) {
             AddCurve(iter);
         }
     }
@@ -381,6 +376,42 @@ void  Path::LoadPath(Geom::Path const &path, Geom::Affine const &tr, bool doTran
 void  Path::LoadPathVector(Geom::PathVector const &pv)
 {
     LoadPathVector(pv, Geom::Affine(), false);
+}
+
+void Path::LoadPathVector(Geom::PathVector const &pv, std::vector<Geom::PathVectorTime> const &cuts)
+{
+    SetBackData(false);
+    Reset();
+
+    forced_subdivisions.reserve(cuts.size());
+    auto it = cuts.begin();
+
+    for (int i = 0, maxi = pv.size(); i < maxi; i++) {
+        auto const &path = pv[i];
+
+        if (path.empty()) {
+            continue;
+        }
+
+        MoveTo(path.initialPoint());
+
+        for (int j = 0, maxj = path.size(); j < maxj; j++) {
+            auto const &curve = path[j];
+
+            AddCurve(curve);
+
+            while (it != cuts.end() && it->path_index == i && it->curve_index == j) {
+                forced_subdivisions.push_back({ .piece = (int)descr_cmd.size() - 1, .t = it->t });
+                ++it;
+            }
+        }
+
+        if (path.closed()) {
+            Close();
+        }
+    }
+
+    assert(it == cuts.end());
 }
 
 void  Path::LoadPathVector(Geom::PathVector const &pv, Geom::Affine const &tr, bool doTransformation)

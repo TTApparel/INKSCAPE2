@@ -18,16 +18,13 @@
 
 /// Flatten a pathvector according to the given fill rule.
 Geom::PathVector flattened(Geom::PathVector const &pathv, FillRule fill_rule);
-void sp_flatten(Geom::PathVector &pathv, FillRule fill_rule);
+void flatten(Geom::PathVector &pathv, FillRule fill_rule);
 
 /// Cut a pathvector along a collection of lines into several smaller pathvectors.
 std::vector<Geom::PathVector> pathvector_cut(Geom::PathVector const &pathv, Geom::PathVector const &lines);
 
 /// Perform a boolean operation on two pathvectors.
-Geom::PathVector sp_pathvector_boolop(Geom::PathVector const &pathva, Geom::PathVector const &pathvb, BooleanOp bop,
-                                      FillRule fra, FillRule frb, bool livarotonly, bool flattenbefore, bool &error);
-Geom::PathVector sp_pathvector_boolop(Geom::PathVector const &pathva, Geom::PathVector const &pathvb, BooleanOp bop,
-                                      FillRule fra, FillRule frb, bool livarotonly = false, bool flattenbefore = true);
+Geom::PathVector sp_pathvector_boolop(Geom::PathVector const &pathva, Geom::PathVector const &pathvb, BooleanOp bop, FillRule fra, FillRule frb);
 
 #endif // PATH_BOOLOP_H
 

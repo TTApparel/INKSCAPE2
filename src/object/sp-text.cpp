@@ -783,7 +783,7 @@ Shape* SPText::getInclusionShape(SPShape *shape) const
     }
 
     auto pathvector = curve->get_pathvector();
-    sp_flatten(pathvector, fill_nonZero);
+    flatten(pathvector, fill_nonZero);
 
     auto temp_path = std::make_unique<Path>();
     temp_path->LoadPathVector(pathvector, shape->transform, true);

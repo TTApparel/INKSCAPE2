@@ -17,6 +17,7 @@
 
 #include "helper/geom-pathstroke.h"
 #include "helper/geom.h"
+#include "path/path-boolop.h"
 
 namespace Geom {
 
@@ -1257,7 +1258,7 @@ do_offset(Geom::PathVector const & path_in
     // flatten order the direcions and remove self intersections
     // we use user fill rule to match original view
     // after flatten all elements has the same direction in his widding
-    sp_flatten(closed_pathv, fillrule);
+    flatten(closed_pathv, fillrule);
     if (Geom::are_near(to_offset,0.0)) {
         // this is to keep reference to multiple pathvectors like in a group. Used by knot position in LPE Offset
         mix_pathv_all.insert(mix_pathv_all.end(), path_in.begin(), path_in.end());
@@ -1293,7 +1294,7 @@ do_offset(Geom::PathVector const & path_in
                 }
             } else {
                 auto with_dir_pv = Geom::PathVector(with_dir);
-                sp_flatten(with_dir_pv, fill_positive);
+                flatten(with_dir_pv, fill_positive);
                 for (auto path : with_dir_pv) {
                     auto bbox = path.boundsFast();
                     if (bbox) {
@@ -1315,13 +1316,13 @@ do_offset(Geom::PathVector const & path_in
         if (to_offset > 0) {
             outline.insert(outline.end(), outline_tmp.begin(), outline_tmp.end());
             // this make a union propely without calling boolops
-            sp_flatten(outline, fill_positive);
+            flatten(outline, fill_positive);
         } else {
             // this flatten in a fill_positive way that allow us erase it from the otiginal outline alwais (smaller)
-            sp_flatten(outline_tmp, fill_positive);
+            flatten(outline_tmp, fill_positive);
             // this can produce small satellites that become removed after new offset impletation work in 1.4
-            outline = sp_pathvector_boolop(outline_tmp, outline, bool_op_diff, fill_nonZero, fill_nonZero, false);
-        }      
+            outline = sp_pathvector_boolop(outline_tmp, outline, bool_op_diff, fill_nonZero, fill_nonZero);
+        }
     }
     // this is to keep reference to multiple pathvectors like in a group. Used by knot position in LPE Offset
     mix_pathv_all.insert(mix_pathv_all.end(), open_pathv.begin(), open_pathv.end());

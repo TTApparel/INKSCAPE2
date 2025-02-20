@@ -128,7 +128,7 @@ std::optional<Geom::PathVector> intersect_clips(std::optional<Geom::PathVector> 
     if (!b) return std::move(a);
     if (a->empty()) return std::move(a);
     if (b->empty()) return std::move(b);
-    return sp_pathvector_boolop(*a, *b, bool_op_inters, fill_nonZero, fill_nonZero, true);
+    return sp_pathvector_boolop(*a, *b, bool_op_inters, fill_nonZero, fill_nonZero);
 }
 
 /*

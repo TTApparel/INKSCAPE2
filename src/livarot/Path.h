@@ -18,6 +18,7 @@
 #ifndef my_path
 #define my_path
 
+#include <span>
 #include <vector>
 #include "LivarotDefs.h"
 #include <2geom/point.h>
@@ -129,6 +130,14 @@ public:
 private:
   bool back = false; /*!< If true, indicates that the polyline approximation is going to have backdata.
                           No need to set this manually though. When Path::Convert or any of its variants is called, it's set automatically. */
+
+  // list of points at which to ensure the polyline approximation will be subdivided, sorted ascending by path time
+  struct ForcedSubdivision
+  {
+    int piece;
+    double t;
+  };
+  std::vector<ForcedSubdivision> forced_subdivisions;
 
 public:
   ~Path();
@@ -261,8 +270,10 @@ public:
    *
    * @param threshhold The error threshold used to approximate the path. The smaller this is, the
    * more line segments there will be and the better the polyline approximation would be.
+   *
+   * @param relative Whether to interpret threshold relatively, rather than absolutely.
    */
-  void ConvertWithBackData (double treshhold);
+  void ConvertWithBackData(double threshhold, bool relative = false);
 
   // creation of the polyline (you can tinker with these function if you want)
 
@@ -452,7 +463,7 @@ public:
   /**
    * Load a lib2geom Geom::PathVector in this path object. (supports transformation)
    *
-   * Any existing path commands in this object are not cleared.
+   * Any existing path commands in this object are cleared.
    *
    * @param pv The Geom::PathVector object to load.
    * @param tr A transformation to apply on each path.
@@ -463,11 +474,21 @@ public:
   /**
    * Load a lib2geom Geom::PathVector in this path object.
    *
-   * Any existing path commands in this object are not cleared.
+   * Any existing path commands in this object are cleared.
    *
    * @param pv A reference to the Geom::PathVector object to load.
    */
   void  LoadPathVector(Geom::PathVector const &pv);
+
+  /**
+   * Load a lib2geom Geom::PathVector in this path object, plus a list of forced subdivision points.
+   *
+   * Any existing path commands in this object are cleared.
+   *
+   * @param pv A reference to the Geom::PathVector object to load.
+   * @param cuts A list of times where ConvertWithBackData() should insert forced subdivisions, sorted ascending.
+   */
+  void LoadPathVector(Geom::PathVector const &pv, std::vector<Geom::PathVectorTime> const &cuts);
 
   /**
    * Create a lib2geom Geom::PathVector from this Path object.
@@ -605,19 +626,23 @@ public:
    *
    * TODO: Add derivation here maybe?
    *
+   * If relative is true, then instead of "small enough", the criterion is "linear enough".
+   * That is, the threshold parameter is interpreted relatively rather than absolutely.
    */
   void RecCubicTo ( Geom::Point const &iS,  Geom::Point const &iSd,  Geom::Point const &iE,  Geom::Point const &iEd, double tresh, int lev,
 		   double maxL = -1.0);
 
-  void DoArc ( Geom::Point const &iS,  Geom::Point const &iE, double rx, double ry,
-	      double angle, bool large, bool wise, double tresh, int piece);
+  void DoArc(Geom::Point const &iS,  Geom::Point const &iE, double rx, double ry,
+             double angle, bool large, bool wise, double tresh, int piece,
+             bool relative, std::vector<double> const &cuts = {});
   void RecCubicTo ( Geom::Point const &iS,  Geom::Point const &iSd,  Geom::Point const &iE,  Geom::Point const &iEd, double tresh, int lev,
-		   double st, double et, int piece);
+                  double st, double et, int piece, bool relative);
+  void RecCubicTo(Geom::Point const &iS, Geom::Point const &iSd, Geom::Point const &iE, Geom::Point const &iEd, double thresh, int lev,
+                  double st, double et, int piece, bool relative, std::span<double> const &cuts);
 
   static void ArcAngles ( Geom::Point const &iS,  Geom::Point const &iE, double rx,
                          double ry, double angle, bool large, bool wise,
                          double &sang, double &eang);
-  static void QuadraticPoint (double t,  Geom::Point &oPt,   Geom::Point const &iS,   Geom::Point const &iM,   Geom::Point const &iE);
   static void CubicTangent (double t,  Geom::Point &oPt,  Geom::Point const &iS,
 			     Geom::Point const &iSd,  Geom::Point const &iE,
 			     Geom::Point const &iEd);
@@ -830,9 +855,9 @@ private:
    *
    * @param c The Geom::Curve whose path description to create/add.
    */
-    void  AddCurve(Geom::Curve const &c);
-
+    void AddCurve(Geom::Curve const &c);
 };
+
 #endif
 
 /*

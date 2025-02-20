@@ -36,17 +36,7 @@
 #include "sp-object.h"
 #include "sp-item.h"
 #include "sp-item-group.h"
-#include "path/path-boolop.h" // Access to bool_op enum (via LivarotDefs).
-
-enum BoolOpErrors {
-    DONE,
-    DONE_NO_PATH,
-    DONE_NO_ACTION,
-    ERR_TOO_LESS_PATHS_1,
-    ERR_TOO_LESS_PATHS_2,
-    ERR_NO_PATHS,
-    ERR_Z_ORDER
-};
+#include "livarot/LivarotDefs.h"
 
 /**
  * SiblingState enums are used to associate the current state
@@ -462,16 +452,15 @@ public:
     bool simplifyPaths(bool skip_undo = false);
 
     // Boolean operations
-    // in splivarot.cpp
-    bool pathUnion(const bool skip_undo = false, bool silent = false);
-    bool pathIntersect(const bool skip_undo = false, bool silent = false);
-    bool pathDiff(const bool skip_undo = false, bool silent = false);
-    bool pathSymDiff(const bool skip_undo = false, bool silent = false);
-    bool pathCut(const bool skip_undo = false, bool silent = false);
-    bool pathSlice(const bool skip_undo = false, bool silent = false);
+    void pathUnion    (bool skip_undo = false, bool silent = false);
+    void pathIntersect(bool skip_undo = false, bool silent = false);
+    void pathDiff     (bool skip_undo = false, bool silent = false);
+    void pathSymDiff  (bool skip_undo = false, bool silent = false);
+    void pathCut      (bool skip_undo = false, bool silent = false);
+    void pathSlice    (bool skip_undo = false, bool silent = false);
 
-    //Other path operations
-    //in selection-chemistry.cpp
+    // Other path operations
+    // in selection-chemistry.cpp
     void toMarker(bool apply = true);
     void toGuides();
     void toSymbol();
@@ -541,23 +530,22 @@ protected:
     std::unordered_map<SPObject*, sigc::connection> _releaseConnections;
 
 private:
-    // Member function to access desktop and document.
-    BoolOpErrors pathBoolOp(BooleanOp bop, const bool skip_undo, const bool checked = false,
-                            const Glib::ustring icon_name = nullptr, const Glib::ustring description = "",
-                            bool silent = false);
+    void _pathBoolOp(BooleanOp bop, char const *icon_name, char const *description, bool skip_undo, bool silent);
+    void _pathBoolOp(BooleanOp bop);
+
     void _disconnect(SPObject* object);
     std::map<SPObject *, SiblingState> _sibling_state;
 
     Geom::Affine _last_affine;
 };
 
-typedef ObjectSet::SPItemRange SPItemRange;
-typedef ObjectSet::SPGroupRange SPGroupRange;
-typedef ObjectSet::XMLNodeRange XMLNodeRange;
+using SPItemRange = ObjectSet::SPItemRange;
+using SPGroupRange = ObjectSet::SPGroupRange;
+using XMLNodeRange = ObjectSet::XMLNodeRange;
 
 } // namespace Inkscape
 
-#endif //INKSCAPE_PROTOTYPE_OBJECTSET_H
+#endif // INKSCAPE_PROTOTYPE_OBJECTSET_H
 
 /*
   Local Variables:
