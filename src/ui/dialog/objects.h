@@ -78,10 +78,11 @@ enum {COL_LABEL, COL_VISIBLE, COL_LOCKED};
 
 using SelectionState = int;
 enum SelectionStates : SelectionState {
-    SELECTED_NOT = 0,     // Object is NOT in desktop's selection
-    SELECTED_OBJECT = 1,  // Object is in the desktop's selection
-    LAYER_FOCUSED = 2,    // This layer is the desktop's focused layer
-    LAYER_FOCUS_CHILD = 4 // This object is a child of the focused layer
+    SELECTED_NOT = 0,      // Object is NOT in desktop's selection
+    SELECTED_OBJECT = 1,   // Object is in the desktop's selection
+    LAYER_FOCUSED = 2,     // This layer is the desktop's focused layer
+    LAYER_FOCUS_CHILD = 4, // This object is a child of the focused layer
+    GROUP_SELECT_CHILD = 8 // This object is a child of the selected object
 };
 
 /**

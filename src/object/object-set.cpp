@@ -34,12 +34,12 @@ ObjectSet::ObjectSet(SPDesktop *desktop)
     }
 }
 
-bool ObjectSet::add(SPObject *object, bool nosignal, bool skipHierarchyChecks)
+bool ObjectSet::add(SPObject *object, bool nosignal)
 {
     g_return_val_if_fail(object != nullptr, false);
 
     // any ancestor is in the set - do nothing
-    if (!skipHierarchyChecks && _anyAncestorIsInSet(object)) {
+    if (_anyAncestorIsInSet(object)) {
         return false;
     }
 
@@ -48,9 +48,7 @@ bool ObjectSet::add(SPObject *object, bool nosignal, bool skipHierarchyChecks)
 //    object = _getMutualAncestor(object);
 
     // remove all descendants from the set
-    if (!skipHierarchyChecks) {
-        _removeDescendantsFromSet(object);
-    }
+    _removeDescendantsFromSet(object);
 
     _add(object);
     if (!nosignal)

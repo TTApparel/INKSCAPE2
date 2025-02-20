@@ -142,7 +142,7 @@ public:
      * @param obj the SPObject to add
      * @param nosignal true if no signals should be sent
      */
-    bool add(SPObject *object, bool nosignal = false, bool skipHierarchyChecks = false);
+    bool add(SPObject *object, bool nosignal = false);
 
     /**
      * Add an XML node's SPObject to the set of selected objects.

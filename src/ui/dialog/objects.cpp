@@ -74,15 +74,23 @@
 
 // alpha (transparency) multipliers corresponding to item selection state combinations (SelectionState)
 // when 0 - do not color item's background
-static double const SELECTED_ALPHA[8] = {
-    0.00, //0 not selected
-    0.90, //1 selected
-    0.50, //2 layer focused
-    0.20, //3 layer focused & selected
-    0.00, //4 child of focused layer
-    0.90, //5 selected child of focused layer
-    0.50, //6 2 and 4
-    0.90  //7 1, 2 and 4
+static double const SELECTED_ALPHA[16] = {
+    0.00, //00 not selected
+    0.90, //01 selected
+    0.50, //02 layer focused
+    0.20, //03 layer focused & selected
+    0.00, //04 child of focused layer
+    0.90, //05 selected child of focused layer
+    0.50, //06 2 and 4
+    0.90, //07 1, 2 and 4
+    0.40, //08 child of selected group
+    0.90, //09 1 and 8
+    0.40, //10 2 and 8
+    0.90, //11 1, 2 and 8
+    0.40, //12 4 and 8
+    0.90, //13 1, 4 and 8
+    0.40, //14 2, 4 and 8
+    0.90, //15 1, 2 , 4 and 8
 };
 
 namespace Inkscape::UI::Dialog {
@@ -1179,6 +1187,7 @@ bool ObjectsPanel::_selectionChanged()
 {
     Inkscape::Preferences *prefs = Inkscape::Preferences::get();
     root_watcher->setSelectedBitRecursive(SELECTED_OBJECT, false);
+    root_watcher->setSelectedBitRecursive(GROUP_SELECT_CHILD, false);
     bool keep_current_item = false;
 
     for (auto item : getSelection()->items()) {
@@ -1191,6 +1200,7 @@ bool ObjectsPanel::_selectionChanged()
             // of the current object view and we expand to the closest sublayer instead.
             if (auto child_watcher = watcher->findChild(item->getRepr())) {
                 child_watcher->setSelectedBit(SELECTED_OBJECT, true);
+                child_watcher->setSelectedBitRecursive(GROUP_SELECT_CHILD, true);
                 watcher = child_watcher;
             }
 
@@ -2001,6 +2011,8 @@ void ObjectsPanel::on_drag_end(Glib::RefPtr<Gdk::Drag> const &/*drag*/, bool /*d
 
 void ObjectsPanel::selectRange(Gtk::TreeModel::Path start, Gtk::TreeModel::Path end)
 {
+    auto &layers = getDesktop()->layerManager();
+
     if (!start || !end) {
         return;
     }
@@ -2028,8 +2040,10 @@ void ObjectsPanel::selectRange(Gtk::TreeModel::Path start, Gtk::TreeModel::Path 
             (gtk_tree_path_compare(end.gobj(), p.gobj()) >= 0)) {
             auto obj = getItem(*it);
             if (obj) {
-                _prev_range.emplace_back(obj);
-                selection->add(obj, false, true);
+                if (!layers.isLayer(obj)) {
+                    _prev_range.emplace_back(obj);
+                    selection->add(obj, false);
+                }
             }
         }
         return false;
@@ -2075,7 +2089,7 @@ bool ObjectsPanel::selectCursorItem(Gdk::ModifierType const state)
             if (selection->includes(item)) {
                 selection->remove(item);
             } else {
-                selection->add(item, false, true);
+                selection->add(item, false);
                 _initial_path = path;
                 _start_new_range = true;
             }
