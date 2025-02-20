@@ -287,13 +287,13 @@ override) the bindings in the main default.xml.
   <bind gaction="app.object-flip-horizontal"             keys="h" />
   <bind gaction="app.object-flip-vertical"               keys="v" />
 
-  <bind gaction="app.object-align('vcenter pref')"         keys="&lt;primary&gt;&lt;alt&gt;KP_1" />
-  <bind gaction="app.object-align('bottom pref')"          keys="&lt;primary&gt;&lt;alt&gt;KP_2" />
-  <bind gaction="app.object-align('left pref')"            keys="&lt;primary&gt;&lt;alt&gt;KP_4" />
-  <bind gaction="app.object-align('hcenter vcenter pref')" keys="&lt;primary&gt;&lt;alt&gt;KP_5" />
-  <bind gaction="app.object-align('right pref')"           keys="&lt;primary&gt;&lt;alt&gt;KP_6" />
-  <bind gaction="app.object-align('hcenter pref')"         keys="&lt;primary&gt;&lt;alt&gt;KP_7" />
-  <bind gaction="app.object-align('top pref')"             keys="&lt;primary&gt;&lt;alt&gt;KP_8" />
+  <bind gaction="app.object-align('vcenter pref')"         keys="&lt;primary&gt;&lt;alt&gt;1, &lt;primary&gt;&lt;alt&gt;KP_1" />
+  <bind gaction="app.object-align('bottom pref')"          keys="&lt;primary&gt;&lt;alt&gt;2, &lt;primary&gt;&lt;alt&gt;KP_2" />
+  <bind gaction="app.object-align('left pref')"            keys="&lt;primary&gt;&lt;alt&gt;4, &lt;primary&gt;&lt;alt&gt;KP_4" />
+  <bind gaction="app.object-align('hcenter vcenter pref')" keys="&lt;primary&gt;&lt;alt&gt;5, &lt;primary&gt;&lt;alt&gt;KP_5" />
+  <bind gaction="app.object-align('right pref')"           keys="&lt;primary&gt;&lt;alt&gt;6, &lt;primary&gt;&lt;alt&gt;KP_6" />
+  <bind gaction="app.object-align('hcenter pref')"         keys="&lt;primary&gt;&lt;alt&gt;7, &lt;primary&gt;&lt;alt&gt;KP_7" />
+  <bind gaction="app.object-align('top pref')"             keys="&lt;primary&gt;&lt;alt&gt;8, &lt;primary&gt;&lt;alt&gt;KP_8" />
 
 
 
