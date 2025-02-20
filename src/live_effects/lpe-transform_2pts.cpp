@@ -293,13 +293,15 @@ Gtk::Widget *LPETransform2Pts::newWidget()
     auto const vbox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 6);
     vbox->set_margin(5);
 
-    // Create a grid for checkboxes
     auto const grid = Gtk::make_managed<Gtk::Grid>();
-    grid->set_row_spacing(10);
-    grid->set_column_spacing(30);
-    grid->set_margin_top(5);
+    grid->set_column_spacing(50);
+    grid->set_row_spacing(6);
 
-    int row = 0, col = 0;
+    std::map<std::string, std::pair<int, int>> widget_positions = {
+        {"elastic", {0, 0}}, {"from_original_width", {1, 0}},
+        {"flip_vertical", {0, 1}}, {"flip_horizontal", {1, 1}},
+        {"lock_length", {0, 2}}, {"lock_angle", {1, 2}}
+    };
 
     for (auto const param: param_vector) {
         if (!param->widget_is_visible) continue;
@@ -307,37 +309,21 @@ Gtk::Widget *LPETransform2Pts::newWidget()
         auto const widg = param->param_newWidget();
         if (!widg) continue;
 
+        auto parent = vbox;
+
         if (param->param_key == "first_knot" || param->param_key == "last_knot") {
             auto &scalar = dynamic_cast<UI::Widget::Scalar &>(*widg);
             Gtk::manage(&scalar);
             scalar.signal_value_changed().connect(sigc::mem_fun(*this, &LPETransform2Pts::updateIndex));
             scalar.getSpinButton().set_width_chars(3);
-        }
-        else if (param->param_key == "elastic" ||
-            param->param_key == "from_original_width" ||
-            param->param_key == "lock_length" ||
-            param->param_key == "lock_angle" ||
-            param->param_key == "flip_horizontal" ||
-            param->param_key == "flip_vertical") 
-        {
+        } else if (widget_positions.find(param->param_key) != widget_positions.end()) {
+            auto [col, row] = widget_positions[param->param_key];
             grid->attach(*widg, col, row, 1, 1);
+            parent = nullptr; // To avoid adding it to vbox later
+        } 
 
-            row++;
-            if (row == 3) { 
-                row = 0, col = 1;
-            }
-            continue;
-        }
-
-        if(param->param_key != "elastic" &&
-            param->param_key != "from_original_width" &&
-            param->param_key != "lock_length" &&
-            param->param_key != "lock_angle" &&
-            param->param_key != "flip_horizontal" &&
-            param->param_key != "flip_vertical")
-        {
-
-            g_assert(vbox);
+        // Add to vbox only if it's not in the grid
+        if(parent) {
             UI::pack_start(*vbox, *widg, true, true, 2);
         }
 
@@ -349,13 +335,10 @@ Gtk::Widget *LPETransform2Pts::newWidget()
         }
     }
 
-    // Add the grid to the vbox
-    UI::pack_start(*vbox, *grid, true, true, 2);
-
-    // Add Reset button at the bottom
     auto const reset = Gtk::make_managed<Gtk::Button>(Glib::ustring(_("Reset")));
     reset->signal_clicked().connect(sigc::mem_fun(*this, &LPETransform2Pts::reset));
-    UI::pack_start(*vbox, *reset, true, true, 2);
+    UI::pack_start(*vbox, *grid, true, true, 2); // Add grid to vbox
+    UI::pack_start(*vbox, *reset, true, true, 2); // Add reset button to vbox
 
     return vbox;
 }
