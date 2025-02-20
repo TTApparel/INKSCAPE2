@@ -30,6 +30,7 @@
 #include <gtkmm/treeview.h>
 
 #include <sigc++/scoped_connection.h>
+#include "object/weakptr.h"
 #include "preferences.h"
 #include "selection.h"
 #include "style-enums.h"
@@ -127,7 +128,7 @@ private:
     SPItem *current_item = nullptr;
     Gtk::TreeModel::Path _initial_path;
     bool _start_new_range = true;
-    std::vector<SPObject *> _prev_range;
+    std::vector<SPWeakPtr<SPObject>> _prev_range;
 
     sigc::scoped_connection layer_changed;
     SPObject *_layer;

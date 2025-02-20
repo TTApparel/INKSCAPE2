@@ -2013,8 +2013,10 @@ void ObjectsPanel::selectRange(Gtk::TreeModel::Path start, Gtk::TreeModel::Path 
 
     if (!_start_new_range) {
         // Deselect previous selection of this range first and then proceed.
-        for (auto obj : _prev_range) {
-            selection->remove(obj);
+        for (auto const &obj : _prev_range) {
+            if (obj) {
+                selection->remove(obj.get());
+            }
         }
     }
 
@@ -2026,7 +2028,7 @@ void ObjectsPanel::selectRange(Gtk::TreeModel::Path start, Gtk::TreeModel::Path 
             (gtk_tree_path_compare(end.gobj(), p.gobj()) >= 0)) {
             auto obj = getItem(*it);
             if (obj) {
-                _prev_range.push_back(obj);
+                _prev_range.emplace_back(obj);
                 selection->add(obj, false, true);
             }
         }
