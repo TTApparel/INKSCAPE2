@@ -752,13 +752,13 @@ ObjectsPanel::ObjectsPanel()
     auto& _move_down_button = get_widget<Gtk::Button>(_builder, "move-down");
     auto& _object_delete_button = get_widget<Gtk::Button>(_builder, "remove-object");
     _move_up_button.signal_clicked().connect([this]() {
-        _activateAction("layer-raise", "selection-stack-up");
+        _activateAction("win.layer-raise", "selection-stack-up");
     });
     _move_down_button.signal_clicked().connect([this]() {
-        _activateAction("layer-lower", "selection-stack-down");
+        _activateAction("win.layer-lower", "selection-stack-down");
     });
     _object_delete_button.signal_clicked().connect([this]() {
-        _activateAction("layer-delete", "delete-selection");
+        _activateAction("win.layer-delete", "delete-selection");
     });
 
     //Label
@@ -1412,34 +1412,34 @@ bool ObjectsPanel::on_tree_key_pressed(Gtk::EventControllerKey const &controller
         case GDK_KEY_Delete:
         case GDK_KEY_KP_Delete:
         case GDK_KEY_BackSpace:
-            _activateAction("layer-delete", "delete-selection");
+            _activateAction("win.layer-delete", "delete-selection");
             // NOTE: We could select a sibling object here to make deleting many objects easier.
             return true;
         case GDK_KEY_Page_Up:
         case GDK_KEY_KP_Page_Up:
             if (shift) {
-                _activateAction("layer-top", "selection-top");
+                _activateAction("win.layer-top", "selection-top");
                 return true;
             }
             break;
         case GDK_KEY_Page_Down:
         case GDK_KEY_KP_Page_Down:
             if (shift) {
-                _activateAction("layer-bottom", "selection-bottom");
+                _activateAction("win.layer-bottom", "selection-bottom");
                 return true;
             }
             break;
         case GDK_KEY_Up:
         case GDK_KEY_KP_Up:
             if (shift) {
-                _activateAction("layer-raise", "selection-stack-up");
+                _activateAction("win.layer-raise", "selection-stack-up");
                 return true;
             }
             break;
         case GDK_KEY_Down:
         case GDK_KEY_KP_Down:
             if (shift) {
-                _activateAction("layer-lower", "selection-stack-down");
+                _activateAction("win.layer-lower", "selection-stack-down");
                 return true;
             }
         case GDK_KEY_Return:
