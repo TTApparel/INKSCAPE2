@@ -257,24 +257,26 @@ canvas_color_manage_toggle(InkscapeWindow *win)
     canvas->redraw_all();
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Canvas Display");
+
 std::vector<std::vector<Glib::ustring>> raw_data_canvas_mode =
 {
     // clang-format off
-    {"win.canvas-display-mode(0)",              N_("Display Mode: Normal"),             "Canvas Display",    N_("Use normal rendering mode")                     },
-    {"win.canvas-display-mode(1)",              N_("Display Mode: Outline"),            "Canvas Display",    N_("Show only object outlines")                     },
-    {"win.canvas-display-mode(2)",              N_("Display Mode: No Filters"),         "Canvas Display",    N_("Do not render filters (for speed)")             },
-    {"win.canvas-display-mode(3)",              N_("Display Mode: Enhance Thin Lines"), "Canvas Display",    N_("Ensure all strokes are displayed on screen as at least 1 pixel wide")},
-    {"win.canvas-display-mode(4)",              N_("Display Mode: Outline Overlay"),    "Canvas Display",    N_("Show objects as outlines, and the actual drawing below them with reduced opacity")},
-    {"win.canvas-display-mode-cycle",           N_("Display Mode: Cycle"),              "Canvas Display",    N_("Cycle through display modes")                   },
-    {"win.canvas-display-mode-toggle",          N_("Display Mode: Toggle"),             "Canvas Display",    N_("Toggle between normal and last non-normal mode")},
-    {"win.canvas-display-mode-toggle-preview",  N_("Display Mode: Toggle Preview"),     "Canvas Display",    N_("Toggle between preview and previous mode")      },
+    {"win.canvas-display-mode(0)",              N_("Display Mode: Normal"),             SECTION,    N_("Use normal rendering mode")                     },
+    {"win.canvas-display-mode(1)",              N_("Display Mode: Outline"),            SECTION,    N_("Show only object outlines")                     },
+    {"win.canvas-display-mode(2)",              N_("Display Mode: No Filters"),         SECTION,    N_("Do not render filters (for speed)")             },
+    {"win.canvas-display-mode(3)",              N_("Display Mode: Enhance Thin Lines"), SECTION,    N_("Ensure all strokes are displayed on screen as at least 1 pixel wide")},
+    {"win.canvas-display-mode(4)",              N_("Display Mode: Outline Overlay"),    SECTION,    N_("Show objects as outlines, and the actual drawing below them with reduced opacity")},
+    {"win.canvas-display-mode-cycle",           N_("Display Mode: Cycle"),              SECTION,    N_("Cycle through display modes")                   },
+    {"win.canvas-display-mode-toggle",          N_("Display Mode: Toggle"),             SECTION,    N_("Toggle between normal and last non-normal mode")},
+    {"win.canvas-display-mode-toggle-preview",  N_("Display Mode: Toggle Preview"),     SECTION,    N_("Toggle between preview and previous mode")      },
 
-    {"win.canvas-split-mode(0)",                N_("Split Mode: Normal"),            "Canvas Display",    N_("Do not split canvas")                              },
-    {"win.canvas-split-mode(1)",                N_("Split Mode: Split"),             "Canvas Display",    N_("Render part of the canvas in outline mode")        },
-    {"win.canvas-split-mode(2)",                N_("Split Mode: X-Ray"),             "Canvas Display",    N_("Render a circular area in outline mode")           },
+    {"win.canvas-split-mode(0)",                N_("Split Mode: Normal"),               SECTION,    N_("Do not split canvas")                              },
+    {"win.canvas-split-mode(1)",                N_("Split Mode: Split"),                SECTION,    N_("Render part of the canvas in outline mode")        },
+    {"win.canvas-split-mode(2)",                N_("Split Mode: X-Ray"),                SECTION,    N_("Render a circular area in outline mode")           },
 
-    {"win.canvas-color-mode",                   N_("Color Mode"),                    "Canvas Display",    N_("Toggle between normal and grayscale modes")        },
-    {"win.canvas-color-manage",                 N_("Color Managed Mode"),            "Canvas Display",    N_("Toggle between normal and color managed modes")    }
+    {"win.canvas-color-mode",                   N_("Color Mode"),                       SECTION,    N_("Toggle between normal and grayscale modes")        },
+    {"win.canvas-color-manage",                 N_("Color Managed Mode"),               SECTION,    N_("Toggle between normal and color managed modes")    }
     // clang-format on
 };
 

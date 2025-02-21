@@ -766,46 +766,47 @@ object_remove_overlaps(const Glib::VariantBase& value, InkscapeApplication *app)
     Inkscape::DocumentUndo::done( document, _("Remove overlaps"), INKSCAPE_ICON("dialog-align-and-distribute"));
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Object");
 
 std::vector<std::vector<Glib::ustring>> raw_data_object_align =
 {
     // clang-format off
-    {"app.object-align-on-canvas",         N_("Enable on-canvas alignment"),  "Object", N_("Enable on-canvas alignment handles"                                                                                           )},
+    {"app.object-align-on-canvas",               N_("Enable on-canvas alignment"),  SECTION, N_("Enable on-canvas alignment handles"                                                                                           )},
 
-    {"app.object-align",                   N_("Align objects"),      "Object", N_("Align selected objects; usage: [[left|hcenter|right] || [top|vcenter|bottom]] [last|first|biggest|smallest|page|drawing|selection|pref]? group? anchor?")},
+    {"app.object-align",                         N_("Align objects"),               SECTION, N_("Align selected objects; usage: [[left|hcenter|right] || [top|vcenter|bottom]] [last|first|biggest|smallest|page|drawing|selection|pref]? group? anchor?")},
 
-    {"app.object-align('left pref')",      N_("Align to left edge"),          "Object", N_("Align selection horizontally to left edge"                                                                                    )},
-    {"app.object-align('hcenter pref')",   N_("Align to horizontal center"),  "Object", N_("Align selection horizontally to the center"                                                                                   )},
-    {"app.object-align('right pref')",     N_("Align to right edge"),         "Object", N_("Align selection horizontally to right edge"                                                                                   )},
-    {"app.object-align('top pref')",       N_("Align to top edge"),           "Object", N_("Align selection vertically to top edge"                                                                                       )},
-    {"app.object-align('bottom pref')",    N_("Align to bottom edge"),        "Object", N_("Align selection vertically to bottom edge"                                                                                    )},
-    {"app.object-align('vcenter pref')",   N_("Align to vertical center"),    "Object", N_("Align selection vertically to the center"                                                                                     )},
-    {"app.object-align('hcenter vcenter pref')", N_("Align to center"),       "Object", N_("Align selection to the center"                                                                                                )},
-    {"app.object-align-text",              N_("Align text objects"), "Object", N_("Align selected text anchors; usage: [[vertical | horizontal] [last|first|biggest|smallest|page|drawing|selection]?"            )},
+    {"app.object-align('left pref')",            N_("Align to left edge"),          SECTION, N_("Align selection horizontally to left edge"                                                                                    )},
+    {"app.object-align('hcenter pref')",         N_("Align to horizontal center"),  SECTION, N_("Align selection horizontally to the center"                                                                                   )},
+    {"app.object-align('right pref')",           N_("Align to right edge"),         SECTION, N_("Align selection horizontally to right edge"                                                                                   )},
+    {"app.object-align('top pref')",             N_("Align to top edge"),           SECTION, N_("Align selection vertically to top edge"                                                                                       )},
+    {"app.object-align('bottom pref')",          N_("Align to bottom edge"),        SECTION, N_("Align selection vertically to bottom edge"                                                                                    )},
+    {"app.object-align('vcenter pref')",         N_("Align to vertical center"),    SECTION, N_("Align selection vertically to the center"                                                                                     )},
+    {"app.object-align('hcenter vcenter pref')", N_("Align to center"),             SECTION, N_("Align selection to the center"                                                                                                )},
+    {"app.object-align-text",                    N_("Align text objects"),          SECTION, N_("Align selected text anchors; usage: [[vertical | horizontal] [last|first|biggest|smallest|page|drawing|selection]?"           )},
 
-    {"app.object-distribute",              N_("Distribute objects"),          "Object", N_("Distribute selected objects; usage: [hgap | left | hcenter | right | vgap | top | vcenter | bottom]"                           )},
-    {"app.object-distribute('hgap')",      N_("Even horizontal gaps"),        "Object", N_("Distribute horizontally with even horizontal gaps"                                                                            )},
-    {"app.object-distribute('left')",      N_("Even left edges"),             "Object", N_("Distribute horizontally with even spacing between left edges"                                                                 )},
-    {"app.object-distribute('hcenter')",   N_("Even horizontal centers"),     "Object", N_("Distribute horizontally with even spacing between centers"                                                                    )},
-    {"app.object-distribute('right')",     N_("Even right edges"),            "Object", N_("Distribute horizontally with even spacing between right edges"                                                                )},
-    {"app.object-distribute('vgap')",      N_("Even vertical gaps"),          "Object", N_("Distribute vertically with even vertical gaps"                                                                                )},
-    {"app.object-distribute('top')",       N_("Even top edges"),              "Object", N_("Distribute vertically with even spacing between top edges"                                                                    )},
-    {"app.object-distribute('vcenter')",   N_("Even vertical centers"),       "Object", N_("Distribute vertically with even spacing between centers"                                                                      )},
-    {"app.object-distribute('bottom')",    N_("Even bottom edges"),           "Object", N_("Distribute vertically with even spacing between bottom edges"                                                                 )},
+    {"app.object-distribute",                    N_("Distribute objects"),          SECTION, N_("Distribute selected objects; usage: [hgap | left | hcenter | right | vgap | top | vcenter | bottom]"                          )},
+    {"app.object-distribute('hgap')",            N_("Even horizontal gaps"),        SECTION, N_("Distribute horizontally with even horizontal gaps"                                                                            )},
+    {"app.object-distribute('left')",            N_("Even left edges"),             SECTION, N_("Distribute horizontally with even spacing between left edges"                                                                 )},
+    {"app.object-distribute('hcenter')",         N_("Even horizontal centers"),     SECTION, N_("Distribute horizontally with even spacing between centers"                                                                    )},
+    {"app.object-distribute('right')",           N_("Even right edges"),            SECTION, N_("Distribute horizontally with even spacing between right edges"                                                                )},
+    {"app.object-distribute('vgap')",            N_("Even vertical gaps"),          SECTION, N_("Distribute vertically with even vertical gaps"                                                                                )},
+    {"app.object-distribute('top')",             N_("Even top edges"),              SECTION, N_("Distribute vertically with even spacing between top edges"                                                                    )},
+    {"app.object-distribute('vcenter')",         N_("Even vertical centers"),       SECTION, N_("Distribute vertically with even spacing between centers"                                                                      )},
+    {"app.object-distribute('bottom')",          N_("Even bottom edges"),           SECTION, N_("Distribute vertically with even spacing between bottom edges"                                                                 )},
 
-    {"app.object-distribute-text",         N_("Distribute text objects"),     "Object", N_("Distribute text anchors; usage [vertical | horizontal]"                                                               )},
-    {"app.object-distribute-text('horizontal')", N_("Distribute text objects"),     "Object", N_("Distribute text anchors horizontally"                                                                           )},
-    {"app.object-distribute-text('vertical')",   N_("Distribute text objects"),     "Object", N_("Distribute text anchors vertically"                                                                             )},
+    {"app.object-distribute-text",               N_("Distribute text objects"),     SECTION, N_("Distribute text anchors; usage [vertical | horizontal]"                                                                       )},
+    {"app.object-distribute-text('horizontal')", N_("Distribute text objects"),     SECTION, N_("Distribute text anchors horizontally"                                                                                         )},
+    {"app.object-distribute-text('vertical')",   N_("Distribute text objects"),     SECTION, N_("Distribute text anchors vertically"                                                                                           )},
 
-    {"app.object-rearrange",               N_("Rearrange objects"),           "Object", N_("Rearrange selected objects; usage: [graph | exchange | exchangez | rotate | randomize | unclump]"                              )},
-    {"app.object-rearrange('graph')",      N_("Rearrange as graph"),          "Object", N_("Nicely arrange selected connector network"                                                                                    )},
-    {"app.object-rearrange('exchange')",   N_("Exchange in selection order"), "Object", N_("Exchange positions of selected objects - selection order"                                                                     )},
-    {"app.object-rearrange('exchangez')",  N_("Exchange in z-order"),         "Object", N_("Exchange positions of selected objects - stacking order"                                                                      )},
-    {"app.object-rearrange('rotate')",     N_("Exchange around center"),      "Object", N_("Exchange positions of selected objects - rotate around center point"                                                          )},
-    {"app.object-rearrange('randomize')",  N_("Random exchange"),             "Object", N_("Randomize centers in both dimensions"                                                                                         )},
-    {"app.object-rearrange('unclump')",    N_("Unclump"),                     "Object", N_("Unclump objects: try to equalize edge-to-edge distances"                                                                      )},
+    {"app.object-rearrange",                     N_("Rearrange objects"),           SECTION, N_("Rearrange selected objects; usage: [graph | exchange | exchangez | rotate | randomize | unclump]"                             )},
+    {"app.object-rearrange('graph')",            N_("Rearrange as graph"),          SECTION, N_("Nicely arrange selected connector network"                                                                                    )},
+    {"app.object-rearrange('exchange')",         N_("Exchange in selection order"), SECTION, N_("Exchange positions of selected objects - selection order"                                                                     )},
+    {"app.object-rearrange('exchangez')",        N_("Exchange in z-order"),         SECTION, N_("Exchange positions of selected objects - stacking order"                                                                      )},
+    {"app.object-rearrange('rotate')",           N_("Exchange around center"),      SECTION, N_("Exchange positions of selected objects - rotate around center point"                                                          )},
+    {"app.object-rearrange('randomize')",        N_("Random exchange"),             SECTION, N_("Randomize centers in both dimensions"                                                                                         )},
+    {"app.object-rearrange('unclump')",          N_("Unclump"),                     SECTION, N_("Unclump objects: try to equalize edge-to-edge distances"                                                                      )},
 
-    {"app.object-remove-overlaps",         N_("Remove overlaps"),             "Object", N_("Remove overlaps between objects: requires two comma separated numbers (horizontal and vertical gaps)"                         )},
+    {"app.object-remove-overlaps",               N_("Remove overlaps"),             SECTION, N_("Remove overlaps between objects: requires two comma separated numbers (horizontal and vertical gaps)"                         )},
     // clang-format on
 };
 
@@ -813,9 +814,9 @@ std::vector<std::vector<Glib::ustring>> hint_data_object_align =
 {
     // clang-format off
     {"app.object-align",           N_("Enter anchor<space>alignment<space>optional second alignment. Possible anchors: last, first, biggest, smallest, page, drawing, selection, pref; possible alignments: left, hcenter, right, top, vcenter, bottom.")},
-    {"app.object-distribute",      N_("Enter distribution type. Possible values: left, hcenter, right, top, vcenter, bottom, hgap, vgap.")  },
+    {"app.object-distribute",      N_("Enter distribution type. Possible values: left, hcenter, right, top, vcenter, bottom, hgap, vgap.")    },
     {"app.object-rearrange",       N_("Enter arrange method. Possible values: graph, exchange, exchangez, rotate, randomize, unclump.")       },
-    {"app.object-remove-overlaps", N_("Enter two comma-separated numbers: horizontal,vertical")                                                              },
+    {"app.object-remove-overlaps", N_("Enter two comma-separated numbers: horizontal,vertical")                                               },
     // clang-format on
 };
 

@@ -692,31 +692,33 @@ void normalize_all_paths(Inkscape::XML::Node *node)
     }
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Processing");
+
 std::vector<std::vector<Glib::ustring>> doc_svg_processing_actions =
 {
     // clang-format off
-    {"doc.set-svg-version-1",            N_("Set SVG Version to 1.1"),       "Processing", N_("Set the document's SVG version to 1.1") },
-    {"doc.set-svg-version-2",            N_("Set SVG Version to 2.0"),       "Processing", N_("Set the document's SVG version to 2.0") },
-    {"doc.prune-inkscape-namespaces",    N_("Prune Inkscape Namespaces"),    "Processing", N_("Remove any Inkscape-specific SVG data") },
-    {"doc.prune-proprietary-namespaces", N_("Prune Proprietary Namespaces"), "Processing", N_("Remove any known proprietary SVG data") },
+    {"doc.set-svg-version-1",            N_("Set SVG Version to 1.1"),       SECTION, N_("Set the document's SVG version to 1.1") },
+    {"doc.set-svg-version-2",            N_("Set SVG Version to 2.0"),       SECTION, N_("Set the document's SVG version to 2.0") },
+    {"doc.prune-inkscape-namespaces",    N_("Prune Inkscape Namespaces"),    SECTION, N_("Remove any Inkscape-specific SVG data") },
+    {"doc.prune-proprietary-namespaces", N_("Prune Proprietary Namespaces"), SECTION, N_("Remove any known proprietary SVG data") },
 
-    {"doc.reverse-auto-start-markers",   N_("Reverse Auto Start Markers"),   "Processing", N_("Remove auto start positions from markers") },
-    {"doc.remove-all-transforms",        N_("Try to Remove All Transforms"), "Processing", N_("Attempt to remove all transforms from all shapes") },
-    {"doc.remove-marker-context-paint",  N_("Remove Marker Context Paint"),  "Processing", N_("Remove context paints from markers") },
+    {"doc.reverse-auto-start-markers",   N_("Reverse Auto Start Markers"),   SECTION, N_("Remove auto start positions from markers") },
+    {"doc.remove-all-transforms",        N_("Try to Remove All Transforms"), SECTION, N_("Attempt to remove all transforms from all shapes") },
+    {"doc.remove-marker-context-paint",  N_("Remove Marker Context Paint"),  SECTION, N_("Remove context paints from markers") },
 
-    {"doc.insert-text-fallback",         N_("Insert Text Fallback"),         "Processing", N_("Replace SVG2 text with SVG1.1 text") },
-    {"doc.insert-mesh-polyfill",         N_("Insert Mesh Polyfill"),         "Processing", N_("Insert JavaScript for rendering meshes") },
-    {"doc.insert-hatch-polyfill",        N_("Insert Hatch Polyfill"),        "Processing", N_("Insert JavaScript for rendering hatches") },
+    {"doc.insert-text-fallback",         N_("Insert Text Fallback"),         SECTION, N_("Replace SVG2 text with SVG1.1 text") },
+    {"doc.insert-mesh-polyfill",         N_("Insert Mesh Polyfill"),         SECTION, N_("Insert JavaScript for rendering meshes") },
+    {"doc.insert-hatch-polyfill",        N_("Insert Hatch Polyfill"),        SECTION, N_("Insert JavaScript for rendering hatches") },
 
-    {"doc.all-clones-to-objects",        N_("Unlink All Clones"),            "Processing", N_("Recursively unlink all clones and symbols") },
-    {"doc.all-objects-to-paths",         N_("All Objects to Paths"),         "Processing", N_("Turn all shapes recursively into path elements") },
-    {"doc.add-strokes-to-paths",         N_("All Strokes to Paths"),         "Processing", N_("Turn all strokes recursively into fill-only paths") },
-    {"doc.normalize-all-paths",          N_("Normalize Path Data"),          "Processing", N_("Make all paths absolute and predictable") },
+    {"doc.all-clones-to-objects",        N_("Unlink All Clones"),            SECTION, N_("Recursively unlink all clones and symbols") },
+    {"doc.all-objects-to-paths",         N_("All Objects to Paths"),         SECTION, N_("Turn all shapes recursively into path elements") },
+    {"doc.add-strokes-to-paths",         N_("All Strokes to Paths"),         SECTION, N_("Turn all strokes recursively into fill-only paths") },
+    {"doc.normalize-all-paths",          N_("Normalize Path Data"),          SECTION, N_("Make all paths absolute and predictable") },
 
-    {"doc.insert-bounding-boxes",        N_("Annotate all Bounding Boxes"),  "Processing", N_("Annotate every shape and group with its current bounding box (not kept up to date)") },
-    {"doc.insert-path-data",             N_("Annotate all Shape Paths"),     "Processing", N_("Annotate every non-path shape with their equivalent path string (not kept up to date)") },
+    {"doc.insert-bounding-boxes",        N_("Annotate all Bounding Boxes"),  SECTION, N_("Annotate every shape and group with its current bounding box (not kept up to date)") },
+    {"doc.insert-path-data",             N_("Annotate all Shape Paths"),     SECTION, N_("Annotate every non-path shape with their equivalent path string (not kept up to date)") },
 
-    {"doc.vacuum-defs",                  N_("Clean up Document"),            "Processing", N_("Remove unused definitions (gradients, etc.)") },
+    {"doc.vacuum-defs",                  N_("Clean up Document"),            SECTION, N_("Remove unused definitions (gradients, etc.)") },
     // clang-format on
 };
 

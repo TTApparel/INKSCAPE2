@@ -57,7 +57,7 @@ void anchor_open_link(InkscapeApplication* app)
 std::vector<std::vector<Glib::ustring>> raw_data_element_a =
 {
     // clang-format off
-    {"app.element-a-open-link",          N_("Open link"),   "Anchor",    N_("Add an anchor to an object.") },
+    {"app.element-a-open-link",          N_("Open link"),   NC_("Action Section", "Anchor"),    N_("Add an anchor to an object.") },
     // clang-format on
 };
 

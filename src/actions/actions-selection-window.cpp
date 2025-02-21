@@ -118,19 +118,21 @@ select_none(InkscapeWindow* win)
     Inkscape::SelectionHelper::selectNone(dt);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Select");
+
 std::vector<std::vector<Glib::ustring>> raw_selection_dekstop_data =
 {
     // clang-format off
-    {"win.select-all",                          N_("Select All"),                   "Select",        N_("Select all objects or all nodes")},
-    {"win.select-all-layers",                   N_("Select All in All Layers"),     "Select",        N_("Select all objects in all visible and unlocked layers")},
-    {"win.select-same-fill-and-stroke",         N_("Fill and Stroke"),              "Select",        N_("Select all objects with the same fill and stroke as the selected objects")},
-    {"win.select-same-fill",                    N_("Fill Color"),                   "Select",        N_("Select all objects with the same fill as the selected objects")},
-    {"win.select-same-stroke-color",            N_("Stroke Color"),                 "Select",        N_("Select all objects with the same stroke as the selected objects")},
-    {"win.select-same-stroke-style",            N_("Stroke Style"),                 "Select",        N_("Select all objects with the same stroke style (width, dash, markers) as the selected objects")},
-    {"win.select-same-object-type",             N_("Object Type"),                  "Select",        N_("Select all objects with the same object type (rect, arc, text, path, bitmap etc) as the selected objects")},
-    {"win.select-invert",                       N_("Invert Selection"),             "Select",        N_("Invert selection (unselect what is selected and select everything else)")},
-    {"win.select-invert-all",                   N_("Invert in All Layers"),         "Select",        N_("Invert selection in all visible and unlocked layers")},
-    {"win.select-none",                         N_("Deselect"),                     "Select",        N_("Deselect any selected objects or nodes")},
+    {"win.select-all",                   N_("Select All"),                  SECTION, N_("Select all objects or all nodes")},
+    {"win.select-all-layers",            N_("Select All in All Layers"),    SECTION, N_("Select all objects in all visible and unlocked layers")},
+    {"win.select-same-fill-and-stroke",  N_("Fill and Stroke"),             SECTION, N_("Select all objects with the same fill and stroke as the selected objects")},
+    {"win.select-same-fill",             N_("Fill Color"),                  SECTION, N_("Select all objects with the same fill as the selected objects")},
+    {"win.select-same-stroke-color",     N_("Stroke Color"),                SECTION, N_("Select all objects with the same stroke as the selected objects")},
+    {"win.select-same-stroke-style",     N_("Stroke Style"),                SECTION, N_("Select all objects with the same stroke style (width, dash, markers) as the selected objects")},
+    {"win.select-same-object-type",      N_("Object Type"),                 SECTION, N_("Select all objects with the same object type (rect, arc, text, path, bitmap etc) as the selected objects")},
+    {"win.select-invert",                N_("Invert Selection"),            SECTION, N_("Invert selection (unselect what is selected and select everything else)")},
+    {"win.select-invert-all",            N_("Invert in All Layers"),        SECTION, N_("Invert selection in all visible and unlocked layers")},
+    {"win.select-none",                  N_("Deselect"),                    SECTION, N_("Deselect any selected objects or nodes")},
     // DO NOT ADD select-next or select-previous here as their default keys conflict with Gtk's widget navigation.
 
     // clang-format on

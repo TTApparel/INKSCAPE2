@@ -191,19 +191,21 @@ hide_lock_lock_selected(InkscapeApplication* app, bool lock)
     }
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Hide and Lock");
+
 std::vector<std::vector<Glib::ustring>> raw_data_hide_lock =
 {
     // clang-format off
-    {"app.unhide-all",              N_("Unhide All"),         "Hide and Lock",      N_("Unhide all objects")      },
-    {"app.unlock-all",              N_("Unlock All"),         "Hide and Lock",      N_("Unlock all objects")      },
+    {"app.unhide-all",              N_("Unhide All"),         SECTION, N_("Unhide all objects")                           },
+    {"app.unlock-all",              N_("Unlock All"),         SECTION, N_("Unlock all objects")                           },
 
-    {"app.selection-hide",          N_("Hide selection"),     "Hide and Lock",      N_("Hide all selected objects")                    },
-    {"app.selection-unhide",        N_("Unhide selection"),   "Hide and Lock",      N_("Unhide all selected objects")                  },
-    {"app.selection-unhide-below",  N_("Unhide descendents"), "Hide and Lock",      N_("Unhide all items inside selected objects")     },
+    {"app.selection-hide",          N_("Hide selection"),     SECTION, N_("Hide all selected objects")                    },
+    {"app.selection-unhide",        N_("Unhide selection"),   SECTION, N_("Unhide all selected objects")                  },
+    {"app.selection-unhide-below",  N_("Unhide descendents"), SECTION, N_("Unhide all items inside selected objects")     },
 
-    {"app.selection-lock",          N_("Lock selection"),     "Hide and Lock",      N_("Lock all selected objects")                    },
-    {"app.selection-unlock",        N_("Unlock selection"),   "Hide and Lock",      N_("Unlock all selected objects")                  },
-    {"app.selection-unlock-below",  N_("Unlock descendents"), "Hide and Lock",      N_("Unlock all items inside selected objects")     },
+    {"app.selection-lock",          N_("Lock selection"),     SECTION, N_("Lock all selected objects")                    },
+    {"app.selection-unlock",        N_("Unlock selection"),   SECTION, N_("Unlock all selected objects")                  },
+    {"app.selection-unlock-below",  N_("Unlock descendents"), SECTION, N_("Unlock all items inside selected objects")     },
     // clang-format on
 };
 

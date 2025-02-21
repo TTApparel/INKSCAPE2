@@ -196,30 +196,34 @@ no_convert_baseline()
     sp_no_convert_text_baseline_spacing = true;
 }
 
+const Glib::ustring SECTION_BASE = NC_("Action Section", "Base");
+const Glib::ustring SECTION_IMPORT = NC_("Action Section", "Import");
+const Glib::ustring SECTION_QUERY = NC_("Action Section", "Query");
+
 std::vector<std::vector<Glib::ustring>> raw_data_base =
 {
     // clang-format off
-    {"app.inkscape-version",          N_("Inkscape Version"),        "Base",       N_("Print Inkscape version and exit")                   },
-    {"app.active-window-start",       N_("Active Window: Start Call"), "Base",     N_("Start execution in active window")                          },
-    {"app.active-window-end",         N_("Active Window: End Call"), "Base",       N_("End execution in active window")                            },
-    {"app.save-preferences",          N_("Save preferences"),        "Base",       N_("Make sure the preferences are saved")               },
-    {"app.debug-info",                N_("Debug Info"),              "Base",       N_("Print debugging information and exit")              },
-    {"app.system-data-directory",     N_("System Directory"),        "Base",       N_("Print system data directory and exit")              },
-    {"app.user-data-directory",       N_("User Directory"),          "Base",       N_("Print user data directory and exit")                },
-    {"app.action-list",               N_("List Actions"),            "Base",       N_("Print a list of actions and exit")                  },
-    {"app.list-input-types",          N_("List Input File Extensions"), "Base",    N_("Print a list of input file extensions and exit")    },
-    {"app.quit",                      N_("Quit"),                    "Base",       N_("Quit Inkscape, check for data loss")                },
-    {"app.quit-immediate",            N_("Quit Immediately"),        "Base",       N_("Immediately quit Inkscape, no check for data loss") },
+    {"app.inkscape-version",      N_("Inkscape Version"),           SECTION_BASE,    N_("Print Inkscape version and exit")                   },
+    {"app.active-window-start",   N_("Active Window: Start Call"),  SECTION_BASE,    N_("Start execution in active window")                  },
+    {"app.active-window-end",     N_("Active Window: End Call"),    SECTION_BASE,    N_("End execution in active window")                    },
+    {"app.save-preferences",      N_("Save preferences"),           SECTION_BASE,    N_("Make sure the preferences are saved")               },
+    {"app.debug-info",            N_("Debug Info"),                 SECTION_BASE,    N_("Print debugging information and exit")              },
+    {"app.system-data-directory", N_("System Directory"),           SECTION_BASE,    N_("Print system data directory and exit")              },
+    {"app.user-data-directory",   N_("User Directory"),             SECTION_BASE,    N_("Print user data directory and exit")                },
+    {"app.action-list",           N_("List Actions"),               SECTION_BASE,    N_("Print a list of actions and exit")                  },
+    {"app.list-input-types",      N_("List Input File Extensions"), SECTION_BASE,    N_("Print a list of input file extensions and exit")    },
+    {"app.quit",                  N_("Quit"),                       SECTION_BASE,    N_("Quit Inkscape, check for data loss")                },
+    {"app.quit-immediate",        N_("Quit Immediately"),           SECTION_BASE,    N_("Immediately quit Inkscape, no check for data loss") },
 
-    {"app.open-page",                 N_("Import Page Number"),      "Import",     N_("Select PDF page number to import")                  },
-    {"app.convert-dpi-method",        N_("Import DPI Method"),       "Import",     N_("Set DPI conversion method for legacy Inkscape files")},
-    {"app.no-convert-baseline",       N_("No Import Baseline Conversion"), "Import", N_("Do not convert text baselines in legacy Inkscape files")},
+    {"app.open-page",             N_("Import Page Number"),            SECTION_IMPORT, N_("Select PDF page number to import")                   },
+    {"app.convert-dpi-method",    N_("Import DPI Method"),             SECTION_IMPORT, N_("Set DPI conversion method for legacy Inkscape files")},
+    {"app.no-convert-baseline",   N_("No Import Baseline Conversion"), SECTION_IMPORT, N_("Do not convert text baselines in legacy Inkscape files") },
 
-    {"app.query-x",                   N_("Query X"),                 "Query",      N_("Query 'x' value(s) of selected objects")            },
-    {"app.query-y",                   N_("Query Y"),                 "Query",      N_("Query 'y' value(s) of selected objects")            },
-    {"app.query-width",               N_("Query Width"),             "Query",      N_("Query 'width' value(s) of object(s)")               },
-    {"app.query-height",              N_("Query Height"),            "Query",      N_("Query 'height' value(s) of object(s)")              },
-    {"app.query-all",                 N_("Query All"),               "Query",      N_("Query 'x', 'y', 'width', and 'height'")             }
+    {"app.query-x",               N_("Query X"),                    SECTION_QUERY,   N_("Query 'x' value(s) of selected objects")            },
+    {"app.query-y",               N_("Query Y"),                    SECTION_QUERY,   N_("Query 'y' value(s) of selected objects")            },
+    {"app.query-width",           N_("Query Width"),                SECTION_QUERY,   N_("Query 'width' value(s) of object(s)")               },
+    {"app.query-height",          N_("Query Height"),               SECTION_QUERY,   N_("Query 'height' value(s) of object(s)")              },
+    {"app.query-all",             N_("Query All"),                  SECTION_QUERY,   N_("Query 'x', 'y', 'width', and 'height'")             }
     // clang-format on
 };
 

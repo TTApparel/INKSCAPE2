@@ -134,22 +134,24 @@ void page_rotate(const Glib::VariantBase& value, InkscapeApplication *app)
     Inkscape::DocumentUndo::done(document, "Rotate Page", INKSCAPE_ICON("tool-pages"));
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Transform");
+
 // SHOULD REALLY BE SELECTION LEVEL ACTIONS
 std::vector<std::vector<Glib::ustring>> raw_data_transform = {
     // clang-format off
-    {"app.transform-translate",   N_("Translate"),          "Transform",  N_("Translate selected objects (dx,dy)")},
-    {"app.transform-rotate",      N_("Rotate"),             "Transform",  N_("Rotate selected objects by degrees")},
-    {"app.transform-scale",       N_("Scale"),              "Transform",  N_("Scale selected objects by scale factor")},
-    {"app.transform-grow",        N_("Grow/Shrink"),        "Transform",  N_("Grow/shrink selected objects")},
-    {"app.transform-grow-step",   N_("Grow/Shrink Step"),   "Transform",  N_("Grow/shrink selected objects by multiple of step value")},
-    {"app.transform-grow-screen", N_("Grow/Shrink Screen"), "Transform",  N_("Grow/shrink selected objects relative to zoom level")},
-    {"app.transform-rotate",        N_("Rotate"),           "Transform",  N_("Rotate selected objects")},
-    {"app.transform-rotate-step",   N_("Rotate Step"),      "Transform",  N_("Rotate selected objects by multiple of step value")},
-    {"app.transform-rotate-screen", N_("Rotate Screen"),    "Transform",  N_("Rotate selected objects relative to zoom level")},
+    {"app.transform-translate",     N_("Translate"),          SECTION, N_("Translate selected objects (dx,dy)")},
+    {"app.transform-rotate",        N_("Rotate"),             SECTION, N_("Rotate selected objects by degrees")},
+    {"app.transform-scale",         N_("Scale"),              SECTION, N_("Scale selected objects by scale factor")},
+    {"app.transform-grow",          N_("Grow/Shrink"),        SECTION, N_("Grow/shrink selected objects")},
+    {"app.transform-grow-step",     N_("Grow/Shrink Step"),   SECTION, N_("Grow/shrink selected objects by multiple of step value")},
+    {"app.transform-grow-screen",   N_("Grow/Shrink Screen"), SECTION, N_("Grow/shrink selected objects relative to zoom level")},
+    {"app.transform-rotate",        N_("Rotate"),             SECTION, N_("Rotate selected objects")},
+    {"app.transform-rotate-step",   N_("Rotate Step"),        SECTION, N_("Rotate selected objects by multiple of step value")},
+    {"app.transform-rotate-screen", N_("Rotate Screen"),      SECTION, N_("Rotate selected objects relative to zoom level")},
 
-    {"app.transform-remove",      N_("Remove Transforms"),  "Transform",  N_("Remove any transforms from selected objects")},
-    {"app.transform-reapply",     N_("Reapply Transforms"), "Transform",  N_("Reapply the last transformation to the selection")},
-    {"app.page-rotate",           N_("Rotate Page 90°"),    "Transform",  N_("Rotate page by 90-degree rotation steps")},
+    {"app.transform-remove",        N_("Remove Transforms"),  SECTION, N_("Remove any transforms from selected objects")},
+    {"app.transform-reapply",       N_("Reapply Transforms"), SECTION, N_("Reapply the last transformation to the selection")},
+    {"app.page-rotate",             N_("Rotate Page 90°"),    SECTION, N_("Rotate page by 90-degree rotation steps")},
     // clang-format on
 };
 

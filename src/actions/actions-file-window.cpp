@@ -110,21 +110,23 @@ document_close(InkscapeWindow* win)
     app->destroyDesktop(win->get_desktop(), true); // true == keep alive last window
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Window-File");
+
 std::vector<std::vector<Glib::ustring>> raw_data_dialog_window =
 {
     // clang-format off
-    {"win.document-new",                N_("New"),                  "Window-File",     N_("Create new document from the default template")},
-    {"win.document-dialog-templates",   N_("New from Template"),    "Window-File",     N_("Create new project from template")},
-    {"win.document-open",               N_("Open File Dialog"),     "Window-File",     N_("Open an existing document")},
-    {"win.document-revert",             N_("Revert"),               "Window-File",     N_("Revert to the last saved version of document (changes will be lost)")},
-    {"win.document-save",               N_("Save"),                 "Window-File",     N_("Save document")},
-    {"win.document-save-as",            N_("Save As"),              "Window-File",     N_("Save document under a new name")},
-    {"win.document-save-copy",          N_("Save a Copy"),          "Window-File",     N_("Save a copy of the document under a new name")},
-    {"win.document-save-template",      N_("Save Template"),        "Window-File",     N_("Save a copy of the document as template")},
-    {"win.document-import",             N_("Import"),               "Window-File",     N_("Import a bitmap or SVG image into this document")},
-    {"win.document-print",              N_("Print"),                "Window-File",     N_("Print document")},
-    {"win.document-cleanup",            N_("Clean Up Document"),    "Window-File",     N_("Remove unused definitions (such as gradients or clipping paths) from the document")},
-    {"win.document-close",              N_("Close"),                "Window-File",     N_("Close window (unless last window)")},
+    {"win.document-new",              N_("New"),               SECTION,   N_("Create new document from the default template")},
+    {"win.document-dialog-templates", N_("New from Template"), SECTION,   N_("Create new project from template")},
+    {"win.document-open",             N_("Open File Dialog"),  SECTION,   N_("Open an existing document")},
+    {"win.document-revert",           N_("Revert"),            SECTION,   N_("Revert to the last saved version of document (changes will be lost)")},
+    {"win.document-save",             N_("Save"),              SECTION,   N_("Save document")},
+    {"win.document-save-as",          N_("Save As"),           SECTION,   N_("Save document under a new name")},
+    {"win.document-save-copy",        N_("Save a Copy"),       SECTION,   N_("Save a copy of the document under a new name")},
+    {"win.document-save-template",    N_("Save Template"),     SECTION,   N_("Save a copy of the document as template")},
+    {"win.document-import",           N_("Import"),            SECTION,   N_("Import a bitmap or SVG image into this document")},
+    {"win.document-print",            N_("Print"),             SECTION,   N_("Print document")},
+    {"win.document-cleanup",          N_("Clean Up Document"), SECTION,   N_("Remove unused definitions (such as gradients or clipping paths) from the document")},
+    {"win.document-close",            N_("Close"),             SECTION,   N_("Close window (unless last window)")},
     // clang-format on
 };
 

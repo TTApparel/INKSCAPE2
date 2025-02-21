@@ -74,12 +74,15 @@ void enable_effect_actions(InkscapeApplication* app, bool enabled)
     lep_saction->set_enabled(enabled);
 }
 
+const Glib::ustring SECTION_FILTERS = NC_("Action Section", "Filters");
+const Glib::ustring SECTION_EXT = NC_("Action Section", "Extensions");
+
 std::vector<std::vector<Glib::ustring>> raw_data_effect =
 {
     // clang-format off
-    {"app.edit-remove-filter",      N_("Remove Filters"),                   "Filters",          N_("Remove any filters from selected objects")},
-    {"app.last-effect",             N_("Previous Extension"),               "Extensions",       N_("Repeat the last extension with the same settings")},
-    {"app.last-effect-pref",        N_("Previous Extension Settings"),      "Extensions",       N_("Repeat the last extension with new settings")}
+    {"app.edit-remove-filter",      N_("Remove Filters"),              SECTION_FILTERS,   N_("Remove any filters from selected objects")},
+    {"app.last-effect",             N_("Previous Extension"),          SECTION_EXT,       N_("Repeat the last extension with the same settings")},
+    {"app.last-effect-pref",        N_("Previous Extension Settings"), SECTION_EXT,       N_("Repeat the last extension with new settings")}
     // clang-format on
 };
 

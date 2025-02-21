@@ -274,42 +274,44 @@ void set_active_tool(SPDesktop *desktop, SPItem *item, Geom::Point const p)
     set_active_tool(win, item, p);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Tool Switch");
+
 std::vector<std::vector<Glib::ustring>> raw_data_tools =
 {
     // clang-format off
-    {"win.tool-switch('Select')",       N_("Selector Tool"),        "Tool Switch",   N_("Select and transform objects")                  },
-    {"win.tool-switch('Node')",         N_("Node Tool"),          "Tool Switch",   N_("Edit paths by nodes")                           },
-    {"win.tool-switch('Booleans')",     N_("Shape Builder Tool"), "Tool Switch",   N_("Build shapes with the Boolean tool")           },
+    {"win.tool-switch('Select')",       N_("Selector Tool"),        SECTION, N_("Select and transform objects")                  },
+    {"win.tool-switch('Node')",         N_("Node Tool"),            SECTION, N_("Edit paths by nodes")                           },
+    {"win.tool-switch('Booleans')",     N_("Shape Builder Tool"),   SECTION, N_("Build shapes with the Boolean tool")           },
 
-    {"win.tool-switch('Rect')",         N_("Rectangle Tool"),     "Tool Switch",   N_("Create rectangles and squares")                 },
-    {"win.tool-switch('Arc')",          N_("Ellipse/Arc Tool"),   "Tool Switch",   N_("Create circles, ellipses and arcs")             },
-    {"win.tool-switch('Star')",         N_("Star/Polygon Tool"),  "Tool Switch",   N_("Create stars and polygons")                     },
-    {"win.tool-switch('3DBox')",        N_("3D Box Tool"),        "Tool Switch",   N_("Create 3D Boxes")                               },
-    {"win.tool-switch('Spiral')",       N_("Spiral Tool"),        "Tool Switch",   N_("Create spirals")                                },
-    {"win.tool-switch('Marker')",       N_("Marker Tool"),        "Tool Switch",   N_("Edit markers")                                  },
+    {"win.tool-switch('Rect')",         N_("Rectangle Tool"),       SECTION, N_("Create rectangles and squares")                 },
+    {"win.tool-switch('Arc')",          N_("Ellipse/Arc Tool"),     SECTION, N_("Create circles, ellipses and arcs")             },
+    {"win.tool-switch('Star')",         N_("Star/Polygon Tool"),    SECTION, N_("Create stars and polygons")                     },
+    {"win.tool-switch('3DBox')",        N_("3D Box Tool"),          SECTION, N_("Create 3D Boxes")                               },
+    {"win.tool-switch('Spiral')",       N_("Spiral Tool"),          SECTION, N_("Create spirals")                                },
+    {"win.tool-switch('Marker')",       N_("Marker Tool"),          SECTION, N_("Edit markers")                                  },
 
-    {"win.tool-switch('Pen')",          N_("Pen Tool"),           "Tool Switch",   N_("Draw Bezier curves and straight lines")         },
-    {"win.tool-switch('Pencil')",       N_("Pencil Tool"),        "Tool Switch",   N_("Draw freehand lines")                           },
-    {"win.tool-switch('Calligraphic')", N_("Calligraphy Tool"),   "Tool Switch",   N_("Draw calligraphic or brush strokes")            },
-    {"win.tool-switch('Text')",         N_("Text Tool"),          "Tool Switch",   N_("Create and edit text objects")                  },
+    {"win.tool-switch('Pen')",          N_("Pen Tool"),             SECTION, N_("Draw Bezier curves and straight lines")         },
+    {"win.tool-switch('Pencil')",       N_("Pencil Tool"),          SECTION, N_("Draw freehand lines")                           },
+    {"win.tool-switch('Calligraphic')", N_("Calligraphy Tool"),     SECTION, N_("Draw calligraphic or brush strokes")            },
+    {"win.tool-switch('Text')",         N_("Text Tool"),            SECTION, N_("Create and edit text objects")                  },
 
-    {"win.tool-switch('Gradient')",     N_("Gradient Tool"),      "Tool Switch",   N_("Create and edit gradients")                     },
-    {"win.tool-switch('Mesh')",         N_("Mesh Tool"),          "Tool Switch",   N_("Create and edit meshes")                        },
-    {"win.tool-switch('Dropper')",      N_("Dropper Tool"),       "Tool Switch",   N_("Pick colors from image")                        },
-    {"win.tool-switch('PaintBucket')",  N_("Paint Bucket Tool"),  "Tool Switch",   N_("Fill bounded areas")                            },
+    {"win.tool-switch('Gradient')",     N_("Gradient Tool"),        SECTION, N_("Create and edit gradients")                     },
+    {"win.tool-switch('Mesh')",         N_("Mesh Tool"),            SECTION, N_("Create and edit meshes")                        },
+    {"win.tool-switch('Dropper')",      N_("Dropper Tool"),         SECTION, N_("Pick colors from image")                        },
+    {"win.tool-switch('PaintBucket')",  N_("Paint Bucket Tool"),    SECTION, N_("Fill bounded areas")                            },
 
-    {"win.tool-switch('Tweak')",        N_("Tweak Tool"),         "Tool Switch",   N_("Tweak objects by sculpting or painting")        },
-    {"win.tool-switch('Spray')",        N_("Spray Tool"),         "Tool Switch",   N_("Spray copies or clones of objects")             },
-    {"win.tool-switch('Eraser')",       N_("Eraser Tool"),        "Tool Switch",   N_("Erase objects or paths")                        },
-    {"win.tool-switch('Connector')",    N_("Connector Tool"),     "Tool Switch",   N_("Create diagram connectors")                     },
-    {"win.tool-switch('LPETool')",      N_("LPE Tool"),           "Tool Switch",   N_("Do geometric constructions")                    },
+    {"win.tool-switch('Tweak')",        N_("Tweak Tool"),           SECTION, N_("Tweak objects by sculpting or painting")        },
+    {"win.tool-switch('Spray')",        N_("Spray Tool"),           SECTION, N_("Spray copies or clones of objects")             },
+    {"win.tool-switch('Eraser')",       N_("Eraser Tool"),          SECTION, N_("Erase objects or paths")                        },
+    {"win.tool-switch('Connector')",    N_("Connector Tool"),       SECTION, N_("Create diagram connectors")                     },
+    {"win.tool-switch('LPETool')",      N_("LPE Tool"),             SECTION, N_("Do geometric constructions")                    },
 
-    {"win.tool-switch('Zoom')",         N_("Zoom Tool"),          "Tool Switch",   N_("Zoom in or out")                                },
-    {"win.tool-switch('Measure')",      N_("Measure Tool"),       "Tool Switch",   N_("Measure objects")                               },
-    {"win.tool-switch('Pages')",        N_("Pages Tool"),         "Tool Switch",   N_("Create and edit document pages")                },
+    {"win.tool-switch('Zoom')",         N_("Zoom Tool"),            SECTION, N_("Zoom in or out")                                },
+    {"win.tool-switch('Measure')",      N_("Measure Tool"),         SECTION, N_("Measure objects")                               },
+    {"win.tool-switch('Pages')",        N_("Pages Tool"),           SECTION, N_("Create and edit document pages")                },
 
-    {"win.tool-toggle('Select')",       N_("Toggle Selector Tool"),      "Tool Switch",   N_("Toggle between Selector tool and last used tool") },
-    {"win.tool-toggle('Dropper')",      N_("Toggle Dropper"),     "Tool Switch",   N_("Toggle between Dropper tool and last used tool")},
+    {"win.tool-toggle('Select')",       N_("Toggle Selector Tool"), SECTION, N_("Toggle between Selector tool and last used tool") },
+    {"win.tool-toggle('Dropper')",      N_("Toggle Dropper"),       SECTION, N_("Toggle between Dropper tool and last used tool")},
     // clang-format on
 };
 

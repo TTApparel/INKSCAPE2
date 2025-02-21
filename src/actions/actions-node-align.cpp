@@ -86,13 +86,15 @@ node_distribute(InkscapeWindow* win, Geom::Dim2 direction)
     node_tool->_multipath->distributeNodes(direction);
 } 
 
+const Glib::ustring SECTION = NC_("Action Section", "Node");
+
 std::vector<std::vector<Glib::ustring>> raw_data_node_align =
 {
     // clang-format off
-    {"win.node-align-horizontal",       N_("Align nodes horizontally"),      "Node", N_("Align selected nodes horizontally; usage [last|first|middle|min|max|pref]" )},
-    {"win.node-align-vertical",         N_("Align nodes vertically"),        "Node", N_("Align selected nodes vertically; usage [last|first|middle|min|max|pref]"   )},
-    {"win.node-distribute-horizontal",  N_("Distribute nodes horizontally"), "Node", N_("Distribute selected nodes horizontally"                              )},
-    {"win.node-distribute-vertical",    N_("Distribute nodes vertically"),   "Node", N_("Distribute selected nodes vertically"                                )}
+    {"win.node-align-horizontal",       N_("Align nodes horizontally"),      SECTION, N_("Align selected nodes horizontally; usage [last|first|middle|min|max|pref]" )},
+    {"win.node-align-vertical",         N_("Align nodes vertically"),        SECTION, N_("Align selected nodes vertically; usage [last|first|middle|min|max|pref]"   )},
+    {"win.node-distribute-horizontal",  N_("Distribute nodes horizontally"), SECTION, N_("Distribute selected nodes horizontally"                              )},
+    {"win.node-distribute-vertical",    N_("Distribute nodes vertically"),   SECTION, N_("Distribute selected nodes vertically"                                )}
     // clang-format on
 };
 

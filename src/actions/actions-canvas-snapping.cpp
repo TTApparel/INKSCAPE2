@@ -240,47 +240,49 @@ void apply_simple_snap_defaults(Gio::ActionMap& map) {
     update_actions(map);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Snap");
+
 std::vector<std::vector<Glib::ustring>> raw_data_canvas_snapping =
 {
-    {"win.snap-global-toggle",        N_("Snapping"),                          "Snap",  N_("Toggle snapping on/off")                             },
+    {"win.snap-global-toggle",        N_("Snapping"),                          SECTION,  N_("Toggle snapping on/off")                             },
 
-    {"win.snap-alignment",            N_("Snap Objects that Align"),           "Snap",  N_("Toggle alignment snapping")                          },
-    {"win.snap-alignment-self",       N_("Snap Nodes that Align"),             "Snap",  N_("Toggle alignment snapping to nodes in the same path")},
+    {"win.snap-alignment",            N_("Snap Objects that Align"),           SECTION,  N_("Toggle alignment snapping")                          },
+    {"win.snap-alignment-self",       N_("Snap Nodes that Align"),             SECTION,  N_("Toggle alignment snapping to nodes in the same path")},
 
-    {"win.snap-distribution",         N_("Snap Objects at Equal Distances"),   "Snap",  N_("Toggle snapping objects at equal distances")},
+    {"win.snap-distribution",         N_("Snap Objects at Equal Distances"),   SECTION,  N_("Toggle snapping objects at equal distances")},
 
-    {"win.snap-bbox",                 N_("Snap Bounding Boxes"),               "Snap",  N_("Toggle snapping to bounding boxes (global)")         },
-    {"win.snap-bbox-edge",            N_("Snap Bounding Box Edges"),           "Snap",  N_("Toggle snapping to bounding-box edges")              },
-    {"win.snap-bbox-corner",          N_("Snap Bounding Box Corners"),         "Snap",  N_("Toggle snapping to bounding-box corners")            },
-    {"win.snap-bbox-edge-midpoint",   N_("Snap Bounding Box Edge Midpoints"),  "Snap",  N_("Toggle snapping to bounding-box edge mid-points")    },
-    {"win.snap-bbox-center",          N_("Snap Bounding Box Centers"),         "Snap",  N_("Toggle snapping to bounding-box centers")            },
+    {"win.snap-bbox",                 N_("Snap Bounding Boxes"),               SECTION,  N_("Toggle snapping to bounding boxes (global)")         },
+    {"win.snap-bbox-edge",            N_("Snap Bounding Box Edges"),           SECTION,  N_("Toggle snapping to bounding-box edges")              },
+    {"win.snap-bbox-corner",          N_("Snap Bounding Box Corners"),         SECTION,  N_("Toggle snapping to bounding-box corners")            },
+    {"win.snap-bbox-edge-midpoint",   N_("Snap Bounding Box Edge Midpoints"),  SECTION,  N_("Toggle snapping to bounding-box edge mid-points")    },
+    {"win.snap-bbox-center",          N_("Snap Bounding Box Centers"),         SECTION,  N_("Toggle snapping to bounding-box centers")            },
 
-    {"win.snap-node-category",        N_("Snap Nodes"),                        "Snap",  N_("Toggle snapping to nodes (global)")                  },
-    {"win.snap-path",                 N_("Snap Paths"),                        "Snap",  N_("Toggle snapping to paths")                           },
-    {"win.snap-path-intersection",    N_("Snap Path Intersections"),           "Snap",  N_("Toggle snapping to path intersections")              },
-    {"win.snap-node-cusp",            N_("Snap Cusp Nodes"),                   "Snap",  N_("Toggle snapping to cusp nodes, including rectangle corners")},
-    {"win.snap-node-smooth",          N_("Snap Smooth Node"),                  "Snap",  N_("Toggle snapping to smooth nodes, including quadrant points of ellipses")},
-    {"win.snap-line-midpoint",        N_("Snap Line Midpoints"),               "Snap",  N_("Toggle snapping to midpoints of lines")              },
-    {"win.snap-line-perpendicular",   N_("Snap Perpendicular Lines"),          "Snap",  N_("Toggle snapping to perpendicular lines")             },
-    {"win.snap-line-tangential",      N_("Snap Tangential Lines"),             "Snap",  N_("Toggle snapping to tangential lines")                },
+    {"win.snap-node-category",        N_("Snap Nodes"),                        SECTION,  N_("Toggle snapping to nodes (global)")                  },
+    {"win.snap-path",                 N_("Snap Paths"),                        SECTION,  N_("Toggle snapping to paths")                           },
+    {"win.snap-path-intersection",    N_("Snap Path Intersections"),           SECTION,  N_("Toggle snapping to path intersections")              },
+    {"win.snap-node-cusp",            N_("Snap Cusp Nodes"),                   SECTION,  N_("Toggle snapping to cusp nodes, including rectangle corners")},
+    {"win.snap-node-smooth",          N_("Snap Smooth Node"),                  SECTION,  N_("Toggle snapping to smooth nodes, including quadrant points of ellipses")},
+    {"win.snap-line-midpoint",        N_("Snap Line Midpoints"),               SECTION,  N_("Toggle snapping to midpoints of lines")              },
+    {"win.snap-line-perpendicular",   N_("Snap Perpendicular Lines"),          SECTION,  N_("Toggle snapping to perpendicular lines")             },
+    {"win.snap-line-tangential",      N_("Snap Tangential Lines"),             SECTION,  N_("Toggle snapping to tangential lines")                },
 
-    {"win.snap-others",               N_("Snap Others"),                       "Snap",  N_("Toggle snapping to misc. points (global)")           },
-    {"win.snap-object-midpoint",      N_("Snap Object Midpoint"),              "Snap",  N_("Toggle snapping to object midpoint")                 },
-    {"win.snap-rotation-center",      N_("Snap Rotation Center"),              "Snap",  N_("Toggle snapping to object rotation center")          },
-    {"win.snap-text-baseline",        N_("Snap Text Baselines"),               "Snap",  N_("Toggle snapping to text baseline and text anchors")  },
+    {"win.snap-others",               N_("Snap Others"),                       SECTION,  N_("Toggle snapping to misc. points (global)")           },
+    {"win.snap-object-midpoint",      N_("Snap Object Midpoint"),              SECTION,  N_("Toggle snapping to object midpoint")                 },
+    {"win.snap-rotation-center",      N_("Snap Rotation Center"),              SECTION,  N_("Toggle snapping to object rotation center")          },
+    {"win.snap-text-baseline",        N_("Snap Text Baselines"),               SECTION,  N_("Toggle snapping to text baseline and text anchors")  },
 
-    {"win.snap-page-border",          N_("Snap Page Border"),                  "Snap",  N_("Toggle snapping to page border")                     },
-    {"win.snap-page-margin",          N_("Snap Page Margin"),                  "Snap",  N_("Toggle snapping to page margin")                     },
-    {"win.snap-grid",                 N_("Snap Grids"),                        "Snap",  N_("Toggle snapping to grids")                           },
-    {"win.snap-grid-line",            N_("Snap Grid Lines"),                   "Snap",  N_("Toggle snapping to grid lines")                      },
-    {"win.snap-guide",                N_("Snap Guide Lines"),                  "Snap",  N_("Toggle snapping to guide lines")                     },
+    {"win.snap-page-border",          N_("Snap Page Border"),                  SECTION,  N_("Toggle snapping to page border")                     },
+    {"win.snap-page-margin",          N_("Snap Page Margin"),                  SECTION,  N_("Toggle snapping to page margin")                     },
+    {"win.snap-grid",                 N_("Snap Grids"),                        SECTION,  N_("Toggle snapping to grids")                           },
+    {"win.snap-grid-line",            N_("Snap Grid Lines"),                   SECTION,  N_("Toggle snapping to grid lines")                      },
+    {"win.snap-guide",                N_("Snap Guide Lines"),                  SECTION,  N_("Toggle snapping to guide lines")                     },
 
-    {"win.snap-path-mask",            N_("Snap Mask Paths"),                   "Snap",  N_("Toggle snapping to mask paths")                      },
-    {"win.snap-path-clip",            N_("Snap Clip Paths"),                   "Snap",  N_("Toggle snapping to clip paths")                      },
+    {"win.snap-path-mask",            N_("Snap Mask Paths"),                   SECTION,  N_("Toggle snapping to mask paths")                      },
+    {"win.snap-path-clip",            N_("Snap Clip Paths"),                   SECTION,  N_("Toggle snapping to clip paths")                      },
 
-    {"win.simple-snap-bbox",          N_("Simple Snap Bounding Box"),          "Snap",  N_("Toggle snapping to bounding boxes")                  },
-    {"win.simple-snap-nodes",         N_("Simple Snap Nodes"),                 "Snap",  N_("Toggle snapping to nodes")                           },
-    {"win.simple-snap-alignment",     N_("Simple Snap Alignment"),             "Snap",  N_("Toggle alignment snapping")                          },
+    {"win.simple-snap-bbox",          N_("Simple Snap Bounding Box"),          SECTION,  N_("Toggle snapping to bounding boxes")                  },
+    {"win.simple-snap-nodes",         N_("Simple Snap Nodes"),                 SECTION,  N_("Toggle snapping to nodes")                           },
+    {"win.simple-snap-alignment",     N_("Simple Snap Alignment"),             SECTION,  N_("Toggle alignment snapping")                          },
 };
 
 void add_actions_canvas_snapping(Gio::ActionMap* map) {

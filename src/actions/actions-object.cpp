@@ -371,30 +371,31 @@ object_stroke_to_path(InkscapeApplication *app)
     selection->strokesToPaths();
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Object");
 
 std::vector<std::vector<Glib::ustring>> raw_data_object =
 {
     // clang-format off
-    {"app.object-set-attribute",        N_("Set Attribute"),                    "Object",     N_("Set or update an attribute of selected objects; usage: object-set-attribute:attribute name, attribute value;")},
-    {"app.object-set-property",         N_("Set Property"),                     "Object",     N_("Set or update a property on selected objects; usage: object-set-property:property name, property value;")},
+    {"app.object-set-attribute",      N_("Set Attribute"),           SECTION, N_("Set or update an attribute of selected objects; usage: object-set-attribute:attribute name, attribute value;")},
+    {"app.object-set-property",       N_("Set Property"),            SECTION, N_("Set or update a property on selected objects; usage: object-set-property:property name, property value;")},
 
-    {"app.object-unlink-clones",        N_("Unlink Clones"),                    "Object",     N_("Unlink clones and symbols")},
-    {"app.object-to-path",              N_("Object To Path"),                   "Object",     N_("Convert shapes to paths")},
-    {"app.object-add-corners-lpe",      N_("Add Corners LPE"),                  "Object",     N_("Add Corners Live Path Effect to path")},
-    {"app.object-stroke-to-path",       N_("Stroke to Path"),                   "Object",     N_("Convert strokes to paths")},
+    {"app.object-unlink-clones",      N_("Unlink Clones"),           SECTION, N_("Unlink clones and symbols")},
+    {"app.object-to-path",            N_("Object To Path"),          SECTION, N_("Convert shapes to paths")},
+    {"app.object-add-corners-lpe",    N_("Add Corners LPE"),         SECTION, N_("Add Corners Live Path Effect to path")},
+    {"app.object-stroke-to-path",     N_("Stroke to Path"),          SECTION, N_("Convert strokes to paths")},
 
-    {"app.object-set-clip",             N_("Object Clip Set"),                  "Object",     N_("Apply clipping path to selection (using the topmost object as clipping path)")},
-    {"app.object-set-inverse-clip",     N_("Object Clip Set Inverse"),          "Object",     N_("Apply inverse clipping path to selection (Power Clip LPE)")},
-    {"app.object-release-clip",         N_("Object Clip Release"),              "Object",     N_("Remove clipping path from selection")},
-    {"app.object-set-clip-group",       N_("Object Clip Set Group"),            "Object",     N_("Create a self-clipping group to which objects (not contributing to the clip-path) can be added")},
-    {"app.object-set-mask",             N_("Object Mask Set"),                  "Object",     N_("Apply mask to selection (using the topmost object as mask)")},
-    {"app.object-set-inverse-mask",     N_("Object Mask Set Inverse"),          "Object",     N_("Apply inverse mask to selection (Power Mask LPE)")},
-    {"app.object-release-mask",         N_("Object Mask Release"),              "Object",     N_("Remove mask from selection")},
+    {"app.object-set-clip",           N_("Object Clip Set"),         SECTION, N_("Apply clipping path to selection (using the topmost object as clipping path)")},
+    {"app.object-set-inverse-clip",   N_("Object Clip Set Inverse"), SECTION, N_("Apply inverse clipping path to selection (Power Clip LPE)")},
+    {"app.object-release-clip",       N_("Object Clip Release"),     SECTION, N_("Remove clipping path from selection")},
+    {"app.object-set-clip-group",     N_("Object Clip Set Group"),   SECTION, N_("Create a self-clipping group to which objects (not contributing to the clip-path) can be added")},
+    {"app.object-set-mask",           N_("Object Mask Set"),         SECTION, N_("Apply mask to selection (using the topmost object as mask)")},
+    {"app.object-set-inverse-mask",   N_("Object Mask Set Inverse"), SECTION, N_("Apply inverse mask to selection (Power Mask LPE)")},
+    {"app.object-release-mask",       N_("Object Mask Release"),     SECTION, N_("Remove mask from selection")},
 
-    {"app.object-rotate-90-cw",         N_("Object Rotate 90"),                 "Object",     N_("Rotate selection 90° clockwise")},
-    {"app.object-rotate-90-ccw",        N_("Object Rotate 90 CCW"),             "Object",     N_("Rotate selection 90° counter-clockwise")},
-    {"app.object-flip-horizontal",      N_("Object Flip Horizontal"),           "Object",     N_("Flip selected objects horizontally")},
-    {"app.object-flip-vertical",        N_("Object Flip Vertical"),             "Object",     N_("Flip selected objects vertically")}
+    {"app.object-rotate-90-cw",       N_("Object Rotate 90"),        SECTION, N_("Rotate selection 90° clockwise")},
+    {"app.object-rotate-90-ccw",      N_("Object Rotate 90 CCW"),    SECTION, N_("Rotate selection 90° counter-clockwise")},
+    {"app.object-flip-horizontal",    N_("Object Flip Horizontal"),  SECTION, N_("Flip selected objects horizontally")},
+    {"app.object-flip-vertical",      N_("Object Flip Vertical"),    SECTION, N_("Flip selected objects vertically")}
     // clang-format on
 };
 

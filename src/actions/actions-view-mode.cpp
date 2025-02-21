@@ -261,25 +261,27 @@ view_set_gui(InkscapeWindow* win)
     // clang-format on
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Canvas Display");
+
 std::vector<std::vector<Glib::ustring>> raw_data_view_mode =
 {
     // clang-format off
-    {"win.canvas-commands-bar",             N_("Commands Bar"),             "Canvas Display",   N_("Show or hide the Commands bar (under the menu)")},
-    {"win.canvas-snap-controls-bar",        N_("Snap Controls Bar"),        "Canvas Display",   N_("Show or hide the snapping controls")},
-    {"win.canvas-tool-control-bar",         N_("Tool Controls Bar"),        "Canvas Display",   N_("Show or hide the Tool Controls bar")},
-    {"win.canvas-toolbox",                  N_("Toolbox"),                  "Canvas Display",   N_("Show or hide the main toolbox (on the left)")},
-    {"win.canvas-rulers",                   N_("Rulers"),                   "Canvas Display",   N_("Show or hide the canvas rulers")},
-    {"win.canvas-scroll-bars",              N_("Scroll bars"),              "Canvas Display",   N_("Show or hide the canvas scrollbars")},
-    {"win.canvas-palette",                  N_("Palette"),                  "Canvas Display",   N_("Show or hide the color palette")},
-    {"win.canvas-statusbar",                N_("Statusbar"),                "Canvas Display",   N_("Show or hide the statusbar (at the bottom of the window)")},
+    {"win.canvas-commands-bar",      N_("Commands Bar"),            SECTION, N_("Show or hide the Commands bar (under the menu)")},
+    {"win.canvas-snap-controls-bar", N_("Snap Controls Bar"),       SECTION, N_("Show or hide the snapping controls")},
+    {"win.canvas-tool-control-bar",  N_("Tool Controls Bar"),       SECTION, N_("Show or hide the Tool Controls bar")},
+    {"win.canvas-toolbox",           N_("Toolbox"),                 SECTION, N_("Show or hide the main toolbox (on the left)")},
+    {"win.canvas-rulers",            N_("Rulers"),                  SECTION, N_("Show or hide the canvas rulers")},
+    {"win.canvas-scroll-bars",       N_("Scroll bars"),             SECTION, N_("Show or hide the canvas scrollbars")},
+    {"win.canvas-palette",           N_("Palette"),                 SECTION, N_("Show or hide the color palette")},
+    {"win.canvas-statusbar",         N_("Statusbar"),               SECTION, N_("Show or hide the statusbar (at the bottom of the window)")},
 
-    {"win.canvas-command-palette",          N_("Command Palette"),          "Canvas Display",   N_("Show or hide the on-canvas command palette")},
-    {"win.view-fullscreen",                 N_("Fullscreen"),               "Canvas Display",   N_("Stretch this document window to full screen")},
+    {"win.canvas-command-palette",   N_("Command Palette"),         SECTION, N_("Show or hide the on-canvas command palette")},
+    {"win.view-fullscreen",          N_("Fullscreen"),              SECTION, N_("Stretch this document window to full screen")},
     
-    {"win.view-full-screen-focus",          N_("Fullscreen & Focus Mode"),  "Canvas Display",   N_("Stretch this document window to full screen")},
-    {"win.view-focus-toggle",               N_("Focus Mode"),               "Canvas Display",   N_("Remove excess toolbars to focus on drawing")},
+    {"win.view-full-screen-focus",   N_("Fullscreen & Focus Mode"), SECTION, N_("Stretch this document window to full screen")},
+    {"win.view-focus-toggle",        N_("Focus Mode"),              SECTION, N_("Remove excess toolbars to focus on drawing")},
 
-    {"win.canvas-interface-mode",           N_("Interface Mode"),           "Canvas Display",   N_("Toggle wide or narrow screen setup")},
+    {"win.canvas-interface-mode",    N_("Interface Mode"),          SECTION, N_("Toggle wide or narrow screen setup")},
     // clang-format on
 };
 

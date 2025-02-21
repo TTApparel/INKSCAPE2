@@ -87,11 +87,13 @@ enable_undo_actions(SPDocument* document, bool undo, bool redo)
     redo_saction->set_enabled(redo);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Edit Document");
+
 std::vector<std::vector<Glib::ustring>> raw_data_undo_document =
 {
     // clang-format off
-    {"doc.undo",                                N_("Undo"),                   "Edit Document",     N_("Undo last action")},
-    {"doc.redo",                                N_("Redo"),                   "Edit Document",     N_("Do again the last undone action")},
+    {"doc.undo", N_("Undo"), SECTION, N_("Undo last action")},
+    {"doc.redo", N_("Redo"), SECTION, N_("Do again the last undone action")},
     // clang-format on
 };
 

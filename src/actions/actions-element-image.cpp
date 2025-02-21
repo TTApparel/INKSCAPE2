@@ -190,11 +190,13 @@ void image_crop(InkscapeApplication *app)
     }
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Images");
+
 std::vector<std::vector<Glib::ustring>> raw_data_element_image =
 {
     // clang-format off
-    {"app.element-image-crop",          N_("Crop image to clip"),  "Image",    N_("Remove parts of the image outside the applied clipping area.") },
-    {"app.element-image-edit",          N_("Edit externally"),   "Image",    N_("Edit image externally (image must be selected and not embedded).")    },
+    {"app.element-image-crop",    N_("Crop image to clip"), SECTION, N_("Remove parts of the image outside the applied clipping area.") },
+    {"app.element-image-edit",    N_("Edit externally"),    SECTION, N_("Edit image externally (image must be selected and not embedded).")    },
     // clang-format on
 };
 

@@ -50,19 +50,21 @@ void help_open_tutorial(Glib::ustring const &name)
     }
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Tutorial");
+
 std::vector<std::vector<Glib::ustring>> raw_data_tutorial =
 {
     // clang-format off
-    { "app.tutorial-basic",               N_("Inkscape: Basic"),                  "Tutorial",     N_("Getting started with Inkscape")},
-    { "app.tutorial-shapes",              N_("Inkscape: Shapes"),                 "Tutorial",     N_("Using shape tools to create and edit shapes")},
-    { "app.tutorial-advanced",            N_("Inkscape: Advanced"),               "Tutorial",     N_("Advanced Inkscape topics")},
-    { "app.tutorial-tracing",             N_("Inkscape: Tracing"),                "Tutorial",     N_("Using bitmap tracing"),},
-    { "app.tutorial-tracing-pixelart",    N_("Inkscape: Tracing Pixel Art"),      "Tutorial",     N_("Using Trace Pixel Art dialog")},
-    { "app.tutorial-calligraphy",         N_("Inkscape: Calligraphy"),            "Tutorial",     N_("Using the Calligraphy pen tool")},
-    { "app.tutorial-interpolate",         N_("Inkscape: Interpolate"),            "Tutorial",     N_("Using the interpolate extension")},
-    { "app.tutorial-design",              N_("Elements of Design"),               "Tutorial",     N_("Principles of design in the tutorial form")},
-    { "app.tutorial-tips",                N_("Tips and Tricks"),                  "Tutorial",     N_("Miscellaneous tips and tricks")},
-    { "app.about",                        N_("About Inkscape"),                   "Tutorial",     N_("Inkscape version, authors, license")}
+    { "app.tutorial-basic",               N_("Inkscape: Basic"),             SECTION, N_("Getting started with Inkscape")},
+    { "app.tutorial-shapes",              N_("Inkscape: Shapes"),            SECTION, N_("Using shape tools to create and edit shapes")},
+    { "app.tutorial-advanced",            N_("Inkscape: Advanced"),          SECTION, N_("Advanced Inkscape topics")},
+    { "app.tutorial-tracing",             N_("Inkscape: Tracing"),           SECTION, N_("Using bitmap tracing"),},
+    { "app.tutorial-tracing-pixelart",    N_("Inkscape: Tracing Pixel Art"), SECTION, N_("Using Trace Pixel Art dialog")},
+    { "app.tutorial-calligraphy",         N_("Inkscape: Calligraphy"),       SECTION, N_("Using the Calligraphy pen tool")},
+    { "app.tutorial-interpolate",         N_("Inkscape: Interpolate"),       SECTION, N_("Using the interpolate extension")},
+    { "app.tutorial-design",              N_("Elements of Design"),          SECTION, N_("Principles of design in the tutorial form")},
+    { "app.tutorial-tips",                N_("Tips and Tricks"),             SECTION, N_("Miscellaneous tips and tricks")},
+    { "app.about",                        N_("About Inkscape"),              SECTION, N_("Inkscape version, authors, license")}
     // clang-format on
 };
 

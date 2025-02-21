@@ -241,36 +241,36 @@ shape_builder_replace(InkscapeWindow* win)
 
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Path");
 
 static const std::vector<std::vector<Glib::ustring>> raw_data_path =
 {
     // clang-format offs
-    {"app.path-union",               N_("Union"),                "Path",   N_("Create union of selected paths")},
-    {"app.path-difference",          N_("Difference"),           "Path",   N_("Create difference of selected paths (bottom minus top)")},
-    {"app.path-intersection",        N_("Intersection"),         "Path",   N_("Create intersection of selected paths")},
-    {"app.path-exclusion",           N_("Exclusion"),            "Path",   N_("Create exclusive OR of selected paths (those parts that belong to only one path)")},
-    {"app.path-division",            N_("Division"),             "Path",   N_("Cut the bottom path into pieces")},
-    {"app.path-cut",                 N_("Cut Path"),             "Path",   N_("Cut the bottom path's stroke into pieces, removing fill")},
-    {"app.path-combine",             N_("Combine"),              "Path",   N_("Combine several paths into one")},
-    {"app.path-break-apart",         N_("Break Apart"),          "Path",   N_("Break selected paths into subpaths")},
-    {"app.path-split",               N_("Split Apart"),          "Path",   N_("Split selected paths into non-overlapping sections")},
-    {"app.path-fracture",            N_("Fracture"),             "Path",   N_("Fracture one or more overlapping objects into all possible segments")},
-    {"app.path-flatten",             NC_("Path flatten", "Flatten"), "Path", N_("Flatten one or more overlapping objects into their visible parts")},
-    {"app.path-fill-between-paths",  N_("Fill between paths"),   "Path",   N_("Create a fill object using the selected paths")},
-    {"app.path-simplify",            N_("Simplify"),             "Path",   N_("Simplify selected paths (remove extra nodes)")},
+    {"app.path-union",               N_("Union"),                    SECTION, N_("Create union of selected paths")},
+    {"app.path-difference",          N_("Difference"),               SECTION, N_("Create difference of selected paths (bottom minus top)")},
+    {"app.path-intersection",        N_("Intersection"),             SECTION, N_("Create intersection of selected paths")},
+    {"app.path-exclusion",           N_("Exclusion"),                SECTION, N_("Create exclusive OR of selected paths (those parts that belong to only one path)")},
+    {"app.path-division",            N_("Division"),                 SECTION, N_("Cut the bottom path into pieces")},
+    {"app.path-cut",                 N_("Cut Path"),                 SECTION, N_("Cut the bottom path's stroke into pieces, removing fill")},
+    {"app.path-combine",             N_("Combine"),                  SECTION, N_("Combine several paths into one")},
+    {"app.path-break-apart",         N_("Break Apart"),              SECTION, N_("Break selected paths into subpaths")},
+    {"app.path-split",               N_("Split Apart"),              SECTION, N_("Split selected paths into non-overlapping sections")},
+    {"app.path-fracture",            N_("Fracture"),                 SECTION, N_("Fracture one or more overlapping objects into all possible segments")},
+    {"app.path-flatten",             NC_("Path flatten", "Flatten"), SECTION, N_("Flatten one or more overlapping objects into their visible parts")},
+    {"app.path-fill-between-paths",  N_("Fill between paths"),       SECTION, N_("Create a fill object using the selected paths")},
+    {"app.path-simplify",            N_("Simplify"),                 SECTION, N_("Simplify selected paths (remove extra nodes)")},
 
-    {"win.path-inset",               N_("Inset"),                "Path",   N_("Inset selected paths")},
-    {"win.path-offset",              N_("Offset"),               "Path",   N_("Offset selected paths")},
-    {"win.path-offset-dynamic",      N_("Dynamic Offset"),       "Path",   N_("Create a dynamic offset object")},
-    {"win.path-offset-linked",       N_("Linked Offset"),        "Path",   N_("Create a dynamic offset object linked to the original path")},
-    {"win.path-reverse",             N_("Reverse"),              "Path",   N_("Reverse the direction of selected paths (useful for flipping markers)")},
-    {"win.path-inset-screen",        N_("Inset Screen"),         "Path",   N_("Inset selected paths by screen pixels")},
-    {"win.path-offset-screen",       N_("Offset Screen"),        "Path",   N_("Offset selected paths by screen pixels")},
+    {"win.path-inset",               N_("Inset"),                    SECTION, N_("Inset selected paths")},
+    {"win.path-offset",              N_("Offset"),                   SECTION, N_("Offset selected paths")},
+    {"win.path-offset-dynamic",      N_("Dynamic Offset"),           SECTION, N_("Create a dynamic offset object")},
+    {"win.path-offset-linked",       N_("Linked Offset"),            SECTION, N_("Create a dynamic offset object linked to the original path")},
+    {"win.path-reverse",             N_("Reverse"),                  SECTION, N_("Reverse the direction of selected paths (useful for flipping markers)")},
+    {"win.path-inset-screen",        N_("Inset Screen"),             SECTION, N_("Inset selected paths by screen pixels")},
+    {"win.path-offset-screen",       N_("Offset Screen"),            SECTION, N_("Offset selected paths by screen pixels")},
 
-    {"win.shape-builder-mode(0)",    N_("Shape Builder: Add"),   "Path",   N_("Add shapes by clicking or clicking and dragging")},
-    {"win.shape-builder-mode(1)",    N_("Shape Builder: Delete"),"Path",   N_("Remove shapes by clicking or clicking and dragging")},
-    {"win.shape-builder-replace",    N_("Replace Objects"), "Path", N_("Remove selected objects when shape building is completed")},
-
+    {"win.shape-builder-mode(0)",    N_("Shape Builder: Add"),       SECTION, N_("Add shapes by clicking or clicking and dragging")},
+    {"win.shape-builder-mode(1)",    N_("Shape Builder: Delete"),    SECTION, N_("Remove shapes by clicking or clicking and dragging")},
+    {"win.shape-builder-replace",    N_("Replace Objects"),          SECTION, N_("Remove selected objects when shape building is completed")},
     // clang-format on
 };
 

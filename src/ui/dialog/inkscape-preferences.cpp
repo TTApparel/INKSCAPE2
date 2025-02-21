@@ -3608,10 +3608,10 @@ void InkscapePreferences::onKBListKeyboardShortcuts()
     // Fill sections
     for (auto const &action : actions) {
         Glib::ustring section = action_data.get_section_for_action(action);
-        if (section.empty()) section = "Misc";
+        if (section.empty()) section = C_("Action Section", "Misc");
         if (section != old_section) {
             iter_group = _kb_store->append();
-            (*iter_group)[_kb_columns.name] = section;
+            (*iter_group)[_kb_columns.name] = g_dpgettext2(NULL, "Action Section", section.c_str());
             (*iter_group)[_kb_columns.shortcut] = "";
             (*iter_group)[_kb_columns.description] = "";
             (*iter_group)[_kb_columns.shortcutkey] = Gtk::AccelKey();
