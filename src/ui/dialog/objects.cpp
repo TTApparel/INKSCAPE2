@@ -1686,6 +1686,7 @@ Gtk::EventSequenceState ObjectsPanel::on_click(Gtk::GestureClick const &gesture,
 
     auto layer = Inkscape::LayerManager::asLayer(item);
     auto const state = gesture.get_current_event_state();
+    // returns true if layer has to be set as active but not selected
     auto const should_set_current_layer = [&] {
         if (!layer) {
             return false;
@@ -1731,7 +1732,6 @@ Gtk::EventSequenceState ObjectsPanel::on_click(Gtk::GestureClick const &gesture,
             UI::popup_at(*menu, _tree, ex, ey);
         } else if (should_set_current_layer()) {
             getDesktop()->layerManager().setCurrentLayer(item, true);
-            selection->set(item);
             _initial_path = path;
         } else {
             selectCursorItem(state);
