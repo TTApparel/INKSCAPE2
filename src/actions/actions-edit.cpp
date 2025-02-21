@@ -292,36 +292,38 @@ chameleon_fill(InkscapeApplication *app)
     app->get_active_selection()->chameleonFill();
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Edit");
+
 std::vector<std::vector<Glib::ustring>> raw_data_edit = {
     // clang-format off
-    {"app.object-to-pattern",                   N_("Objects to Pattern"),               "Edit",     N_("Convert selection to a rectangle with tiled pattern fill")},
-    {"app.pattern-to-object",                   N_("Pattern to Objects"),               "Edit",     N_("Extract objects from a tiled pattern fill")},
-    {"app.object-to-marker",                    N_("Objects to Marker"),                "Edit",     N_("Convert selection to a line marker")},
-    {"app.object-to-guides",                    N_("Objects to Guides"),                "Edit",     N_("Convert selected objects to a collection of guidelines aligned with their edges")},
-    {"app.cut",                                 N_("Cut"),                              "Edit",     N_("Cut selection to clipboard")},
-    {"app.copy",                                N_("Copy"),                             "Edit",     N_("Copy selection to clipboard")},
-    {"app.paste-style",                         N_("Paste Style"),                      "Edit",     N_("Apply the style of the copied object to selection")},
-    {"app.paste-size",                          N_("Paste Size"),                       "Edit",     N_("Scale selection to match the size of the copied object")},
-    {"app.paste-width",                         N_("Paste Width"),                      "Edit",     N_("Scale selection horizontally to match the width of the copied object")},
-    {"app.paste-height",                        N_("Paste Height"),                     "Edit",     N_("Scale selection vertically to match the height of the copied object")},
-    {"app.paste-size-separately",               N_("Paste Size Separately"),            "Edit",     N_("Scale each selected object to match the size of the copied object")},
-    {"app.paste-width-separately",              N_("Paste Width Separately"),           "Edit",     N_("Scale each selected object horizontally to match the width of the copied object")},
-    {"app.paste-height-separately",             N_("Paste Height Separately"),          "Edit",     N_("Scale each selected object vertically to match the height of the copied object")},
-    {"app.duplicate",                           N_("Duplicate"),                        "Edit",     N_("Duplicate Selected Objects")},
-    {"app.duplicate-transform",                 N_("Duplicate and Transform"),          "Edit",     N_("Duplicate selected objects and reapply last transformation")},
-    {"app.clone",                               N_("Create Clone"),                     "Edit",     N_("Create a clone (a copy linked to the original) of selected object")},
-    {"app.clone-unlink",                        N_("Unlink Clone"),                     "Edit",     N_("Cut the selected clones' links to the originals, turning them into standalone objects")},
-    {"app.clone-unlink-recursively",            N_("Unlink Clones recursively"),        "Edit",     N_("Unlink all clones in the selection, even if they are in groups.")},
-    {"app.clone-link",                          N_("Relink to Copied"),                 "Edit",     N_("Relink the selected clones to the object currently on the clipboard")},
-    {"app.select-original",                     N_("Select Original"),                  "Edit",     N_("Select the object to which the selected clone is linked")},
-    {"app.clone-link-lpe",                      N_("Clone original path (LPE)"),        "Edit",     N_("Creates a new path, applies the Clone original LPE, and refers it to the selected path")},
-    {"app.delete",                              N_("Delete"),                           "Edit",     N_("Delete selected items, nodes or text.")},
-    {"app.delete-selection",                    N_("Delete Items"),                     "Edit",     N_("Delete selected items")},
-    {"app.paste-path-effect",                   N_("Paste Path Effect"),                "Edit",     N_("Apply the path effect of the copied object to selection")},
-    {"app.remove-path-effect",                  N_("Remove Path Effect"),               "Edit",     N_("Remove any path effects from selected objects")},
-    {"app.swap-fill-and-stroke",                N_("Swap fill and stroke"),             "Edit",     N_("Swap fill and stroke of an object")},
-    {"app.fit-canvas-to-selection",             N_("Fit Page to Selection"),            "Edit",     N_("Fit the page to the current selection")},
-    {"app.chameleon-fill",                      N_("Chameleon Fill"),                   "Edit",     N_("Set each object's color to the average of all colors inside that shape.")}
+    {"app.object-to-pattern",        N_("Objects to Pattern"),        SECTION, N_("Convert selection to a rectangle with tiled pattern fill")},
+    {"app.pattern-to-object",        N_("Pattern to Objects"),        SECTION, N_("Extract objects from a tiled pattern fill")},
+    {"app.object-to-marker",         N_("Objects to Marker"),         SECTION, N_("Convert selection to a line marker")},
+    {"app.object-to-guides",         N_("Objects to Guides"),         SECTION, N_("Convert selected objects to a collection of guidelines aligned with their edges")},
+    {"app.cut",                      N_("Cut"),                       SECTION, N_("Cut selection to clipboard")},
+    {"app.copy",                     N_("Copy"),                      SECTION, N_("Copy selection to clipboard")},
+    {"app.paste-style",              N_("Paste Style"),               SECTION, N_("Apply the style of the copied object to selection")},
+    {"app.paste-size",               N_("Paste Size"),                SECTION, N_("Scale selection to match the size of the copied object")},
+    {"app.paste-width",              N_("Paste Width"),               SECTION, N_("Scale selection horizontally to match the width of the copied object")},
+    {"app.paste-height",             N_("Paste Height"),              SECTION, N_("Scale selection vertically to match the height of the copied object")},
+    {"app.paste-size-separately",    N_("Paste Size Separately"),     SECTION, N_("Scale each selected object to match the size of the copied object")},
+    {"app.paste-width-separately",   N_("Paste Width Separately"),    SECTION, N_("Scale each selected object horizontally to match the width of the copied object")},
+    {"app.paste-height-separately",  N_("Paste Height Separately"),   SECTION, N_("Scale each selected object vertically to match the height of the copied object")},
+    {"app.duplicate",                N_("Duplicate"),                 SECTION, N_("Duplicate Selected Objects")},
+    {"app.duplicate-transform",      N_("Duplicate and Transform"),   SECTION, N_("Duplicate selected objects and reapply last transformation")},
+    {"app.clone",                    N_("Create Clone"),              SECTION, N_("Create a clone (a copy linked to the original) of selected object")},
+    {"app.clone-unlink",             N_("Unlink Clone"),              SECTION, N_("Cut the selected clones' links to the originals, turning them into standalone objects")},
+    {"app.clone-unlink-recursively", N_("Unlink Clones recursively"), SECTION, N_("Unlink all clones in the selection, even if they are in groups.")},
+    {"app.clone-link",               N_("Relink to Copied"),          SECTION, N_("Relink the selected clones to the object currently on the clipboard")},
+    {"app.select-original",          N_("Select Original"),           SECTION, N_("Select the object to which the selected clone is linked")},
+    {"app.clone-link-lpe",           N_("Clone original path (LPE)"), SECTION, N_("Creates a new path, applies the Clone original LPE, and refers it to the selected path")},
+    {"app.delete",                   N_("Delete"),                    SECTION, N_("Delete selected items, nodes or text.")},
+    {"app.delete-selection",         N_("Delete Items"),              SECTION, N_("Delete selected items")},
+    {"app.paste-path-effect",        N_("Paste Path Effect"),         SECTION, N_("Apply the path effect of the copied object to selection")},
+    {"app.remove-path-effect",       N_("Remove Path Effect"),        SECTION, N_("Remove any path effects from selected objects")},
+    {"app.swap-fill-and-stroke",     N_("Swap fill and stroke"),      SECTION, N_("Swap fill and stroke of an object")},
+    {"app.fit-canvas-to-selection",  N_("Fit Page to Selection"),     SECTION, N_("Fit the page to the current selection")},
+    {"app.chameleon-fill",           N_("Chameleon Fill"),            SECTION, N_("Set each object's color to the average of all colors inside that shape.")}
     // clang-format on
 };
 

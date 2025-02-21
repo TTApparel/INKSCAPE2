@@ -57,12 +57,14 @@ path_effect_parameter_next(InkscapeWindow* win)
     sp_selection_next_patheffect_param(dt);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Edit");
+
 std::vector<std::vector<Glib::ustring>> raw_data_edit_window =
 {
     // clang-format off
-    {"win.paste",                               N_("Paste"),                            "Edit",     N_("Paste objects from clipboard to mouse point, or paste text")},
-    {"win.paste-in-place",                      N_("Paste In Place"),                   "Edit",     N_("Paste objects from clipboard to the original position of the copied objects")},
-    {"win.path-effect-parameter-next",          N_("Next path effect parameter"),       "Edit",     N_("Show next editable path effect parameter")}
+    {"win.paste",                        N_("Paste"),                        SECTION, N_("Paste objects from clipboard to mouse point, or paste text")},
+    {"win.paste-in-place",               N_("Paste In Place"),               SECTION, N_("Paste objects from clipboard to the original position of the copied objects")},
+    {"win.path-effect-parameter-next",   N_("Next path effect parameter"),   SECTION, N_("Show next editable path effect parameter")}
     // clang-format on
 };
 

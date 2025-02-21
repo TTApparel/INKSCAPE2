@@ -110,20 +110,22 @@ void help_url_svg2_spec(InkscapeWindow *win)
     help_open_url(url);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Help Url");
+
 std::vector<std::vector<Glib::ustring>> raw_data_help_url = {
     // clang-format off
-    { "win.help-url-ask-question",    N_("Ask Us a Question"),           "Help Url",     N_("Ask Us a Question") },
-    { "win.help-url-man",             N_("Command Line Options"),        "Help Url",     N_("Command Line Options")},
-    { "win.help-url-faq",             N_("FAQ"),                         "Help Url",     N_("FAQ")},
-    { "win.help-url-keys",            N_("Keys and Mouse Reference"),    "Help Url",     N_("Keys and Mouse Reference")},
-    { "win.help-url-release-notes",   N_("New in This Version"),         "Help Url",     N_("New in This Version")},
-    { "win.help-url-report-bug",      N_("Report a Bug"),                "Help Url",     N_("Report a Bug")},
-    { "win.help-url-manual",          N_("Inkscape Manual"),             "Help Url",     N_("Inkscape Manual")},
-    { "win.help-url-beginners-guide", N_("Beginners' Guide"),            "Help Url",     N_("Beginners' Guide")},
-    { "win.help-url-inkex",           N_("Extension Development Guide"), "Help Url",     N_("Extension Development Guide")},
-    { "win.help-url-donate",          N_("Donate"),                      "Help Url",     N_("Donate to Inkscape")},
-    { "win.help-url-svg11-spec",      N_("SVG 1.1 Specification"),       "Help Url",     N_("SVG 1.1 Specification")},
-    { "win.help-url-svg2-spec",       N_("SVG 2 Specification"),         "Help Url",     N_("SVG 2 Specification")}
+    { "win.help-url-ask-question",    N_("Ask Us a Question"),           SECTION, N_("Ask Us a Question") },
+    { "win.help-url-man",             N_("Command Line Options"),        SECTION, N_("Command Line Options")},
+    { "win.help-url-faq",             N_("FAQ"),                         SECTION, N_("FAQ")},
+    { "win.help-url-keys",            N_("Keys and Mouse Reference"),    SECTION, N_("Keys and Mouse Reference")},
+    { "win.help-url-release-notes",   N_("New in This Version"),         SECTION, N_("New in This Version")},
+    { "win.help-url-report-bug",      N_("Report a Bug"),                SECTION, N_("Report a Bug")},
+    { "win.help-url-manual",          N_("Inkscape Manual"),             SECTION, N_("Inkscape Manual")},
+    { "win.help-url-beginners-guide", N_("Beginners' Guide"),            SECTION, N_("Beginners' Guide")},
+    { "win.help-url-inkex",           N_("Extension Development Guide"), SECTION, N_("Extension Development Guide")},
+    { "win.help-url-donate",          N_("Donate"),                      SECTION, N_("Donate to Inkscape")},
+    { "win.help-url-svg11-spec",      N_("SVG 1.1 Specification"),       SECTION, N_("SVG 1.1 Specification")},
+    { "win.help-url-svg2-spec",       N_("SVG 2 Specification"),         SECTION, N_("SVG 2 Specification")}
     // clang-format on
 };
 

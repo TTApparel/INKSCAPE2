@@ -474,36 +474,39 @@ group_exit (InkscapeWindow* win)
     }
 }
 
+const Glib::ustring SECTION_LAYER = NC_("Action Section", "Layer");
+const Glib::ustring SECTION_SELECT = NC_("Action Section", "Select");
+
 std::vector<std::vector<Glib::ustring>> raw_data_layer =
 {
     // clang-format off
-    {"win.layer-new",                       N_("Add Layer"),                        "Layer",     N_("Create a new layer")},
-    {"win.layer-new-above",                 N_("Add Layer Above"),                  "Layer",     N_("Create a new layer above current")},
-    {"win.layer-duplicate",                 N_("Duplicate Current Layer"),          "Layer",     N_("Duplicate the current layer")},
-    {"win.layer-delete",                    N_("Delete Current Layer"),             "Layer",     N_("Delete the current layer")},
-    {"win.layer-rename",                    N_("Rename Layer"),                     "Layer",     N_("Rename the current layer")},
+    {"win.layer-new",                       N_("Add Layer"),                        SECTION_LAYER,     N_("Create a new layer")},
+    {"win.layer-new-above",                 N_("Add Layer Above"),                  SECTION_LAYER,     N_("Create a new layer above current")},
+    {"win.layer-duplicate",                 N_("Duplicate Current Layer"),          SECTION_LAYER,     N_("Duplicate the current layer")},
+    {"win.layer-delete",                    N_("Delete Current Layer"),             SECTION_LAYER,     N_("Delete the current layer")},
+    {"win.layer-rename",                    N_("Rename Layer"),                     SECTION_LAYER,     N_("Rename the current layer")},
 
-    {"win.layer-hide-toggle",               N_("Show/Hide Current Layer"),          "Layer",     N_("Toggle visibility of current layer")},
-    {"win.layer-lock-toggle",               N_("Lock/Unlock Current Layer"),        "Layer",     N_("Toggle lock on current layer")},
+    {"win.layer-hide-toggle",               N_("Show/Hide Current Layer"),          SECTION_LAYER,     N_("Toggle visibility of current layer")},
+    {"win.layer-lock-toggle",               N_("Lock/Unlock Current Layer"),        SECTION_LAYER,     N_("Toggle lock on current layer")},
 
-    {"win.layer-previous",                  N_("Switch to Layer Above"),            "Layer",     N_("Switch to the layer above the current")},
-    {"win.layer-next",                      N_("Switch to Layer Below"),            "Layer",     N_("Switch to the layer below the current")},
+    {"win.layer-previous",                  N_("Switch to Layer Above"),            SECTION_LAYER,     N_("Switch to the layer above the current")},
+    {"win.layer-next",                      N_("Switch to Layer Below"),            SECTION_LAYER,     N_("Switch to the layer below the current")},
 
-    {"win.selection-move-to-layer-above",   N_("Move Selection to Layer Above"),    "Layer",     N_("Move selection to the layer above the current")},
-    {"win.selection-move-to-layer-below",   N_("Move Selection to Layer Below"),    "Layer",     N_("Move selection to the layer below the current")},
-    {"win.selection-move-to-layer",         N_("Move Selection to Layer..."),       "Layer",     N_("Move selection to layer")},
+    {"win.selection-move-to-layer-above",   N_("Move Selection to Layer Above"),    SECTION_LAYER,     N_("Move selection to the layer above the current")},
+    {"win.selection-move-to-layer-below",   N_("Move Selection to Layer Below"),    SECTION_LAYER,     N_("Move selection to the layer below the current")},
+    {"win.selection-move-to-layer",         N_("Move Selection to Layer..."),       SECTION_LAYER,     N_("Move selection to layer")},
 
-    {"win.layer-top",                       N_("Layer to Top"),                     "Layer",     N_("Raise the current layer to the top")},
-    {"win.layer-raise",                     N_("Raise Layer"),                      "Layer",     N_("Raise the current layer")},
-    {"win.layer-lower",                     N_("Lower Layer"),                      "Layer",     N_("Lower the current layer")},
-    {"win.layer-bottom",                    N_("Layer to Bottom"),                  "Layer",     N_("Lower the current layer to the bottom")},
+    {"win.layer-top",                       N_("Layer to Top"),                     SECTION_LAYER,     N_("Raise the current layer to the top")},
+    {"win.layer-raise",                     N_("Raise Layer"),                      SECTION_LAYER,     N_("Raise the current layer")},
+    {"win.layer-lower",                     N_("Lower Layer"),                      SECTION_LAYER,     N_("Lower the current layer")},
+    {"win.layer-bottom",                    N_("Layer to Bottom"),                  SECTION_LAYER,     N_("Lower the current layer to the bottom")},
 
-    {"win.layer-to-group",                  N_("Layer to Group"),                   "Layer",     N_("Convert the current layer to a group")},
-    {"win.layer-from-group",                N_("Layer from Group"),                 "Layer",     N_("Convert the group to a layer")},
+    {"win.layer-to-group",                  N_("Layer to Group"),                   SECTION_LAYER,     N_("Convert the current layer to a group")},
+    {"win.layer-from-group",                N_("Layer from Group"),                 SECTION_LAYER,     N_("Convert the group to a layer")},
 
     // These use Layer technology even if they don't act on layers.
-    {"win.selection-group-enter",           N_("Enter Group"),                      "Select",     N_("Enter group")},
-    {"win.selection-group-exit",            N_("Exit Group"),                       "Select",     N_("Exit group")},
+    {"win.selection-group-enter",           N_("Enter Group"),                      SECTION_SELECT,    N_("Enter group")},
+    {"win.selection-group-exit",            N_("Exit Group"),                       SECTION_SELECT,    N_("Exit group")},
     // clang-format on
 };
 

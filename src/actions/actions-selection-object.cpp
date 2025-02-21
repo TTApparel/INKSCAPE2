@@ -141,24 +141,27 @@ page_fit_to_selection(InkscapeApplication *app)
     Inkscape::DocumentUndo::done(document, _("Resize page to fit"), INKSCAPE_ICON("tool-pages"));
 }
 
+const Glib::ustring SECTION_SELECT = NC_("Action Section", "Select");
+const Glib::ustring SECTION_PAGE = NC_("Action Section", "Page");
+
 std::vector<std::vector<Glib::ustring>> raw_data_selection_object =
 {
     // clang-format off
-    { "app.selection-group",                NC_("Verb", "Group"),                        "Select",   N_("Group selected objects")},
-    { "app.selection-ungroup",              N_("Ungroup"),                               "Select",   N_("Ungroup selected objects")},
-    { "app.selection-ungroup-pop",          N_("Pop Selected Objects out of Group"),     "Select",   N_("Pop selected objects out of group")},
-    { "app.selection-link",                 NC_("Hyperlink|Verb", "Link"),               "Select",   N_("Add an anchor to selected objects")},
+    { "app.selection-group",                NC_("Verb", "Group"),                     SECTION_SELECT, N_("Group selected objects")},
+    { "app.selection-ungroup",              N_("Ungroup"),                            SECTION_SELECT, N_("Ungroup selected objects")},
+    { "app.selection-ungroup-pop",          N_("Pop Selected Objects out of Group"),  SECTION_SELECT, N_("Pop selected objects out of group")},
+    { "app.selection-link",                 NC_("Hyperlink|Verb", "Link"),            SECTION_SELECT, N_("Add an anchor to selected objects")},
 
-    { "app.selection-top",                  N_("Raise to Top"),                          "Select",   N_("Raise selection to top")},
-    { "app.selection-raise",                N_("Raise"),                                 "Select",   N_("Raise selection one step")},
-    { "app.selection-lower",                N_("Lower"),                                 "Select",   N_("Lower selection one step")},
-    { "app.selection-bottom",               N_("Lower to Bottom"),                       "Select",   N_("Lower selection to bottom")},
+    { "app.selection-top",                  N_("Raise to Top"),                       SECTION_SELECT, N_("Raise selection to top")},
+    { "app.selection-raise",                N_("Raise"),                              SECTION_SELECT, N_("Raise selection one step")},
+    { "app.selection-lower",                N_("Lower"),                              SECTION_SELECT, N_("Lower selection one step")},
+    { "app.selection-bottom",               N_("Lower to Bottom"),                    SECTION_SELECT, N_("Lower selection to bottom")},
 
-    { "app.selection-stack-up",             N_("Move up the Stack"),                     "Select",   N_("Move the selection up in the stack order")},
-    { "app.selection-stack-down",           N_("Move down the Stack"),                   "Select",   N_("Move the selection down in the stack order")},
+    { "app.selection-stack-up",             N_("Move up the Stack"),                  SECTION_SELECT, N_("Move the selection up in the stack order")},
+    { "app.selection-stack-down",           N_("Move down the Stack"),                SECTION_SELECT, N_("Move the selection down in the stack order")},
 
-    { "app.selection-make-bitmap-copy",     N_("Make a Bitmap Copy"),                    "Select",   N_("Export selection to a bitmap and insert it into document")},
-    { "app.page-fit-to-selection",          N_("Resize Page to Selection"),              "Page",     N_("Fit the page to the current selection or the drawing if there is no selection")}
+    { "app.selection-make-bitmap-copy",     N_("Make a Bitmap Copy"),                 SECTION_SELECT, N_("Export selection to a bitmap and insert it into document")},
+    { "app.page-fit-to-selection",          N_("Resize Page to Selection"),           SECTION_PAGE,   N_("Fit the page to the current selection or the drawing if there is no selection")}
     // clang-format on
 };
 

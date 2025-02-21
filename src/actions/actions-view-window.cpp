@@ -56,14 +56,16 @@ void tab_next(InkscapeWindow *win)
     win->get_desktop_widget()->advanceTab(1);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "View");
+
 auto const raw_data_view_window = std::vector<std::vector<Glib::ustring>>
 {
     // clang-format off
-    {"win.window-new",                  N_("Duplicate Window"),         "View",             N_("Open a new window with the same document")},
-    {"win.window-previous",             N_("Previous Window"),          "View",             N_("Switch to the previous document window")},
-    {"win.window-next",                 N_("Next Window"),              "View",             N_("Switch to the next document window")},
-    {"win.tab-next",                    N_("Next Tab"),                 "View",             N_("Switch to the next document tab")},
-    {"win.tab-previous",                N_("Previous Tab"),             "View",             N_("Switch to the previous document tab")},
+    {"win.window-new",      N_("Duplicate Window"), SECTION, N_("Open a new window with the same document")},
+    {"win.window-previous", N_("Previous Window"),  SECTION, N_("Switch to the previous document window")},
+    {"win.window-next",     N_("Next Window"),      SECTION, N_("Switch to the next document window")},
+    {"win.tab-next",        N_("Next Tab"),         SECTION, N_("Switch to the next document tab")},
+    {"win.tab-previous",    N_("Previous Tab"),     SECTION, N_("Switch to the previous document tab")},
     // clang-format on
 };
 

@@ -106,14 +106,16 @@ file_close(InkscapeApplication *app)
     app->set_active_desktop(nullptr);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "File");
+
 std::vector<std::vector<Glib::ustring>> raw_data_file =
 {
     // clang-format off
-    {"app.file-open",              N_("File Open"),                "File",       N_("Open file")                                         },
-    {"app.file-new",               N_("File New"),                 "File",       N_("Open new document using template")                  },
-    {"app.file-close",             N_("File Close"),               "File",       N_("Close active document")                             },
-    {"app.file-open-window",       N_("File Open Window"),         "File",       N_("Open file window")                                  },
-    {"app.file-rebase",            N_("File Contents Replace"),              "File",       N_("Replace current document's contents by contents of another file")                 }
+    {"app.file-open",              N_("File Open"),                SECTION,       N_("Open file")                                         },
+    {"app.file-new",               N_("File New"),                 SECTION,       N_("Open new document using template")                  },
+    {"app.file-close",             N_("File Close"),               SECTION,       N_("Close active document")                             },
+    {"app.file-open-window",       N_("File Open Window"),         SECTION,       N_("Open file window")                                  },
+    {"app.file-rebase",            N_("File Contents Replace"),    SECTION,       N_("Replace current document's contents by contents of another file")                 }
     // clang-format on
 };
 

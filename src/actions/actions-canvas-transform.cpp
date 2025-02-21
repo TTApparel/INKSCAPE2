@@ -263,39 +263,41 @@ canvas_rotate_lock(InkscapeWindow *win)
     dt->set_rotation_lock(state);
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Canvas Geometry");
+
 std::vector<std::vector<Glib::ustring>> raw_data_canvas_transform =
 {
     // clang-format off
-    {"win.canvas-zoom-in",            N_("Zoom In"),             "Canvas Geometry",  N_("Zoom in")                                    },
-    {"win.canvas-zoom-out",           N_("Zoom Out"),            "Canvas Geometry",  N_("Zoom out")                                   },
-    {"win.canvas-zoom-1-1",           N_("Zoom 1:1"),            "Canvas Geometry",  N_("Zoom to 1:1")                                },
-    {"win.canvas-zoom-1-2",           N_("Zoom 1:2"),            "Canvas Geometry",  N_("Zoom to 1:2")                                },
-    {"win.canvas-zoom-2-1",           N_("Zoom 2:1"),            "Canvas Geometry",  N_("Zoom to 2:1")                                },
-    {"win.canvas-zoom-selection",     N_("Zoom Selection"),      "Canvas Geometry",  N_("Zoom to fit selection in window")            },
-    {"win.canvas-zoom-drawing",       N_("Zoom Drawing"),        "Canvas Geometry",  N_("Zoom to fit drawing in window")              },
-    {"win.canvas-zoom-page",          N_("Zoom Page"),           "Canvas Geometry",  N_("Zoom to fit page in window")                 },
-    {"win.canvas-zoom-page-width",    N_("Zoom Page Width"),     "Canvas Geometry",  N_("Zoom to fit page width in window")           },
-    {"win.canvas-zoom-center-page",   N_("Zoom Center Page"),    "Canvas Geometry",  N_("Center page in window")                      },
-    {"win.canvas-zoom-prev",          N_("Zoom Prev"),           "Canvas Geometry",  N_("Go back to previous zoom (from the history of zooms)")},
-    {"win.canvas-zoom-next",          N_("Zoom Next"),           "Canvas Geometry",  N_("Go to next zoom (from the history of zooms)")},
+    {"win.canvas-zoom-in",            N_("Zoom In"),             SECTION, N_("Zoom in")                                    },
+    {"win.canvas-zoom-out",           N_("Zoom Out"),            SECTION, N_("Zoom out")                                   },
+    {"win.canvas-zoom-1-1",           N_("Zoom 1:1"),            SECTION, N_("Zoom to 1:1")                                },
+    {"win.canvas-zoom-1-2",           N_("Zoom 1:2"),            SECTION, N_("Zoom to 1:2")                                },
+    {"win.canvas-zoom-2-1",           N_("Zoom 2:1"),            SECTION, N_("Zoom to 2:1")                                },
+    {"win.canvas-zoom-selection",     N_("Zoom Selection"),      SECTION, N_("Zoom to fit selection in window")            },
+    {"win.canvas-zoom-drawing",       N_("Zoom Drawing"),        SECTION, N_("Zoom to fit drawing in window")              },
+    {"win.canvas-zoom-page",          N_("Zoom Page"),           SECTION, N_("Zoom to fit page in window")                 },
+    {"win.canvas-zoom-page-width",    N_("Zoom Page Width"),     SECTION, N_("Zoom to fit page width in window")           },
+    {"win.canvas-zoom-center-page",   N_("Zoom Center Page"),    SECTION, N_("Center page in window")                      },
+    {"win.canvas-zoom-prev",          N_("Zoom Prev"),           SECTION, N_("Go back to previous zoom (from the history of zooms)")},
+    {"win.canvas-zoom-next",          N_("Zoom Next"),           SECTION, N_("Go to next zoom (from the history of zooms)")},
 
-    {"win.canvas-rotate-cw",          N_("Rotate Clockwise"),    "Canvas Geometry",  N_("Rotate canvas clockwise")                    },
-    {"win.canvas-rotate-ccw",         N_("Rotate Counter-CW"),   "Canvas Geometry",  N_("Rotate canvas counter-clockwise")            },
-    {"win.canvas-rotate-reset",       N_("Reset Rotation"),      "Canvas Geometry",  N_("Reset canvas rotation")                      },
+    {"win.canvas-rotate-cw",          N_("Rotate Clockwise"),    SECTION, N_("Rotate canvas clockwise")                    },
+    {"win.canvas-rotate-ccw",         N_("Rotate Counter-CW"),   SECTION, N_("Rotate canvas counter-clockwise")            },
+    {"win.canvas-rotate-reset",       N_("Reset Rotation"),      SECTION, N_("Reset canvas rotation")                      },
 
-    {"win.canvas-flip-horizontal",    N_("Flip Horizontal"),     "Canvas Geometry",  N_("Flip canvas horizontally")                   },
-    {"win.canvas-flip-vertical",      N_("Flip Vertical"),       "Canvas Geometry",  N_("Flip canvas vertically")                     },
-    {"win.canvas-flip-reset",         N_("Reset Flipping"),      "Canvas Geometry",  N_("Reset canvas flipping")                      },
+    {"win.canvas-flip-horizontal",    N_("Flip Horizontal"),     SECTION, N_("Flip canvas horizontally")                   },
+    {"win.canvas-flip-vertical",      N_("Flip Vertical"),       SECTION, N_("Flip canvas vertically")                     },
+    {"win.canvas-flip-reset",         N_("Reset Flipping"),      SECTION, N_("Reset canvas flipping")                      },
 
-    {"win.canvas-zoom-absolute",      N_("Zoom Absolute"),       "Canvas Geometry",  N_("Zoom to an absolute value")                  },
-    {"win.canvas-zoom-relative",      N_("Zoom Relative"),       "Canvas Geometry",  N_("Zoom by a relative amount")               },
+    {"win.canvas-zoom-absolute",      N_("Zoom Absolute"),       SECTION, N_("Zoom to an absolute value")                  },
+    {"win.canvas-zoom-relative",      N_("Zoom Relative"),       SECTION, N_("Zoom by a relative amount")                  },
 
-    {"win.canvas-rotate-absolute-radians", N_("Rotate Absolute (Radians)"), "Canvas Geometry",  N_("Rotate to an absolute value (radians)")    },
-    {"win.canvas-rotate-relative-radians", N_("Rotate Relative (Radians)"), "Canvas Geometry",  N_("Rotate by a relative amount (radians)") },
-    {"win.canvas-rotate-absolute-degrees", N_("Rotate Absolute (Degrees)"), "Canvas Geometry",  N_("Rotate to an absolute value (degrees)")    },
-    {"win.canvas-rotate-relative-degrees", N_("Rotate Relative (Degrees)"), "Canvas Geometry",  N_("Rotate by a relative amount (degrees)") },
+    {"win.canvas-rotate-absolute-radians", N_("Rotate Absolute (Radians)"), SECTION, N_("Rotate to an absolute value (radians)")    },
+    {"win.canvas-rotate-relative-radians", N_("Rotate Relative (Radians)"), SECTION, N_("Rotate by a relative amount (radians)")    },
+    {"win.canvas-rotate-absolute-degrees", N_("Rotate Absolute (Degrees)"), SECTION, N_("Rotate to an absolute value (degrees)")    },
+    {"win.canvas-rotate-relative-degrees", N_("Rotate Relative (Degrees)"), SECTION, N_("Rotate by a relative amount (degrees)")    },
 
-    {"win.canvas-rotate-lock",        N_("Lock Rotation"),       "Canvas Geometry",  N_("Lock canvas rotation")                       },
+    {"win.canvas-rotate-lock",        N_("Lock Rotation"),       SECTION, N_("Lock canvas rotation")                       },
     // clang-format on
 };
 

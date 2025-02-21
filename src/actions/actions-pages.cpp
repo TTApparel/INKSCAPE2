@@ -92,14 +92,16 @@ void set_move_objects(SPDocument *doc)
     }
 }
 
+const Glib::ustring SECTION = NC_("Action Section", "Page");
+
 std::vector<std::vector<Glib::ustring>> doc_page_actions =
 {
     // clang-format off
-    {"doc.page-new",               N_("New Page"),                "Page",     N_("Create a new page")                                  },
-    {"doc.page-delete",            N_("Delete Page"),             "Page",     N_("Delete the selected page")                           },
-    {"doc.page-move-objects",      N_("Move Objects with Page"),  "Page",     N_("Move overlapping objects as the page is moved")     },
-    {"doc.page-move-backward",     N_("Move Before Previous"),    "Page",     N_("Move page backwards in the page order")              },
-    {"doc.page-move-forward",      N_("Move After Next"),         "Page",     N_("Move page forwards in the page order")               },
+    {"doc.page-new",               N_("New Page"),               SECTION, N_("Create a new page")                                  },
+    {"doc.page-delete",            N_("Delete Page"),            SECTION, N_("Delete the selected page")                           },
+    {"doc.page-move-objects",      N_("Move Objects with Page"), SECTION, N_("Move overlapping objects as the page is moved")     },
+    {"doc.page-move-backward",     N_("Move Before Previous"),   SECTION, N_("Move page backwards in the page order")              },
+    {"doc.page-move-forward",      N_("Move After Next"),        SECTION, N_("Move page forwards in the page order")               },
     // clang-format on
 };
 
@@ -126,8 +128,8 @@ void add_actions_pages(SPDocument* doc)
 std::vector<std::vector<Glib::ustring>> win_page_actions =
 {
     // clang-format off
-    {"win.page-new",    N_("New Page"),    "Page", N_("Create a new page and center view on it")},
-    {"win.page-delete", N_("Delete Page"), "Page", N_("Delete the selected page and center view on next page")},
+    {"win.page-new",    N_("New Page"),    SECTION, N_("Create a new page and center view on it")},
+    {"win.page-delete", N_("Delete Page"), SECTION, N_("Delete the selected page and center view on next page")},
     // clang-format on
 };
 

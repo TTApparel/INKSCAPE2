@@ -89,14 +89,16 @@ std::vector<std::vector<Glib::ustring>> hint_data_window =
     // clang-format on
 };
 
+const Glib::ustring SECTION = NC_("Action Section", "Window");
+
 std::vector<std::vector<Glib::ustring>> raw_data_window =
 {
     // clang-format off
-    {"app.window-open",           N_("Window Open"),     "Window",     N_("Open a window for the active document; GUI only")       },
-    {"app.window-close",           N_("Window Close"),           "Window",     N_("Close the active window, does not check for data loss") },
-    {"app.window-query-geometry",  N_("Window Query Geometry"),  "Window",     N_("Query the active window's location and size") },
-    {"app.window-set-geometry",    N_("Window Set Geometry"),    "Window",     N_("Set the active window's location and size (x, y, width, height)") },
-    {"app.window-crash",           N_("Force Crash"),            "Window",     N_("Force Inkscape to crash, useful for testing.") },
+    {"app.window-open",           N_("Window Open"),           SECTION, N_("Open a window for the active document; GUI only")       },
+    {"app.window-close",          N_("Window Close"),          SECTION, N_("Close the active window, does not check for data loss") },
+    {"app.window-query-geometry", N_("Window Query Geometry"), SECTION, N_("Query the active window's location and size") },
+    {"app.window-set-geometry",   N_("Window Set Geometry"),   SECTION, N_("Set the active window's location and size (x, y, width, height)") },
+    {"app.window-crash",          N_("Force Crash"),           SECTION, N_("Force Inkscape to crash, useful for testing.") },
     // clang-format on
 };
 
