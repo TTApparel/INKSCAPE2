@@ -134,6 +134,8 @@ private:
     sigc::scoped_connection layer_changed;
     SPObject *_layer;
     Gtk::TreeModel::RowReference _hovered_row_ref;
+    Gdk::RGBA _hovered_row_color;
+    Gdk::RGBA _hovered_row_old_color;
 
     //Show icons in the context menu
     bool _show_contextmenu_icons;

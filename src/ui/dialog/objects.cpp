@@ -93,6 +93,8 @@ static double const SELECTED_ALPHA[16] = {
     0.90, //15 1, 2 , 4 and 8
 };
 
+static double const HOVER_ALPHA = 0.10;
+
 namespace Inkscape::UI::Dialog {
 
 namespace {
@@ -1503,6 +1505,14 @@ void ObjectsPanel::on_motion_motion(Gtk::EventControllerMotion const *controller
         if (auto row = *_store->get_iter(_hovered_row_ref.get_path())) {
             row[_model->_colHover] = false;
             row[_model->_colHoverColor] = false;
+            // selection etc. might change _colBgColor. Erase hover
+            // highlight only if it hasn't changed
+            if (row[_model->_colBgColor] == _hovered_row_color) {
+                row[_model->_colBgColor] = _hovered_row_old_color;
+            }
+            else { // update row's slection color if it has changed
+                _hovered_row_old_color = row[_model->_colBgColor];
+            }
         }
     }
 
@@ -1529,6 +1539,11 @@ void ObjectsPanel::on_motion_motion(Gtk::EventControllerMotion const *controller
         if (auto row = *_store->get_iter(path)) {
             row[_model->_colHover] = true;
             _hovered_row_ref = Gtk::TreeModel::RowReference(_store, path);
+            // update color for hovered row
+            const Gdk::RGBA color = row[_model->_colBgColor]; // current color
+            _hovered_row_old_color = color; // store old color
+            _hovered_row_color = change_alpha(color, color.get_alpha() + HOVER_ALPHA);
+            row[_model->_colBgColor] = _hovered_row_color;
 
             if (col == _color_tag_column) {
                 row[_model->_colHoverColor] = true;
