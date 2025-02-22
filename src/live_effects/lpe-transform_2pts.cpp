@@ -14,6 +14,7 @@
 
 #include <gtkmm/box.h>
 #include <gtkmm/entry.h>
+#include <gtkmm/grid.h>
 
 #include "display/curve.h"
 #include "helper/geom.h"
@@ -31,12 +32,12 @@ namespace Inkscape::LivePathEffect {
 
 LPETransform2Pts::LPETransform2Pts(LivePathEffectObject *lpeobject) :
     Effect(lpeobject),
-    elastic(_("Elastic"), _("Elastic transform mode"), "elastic", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    from_original_width(_("From original width"), _("From original width"), "from_original_width", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    lock_length(_("Lock length"), _("Lock length to current distance"), "lock_length", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    lock_angle(_("Lock angle"), _("Lock angle"), "lock_angle", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    flip_horizontal(_("Flip horizontal"), _("Flip horizontal"), "flip_horizontal", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
-    flip_vertical(_("Flip vertical"), _("Flip vertical"), "flip_vertical", &wr, this, false,"", INKSCAPE_ICON("on-outline"), INKSCAPE_ICON("off-outline")),
+    elastic(_("Elastic"), _("Elastic transform mode"), "elastic", &wr, this, false),
+    from_original_width(_("From original width"), _("From original width"), "from_original_width", &wr, this, false),
+    lock_length(_("Lock length"), _("Lock length to current distance"), "lock_length", &wr, this, false),
+    lock_angle(_("Lock angle"), _("Lock angle"), "lock_angle", &wr, this, false),
+    flip_horizontal(_("Flip horizontal"), _("Flip horizontal"), "flip_horizontal", &wr, this, false),
+    flip_vertical(_("Flip vertical"), _("Flip vertical"), "flip_vertical", &wr, this, false),
     start(_("Start"), _("Start point"), "start", &wr, this, "Start point"),
     end(_("End"), _("End point"), "end", &wr, this, "End point"),
     stretch(_("Stretch"), _("Stretch the result"), "stretch", &wr, this, 1),
@@ -292,10 +293,15 @@ Gtk::Widget *LPETransform2Pts::newWidget()
     auto const vbox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 6);
     vbox->set_margin(5);
 
-    auto const button1 = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL,0);
-    auto const button2 = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL,0);
-    auto const button3 = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL,0);
-    auto const button4 = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL,0);
+    auto const grid = Gtk::make_managed<Gtk::Grid>();
+    grid->set_column_spacing(50);
+    grid->set_row_spacing(6);
+
+    std::map<std::string, std::pair<int, int>> widget_positions = {
+        {"elastic", {0, 0}}, {"from_original_width", {1, 0}},
+        {"flip_vertical", {0, 1}}, {"flip_horizontal", {1, 1}},
+        {"lock_length", {0, 2}}, {"lock_angle", {1, 2}}
+    };
 
     for (auto const param: param_vector) {
         if (!param->widget_is_visible) continue;
@@ -310,16 +316,16 @@ Gtk::Widget *LPETransform2Pts::newWidget()
             Gtk::manage(&scalar);
             scalar.signal_value_changed().connect(sigc::mem_fun(*this, &LPETransform2Pts::updateIndex));
             scalar.getSpinButton().set_width_chars(3);
-        } else if (param->param_key == "from_original_width" || param->param_key == "elastic") {
-            parent = button1;
-        } else if (param->param_key == "flip_horizontal" || param->param_key == "flip_vertical") {
-            parent = button2;
-        } else if (param->param_key == "lock_angle" || param->param_key == "lock_length") {
-            parent = button3;
-        }
+        } else if (widget_positions.find(param->param_key) != widget_positions.end()) {
+            auto [col, row] = widget_positions[param->param_key];
+            grid->attach(*widg, col, row, 1, 1);
+            parent = nullptr; // To avoid adding it to vbox later
+        } 
 
-        g_assert(parent);
-        UI::pack_start(*parent, *widg, true, true, 2);
+        // Add to vbox only if it's not in the grid
+        if(parent) {
+            UI::pack_start(*vbox, *widg, true, true, 2);
+        }
 
         if (auto const tip = param->param_getTooltip()) {
             widg->set_tooltip_markup(*tip);
@@ -331,12 +337,9 @@ Gtk::Widget *LPETransform2Pts::newWidget()
 
     auto const reset = Gtk::make_managed<Gtk::Button>(Glib::ustring(_("Reset")));
     reset->signal_clicked().connect(sigc::mem_fun(*this, &LPETransform2Pts::reset));
-    UI::pack_start(*button4, *reset, true, true, 2);
+    UI::pack_start(*vbox, *grid, true, true, 2); // Add grid to vbox
+    UI::pack_start(*vbox, *reset, true, true, 2); // Add reset button to vbox
 
-    UI::pack_start(*vbox, *button1, true, true, 2);
-    UI::pack_start(*vbox, *button2, true, true, 2);
-    UI::pack_start(*vbox, *button3, true, true, 2);
-    UI::pack_start(*vbox, *button4, true, true, 2);
     return vbox;
 }
 

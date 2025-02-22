@@ -9,6 +9,7 @@
  */
 #include "live_effects/effect.h"
 #include "live_effects/parameter/togglebutton.h"
+#include "live_effects/parameter/bool.h"
 #include "live_effects/lpegroupbbox.h"
 
 namespace Inkscape {

@@ -17,7 +17,7 @@
 #include "live_effects/effect.h"
 #include "live_effects/lpegroupbbox.h"
 #include "live_effects/parameter/parameter.h"
-#include "live_effects/parameter/togglebutton.h"
+#include "live_effects/parameter/bool.h"
 #include "live_effects/parameter/point.h"
 
 namespace Inkscape {
@@ -52,12 +52,12 @@ protected:
     void addCanvasIndicators(SPLPEItem const *lpeitem, std::vector<Geom::PathVector> &hp_vec) override;
 
 private:
-    ToggleButtonParam elastic;
-    ToggleButtonParam from_original_width;
-    ToggleButtonParam lock_length;
-    ToggleButtonParam lock_angle;
-    ToggleButtonParam flip_horizontal;
-    ToggleButtonParam flip_vertical;
+    BoolParam elastic;
+    BoolParam from_original_width;
+    BoolParam lock_length;
+    BoolParam lock_angle;
+    BoolParam flip_horizontal;
+    BoolParam flip_vertical;
     PointParam start;
     PointParam end;
     ScalarParam stretch;
