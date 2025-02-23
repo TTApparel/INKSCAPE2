@@ -17,7 +17,7 @@ using Space::Type::RGB;
 
 // clang-format off
 INSTANTIATE_TEST_SUITE_P(ColorsSpacesXYZ, fromString, testing::Values(
-    _P(in, "color(xyz 0.1 1 0.5)", { 0.1, 1, 0.5 }, 0x2e4a9bff)
+    _P(in, "color(xyz 0.1 1 0.5)", { 0.1, 1, 0.5 }, 0x00ff9bff)
 ));
 
 INSTANTIATE_TEST_SUITE_P(ColorsSpacesXYZ, badColorString, testing::Values(

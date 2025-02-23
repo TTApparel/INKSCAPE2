@@ -244,8 +244,8 @@ TEST(ColorsColor, toString)
 {
     ASSERT_EQ(Color::parse("red")->toString(), "red");
     ASSERT_EQ(Color::parse("#ff0")->toString(), "#ffff00");
-    ASSERT_EQ(Color::parse("rgb(80,90,255 / 128)")->toString(true), "#505aff80");
-    ASSERT_EQ(Color::parse("rgb(80,90,255 / 128)")->toString(false), "#505aff");
+    ASSERT_EQ(Color::parse("rgb(80,90,255 / 0.5)")->toString(true), "#505aff80");
+    ASSERT_EQ(Color::parse("rgb(80,90,255 / 0.5)")->toString(false), "#505aff");
     // Each type of space tested in it's own testcase here after.
 }
 

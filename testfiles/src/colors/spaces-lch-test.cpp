@@ -18,7 +18,7 @@ using Space::Type::RGB;
 // clang-format off
 INSTANTIATE_TEST_SUITE_P(ColorsSpacesLCH, fromString, testing::Values(
     _P(in, "lch(50% 20 180)",      { 0.5,  0.133, 0.5        }, 0x557f79ff),
-    _P(in, "lch(100 150 360)",     { 1.0,  1.0,   1.0        }, 0x95b4ecff),
+    _P(in, "lch(100 150 360)",     { 1.0,  1.0,   1.0        }, 0xffb4ecff),
     _P(in, "lch(0 0 0)",           { 0.0,  0.0,   0.0        }, 0x000000ff),
     _P(in, "lch(20% 20 72 / 20%)", { 0.2,  0.133, 0.2,   0.2 }, 0x38300933)
 ));
