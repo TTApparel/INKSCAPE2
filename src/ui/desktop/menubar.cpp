@@ -157,7 +157,7 @@ build_menu()
 	    std::erase_if (recent_files,
 			   [](auto const &recent_file) -> bool {
 			     bool valid_file =
-			       recent_file->exists() && (
+			       (
 				 recent_file->has_application(g_get_prgname())         ||
 				 recent_file->has_application("org.inkscape.Inkscape") ||
 				 recent_file->has_application("inkscape")
