@@ -349,7 +349,7 @@
         </child>
         <child>
           <object class="GtkButton" id="copy-to-clipboard">
-            <property name="label" translatable="yes">Copy</property>
+            <property name="label" translatable="yes">Copy measurements</property>
             <property name="focusable">True</property>
             <property name="halign">center</property>
             <property name="width-request">80</property>
