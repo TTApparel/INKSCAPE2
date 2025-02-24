@@ -726,10 +726,10 @@ ObjectsPanel::ObjectsPanel()
     , _layer(nullptr)
     , _is_editing(false)
     , _page(Gtk::Orientation::VERTICAL)
-    , _color_picker(_("Highlight color"), "", Colors::Color(0x000000ff), true)
     , _builder(create_builder("dialog-objects.glade"))
     , _settings_menu(get_widget<Gtk::Popover>(_builder, "settings-menu"))
     , _object_menu(get_widget<Gtk::Popover>(_builder, "object-menu"))
+    , _colors(std::make_shared<Colors::ColorSet>(nullptr, false))
     , _searchBox(get_widget<Gtk::SearchEntry2>(_builder, "search"))
     , _opacity_slider(get_widget<Gtk::Scale>(_builder, "opacity-slider"))
     , _setting_layers(get_derived_widget<PrefCheckButton, Glib::ustring, bool>(_builder, "setting-layers", "/dialogs/objects/layers_only", false))
@@ -737,7 +737,6 @@ ObjectsPanel::ObjectsPanel()
     , _tree{*Gtk::make_managed<TreeViewWithCssChanged>()}
 {
     _store = Gtk::TreeStore::create(*_model);
-    _color_picker.set_visible(false);
 
     //Set up the tree
     _tree.set_model(_store);
@@ -931,22 +930,6 @@ ObjectsPanel::ObjectsPanel()
         tag->set_fixed_width(tag_renderer->get_width());
         _color_tag_column = tag;
     }
-    tag_renderer->signal_clicked().connect([this](const Glib::ustring& path) {
-        // object's color indicator clicked - open color picker
-        _clicked_item_row = *_store->get_iter(path);
-        if (auto item = getItem(_clicked_item_row)) {
-            // find object's color
-            _color_picker.setColor(item->highlight_color());
-            _color_picker.open();
-        }
-    });
-
-    _color_picker.connectChanged([this](Colors::Color const &color) {
-        if (auto item = getItem(_clicked_item_row)) {
-            item->setHighlight(color);
-            DocumentUndo::maybeDone(getDocument(), "highlight-color", _("Set item highlight color"), INKSCAPE_ICON("dialog-object-properties"));
-        }
-    });
 
     //Set the expander columns and search columns
     _tree.set_expander_column(*_name_column);
@@ -1331,6 +1314,30 @@ bool ObjectsPanel::blendModePopup(int const x, int const y, Gtk::TreeModel::Row 
     return true;
 }
 
+bool ObjectsPanel::colorTagPopup(int const x, int const y, Gtk::TreeModel::Row row)
+{
+    auto const item = getItem(row);
+    if (item == nullptr) {
+        return false;
+    }
+    _colors->set(item->highlight_color());
+    auto color_popup = Gtk::make_managed<Gtk::Popover>();
+    _color_selector = Gtk::make_managed<ColorNotebook>(_colors);
+    _color_selector->set_label(_("Highlight Color"));
+    _color_selector->set_margin(4);
+    color_popup->set_child(*_color_selector);
+    _colors->signal_changed.connect([this]() {
+        if (auto item = getItem(_clicked_item_row)) {
+            item->setHighlight(_colors->get().value());
+            DocumentUndo::maybeDone(getDocument(), "highlight-color", _("Set item highlight color"), INKSCAPE_ICON("dialog-object-properties"));
+        }
+    });
+    _popoverbin.setPopover(&*color_popup);
+    UI::popup_at(*color_popup, _tree, x, y);
+
+    return true;
+}
+
 /**
  * Sets sensitivity of items in the tree
  * @param iter Current item in the tree
@@ -1649,6 +1656,11 @@ Gtk::EventSequenceState ObjectsPanel::on_click(Gtk::GestureClick const &gesture,
             } else if (col == _blend_mode_column) {
                 auto const [cx, cy] = get_cell_center(_tree, path, *_blend_mode_column);
                 return blendModePopup(cx, cy, row) ? Gtk::EventSequenceState::CLAIMED
+                                                   : Gtk::EventSequenceState::NONE;
+            } else if (col == _color_tag_column) {
+                _clicked_item_row = *_store->get_iter(path);
+                auto const [cx, cy] = get_cell_center(_tree, path, *_color_tag_column);
+                return colorTagPopup(cx, cy, row) ? Gtk::EventSequenceState::CLAIMED
                                                    : Gtk::EventSequenceState::NONE;
             }
         }

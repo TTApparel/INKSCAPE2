@@ -23,7 +23,7 @@ namespace Inkscape::UI::Widget {
  * A colored tag cell which indicates which layer an object is in.
  */
 ColorTagRenderer::ColorTagRenderer() :
-    Glib::ObjectBase(typeid(CellRenderer)),
+    Glib::ObjectBase(typeid(ColorTagRenderer)),
     Gtk::CellRenderer(),
     _property_color(*this, "tagcolor", 0),
     _property_hover(*this, "taghover", false)
@@ -45,8 +45,8 @@ void ColorTagRenderer::snapshot_vfunc(Glib::RefPtr<Gtk::Snapshot> const &snapsho
                                       const Gdk::Rectangle &cell_area,
                                       Gtk::CellRendererState flags)
 {
-    auto const cr = snapshot->append_cairo(cell_area);
-    cr->rectangle(cell_area.get_x(), cell_area.get_y(), cell_area.get_width(), cell_area.get_height());
+    auto const cr = snapshot->append_cairo(background_area);
+    cr->rectangle(background_area.get_x() + 0.5, background_area.get_y() + 0.5, background_area.get_width() - 1.0, background_area.get_height() -1.0);
     auto  color = Colors::Color(_property_color.get_value()); // RGBA
     ink_cairo_set_source_color(cr, color);
     cr->fill();
