@@ -54,7 +54,7 @@ namespace Widget {
 SimpleFilterModifier::SimpleFilterModifier(int flags)
     : Gtk::Box(Gtk::Orientation::VERTICAL)
     , _flags(flags)
-    , _lb_blend(_("Blend mode:"))
+    , _lb_blend(_("Blend mode"))
     , _lb_isolation("Isolate") // Translate for 1.1
     , _blend(SPBlendModeConverter, SPAttr::INVALID, false, "BlendMode")
     , _blur(_("Blur (%)"), 0, 0, 100, 1, 0.1, 1)

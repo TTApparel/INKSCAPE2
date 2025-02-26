@@ -110,7 +110,7 @@
             <property name="hexpand">True</property>
             <property name="halign">end</property>
             <property name="margin-end">4</property>
-            <property name="label" translatable="yes">Stop Offset:</property>
+            <property name="label" translatable="yes">Stop Offset</property>
           </object>
         </child>
         <child>
@@ -215,7 +215,7 @@
       <object class="GtkLabel">
         <property name="halign">end</property>
         <property name="hexpand">True</property>
-        <property name="label" translatable="yes">Orientation:</property>
+        <property name="label" translatable="yes">Orientation</property>
         <layout>
           <property name="column">2</property>
           <property name="row">0</property>
@@ -240,7 +240,7 @@
       <object class="GtkLabel">
         <property name="halign">start</property>
         <property name="margin-start">4</property>
-        <property name="label" translatable="yes">Repeat:</property>
+        <property name="label" translatable="yes">Repeat</property>
         <layout>
           <property name="column">0</property>
           <property name="row">1</property>
@@ -282,7 +282,7 @@
       <object class="GtkLabel">
         <property name="halign">start</property>
         <property name="margin-start">4</property>
-        <property name="label" translatable="yes">Gradient:</property>
+        <property name="label" translatable="yes">Gradient</property>
         <layout>
           <property name="column">0</property>
           <property name="row">0</property>

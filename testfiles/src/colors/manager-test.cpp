@@ -52,25 +52,25 @@ TEST(ColorManagerTest, spaceComponents)
     ASSERT_TRUE(cm.find(Space::Type::RGB));
     auto comp = cm.find(Space::Type::RGB)->getComponents();
     ASSERT_EQ(comp.size(), 3);
-    ASSERT_EQ(comp[0].name, "_R:");
-    ASSERT_EQ(comp[1].name, "_G:");
-    ASSERT_EQ(comp[2].name, "_B:");
+    ASSERT_EQ(comp[0].name, "_R");
+    ASSERT_EQ(comp[1].name, "_G");
+    ASSERT_EQ(comp[2].name, "_B");
 
     ASSERT_TRUE(cm.find(Space::Type::HSL));
     comp = cm.find(Space::Type::HSL)->getComponents(true);
     ASSERT_EQ(comp.size(), 4);
-    ASSERT_EQ(comp[0].name, "_H:");
-    ASSERT_EQ(comp[1].name, "_S:");
-    ASSERT_EQ(comp[2].name, "_L:");
-    ASSERT_EQ(comp[3].name, "_A:");
+    ASSERT_EQ(comp[0].name, "_H");
+    ASSERT_EQ(comp[1].name, "_S");
+    ASSERT_EQ(comp[2].name, "_L");
+    ASSERT_EQ(comp[3].name, "_A");
 
     ASSERT_TRUE(cm.find(Space::Type::CMYK));
     comp = cm.find(Space::Type::CMYK)->getComponents(false);
     ASSERT_EQ(comp.size(), 4);
-    ASSERT_EQ(comp[0].name, "_C:");
-    ASSERT_EQ(comp[1].name, "_M:");
-    ASSERT_EQ(comp[2].name, "_Y:");
-    ASSERT_EQ(comp[3].name, "_K:");
+    ASSERT_EQ(comp[0].name, "_C");
+    ASSERT_EQ(comp[1].name, "_M");
+    ASSERT_EQ(comp[2].name, "_Y");
+    ASSERT_EQ(comp[3].name, "_K");
 }
 
 TEST(ColorManagerTest, addAndRemoveSpaces)

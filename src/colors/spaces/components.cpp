@@ -28,66 +28,66 @@ static const std::vector<Components> color_spaces = {
     {
         Type::RGB, Type::RGB, Traits::Picker,
         {
-            { "r", _("_R:"), _("Red"), 255 },
-            { "g", _("_G:"), _("Green"), 255 },
-            { "b", _("_B:"), _("Blue"), 255 }
+            { "r", _("_R"), _("Red"), 255 },
+            { "g", _("_G"), _("Green"), 255 },
+            { "b", _("_B"), _("Blue"), 255 }
         }
     },
     {
         Type::linearRGB, Type::NONE, Traits::Internal,
         {
-            { "r", _("<sub>l</sub>_R:"), _("Linear Red"), 255 },
-            { "g", _("<sub>l</sub>_G:"), _("Linear Green"), 255 },
-            { "b", _("<sub>l</sub>_B:"), _("Linear Blue"), 255 }
+            { "r", _("<sub>l</sub>_R"), _("Linear Red"), 255 },
+            { "g", _("<sub>l</sub>_G"), _("Linear Green"), 255 },
+            { "b", _("<sub>l</sub>_B"), _("Linear Blue"), 255 }
         }
     },
     {
         Type::HSL, Type::HSL, Traits::Picker,
         {
-            { "h", _("_H:"), _("Hue"), 360 },
-            { "s", _("_S:"), _("Saturation"), 100 },
-            { "l", _("_L:"), _("Lightness"), 100 }
+            { "h", _("_H"), _("Hue"), 360 },
+            { "s", _("_S"), _("Saturation"), 100 },
+            { "l", _("_L"), _("Lightness"), 100 }
         }
     },
     {
         Type::HSV, Type::HSV, Traits::Picker,
         {
-            { "h", _("_H:"), _("Hue"), 360 },
-            { "s", _("_S:"), _("Saturation"), 100 },
-            { "v", _("_V:"), _("Value"), 100 }
+            { "h", _("_H"), _("Hue"), 360 },
+            { "s", _("_S"), _("Saturation"), 100 },
+            { "v", _("_V"), _("Value"), 100 }
         }
     },
     {
         Type::CMYK, Type::NONE, Traits::Picker,
         {
-            { "c", _("_C:"), C_("CMYK", "Cyan"), 100 },
-            { "m", _("_M:"), C_("CMYK", "Magenta"), 100 },
-            { "y", _("_Y:"), C_("CMYK", "Yellow"), 100 },
-            { "k", _("_K:"), C_("CMYK", "Black"), 100 }
+            { "c", _("_C"), C_("CMYK", "Cyan"), 100 },
+            { "m", _("_M"), C_("CMYK", "Magenta"), 100 },
+            { "y", _("_Y"), C_("CMYK", "Yellow"), 100 },
+            { "k", _("_K"), C_("CMYK", "Black"), 100 }
         }
     },
     {
         Type::CMY, Type::NONE, Traits::Picker,
         {
-            { "c", _("_C:"), C_("CMYK", "Cyan"), 100 },
-            { "m", _("_M:"), C_("CMYK", "Magenta"), 100 },
-            { "y", _("_Y:"), C_("CMYK", "Yellow"), 100 },
+            { "c", _("_C"), C_("CMYK", "Cyan"), 100 },
+            { "m", _("_M"), C_("CMYK", "Magenta"), 100 },
+            { "y", _("_Y"), C_("CMYK", "Yellow"), 100 },
         }
     },
     {
         Type::HSLUV, Type::HSLUV, Traits::Picker,
         {
-            { "h", _("_H*:"), _("Hue"), 360 },
-            { "s", _("_S*:"), _("Saturation"), 100 },
-            { "l", _("_L*:"), _("Lightness"), 100 }
+            { "h", _("_H*"), _("Hue"), 360 },
+            { "s", _("_S*"), _("Saturation"), 100 },
+            { "l", _("_L*"), _("Lightness"), 100 }
         }
     },
     {
         Type::OKHSL, Type::OKHSL, Traits::Picker,
         {
-            { "h", _("_H<sub>ok</sub>:"), _("Hue"), 360 },
-            { "s", _("_S<sub>ok</sub>:"), _("Saturation"), 100 },
-            { "l", _("_L<sub>ok</sub>:"), _("Lightness"), 100 }
+            { "h", _("_H<sub>ok</sub>"), _("Hue"), 360 },
+            { "s", _("_S<sub>ok</sub>"), _("Saturation"), 100 },
+            { "l", _("_L<sub>ok</sub>"), _("Lightness"), 100 }
         }
     },
     {
@@ -157,7 +157,7 @@ static const std::vector<Components> color_spaces = {
     {
         Type::Gray, Type::NONE, Traits::Internal,
         {
-            { "gray", _("G:"), _("Gray"), 1024 }
+            { "gray", _("G"), _("Gray"), 1024 }
         }
     }
 };
@@ -215,7 +215,7 @@ std::map<Type, Components> _build(bool alpha)
 
     if (alpha) {
         for (auto &[key, val] : sets) {
-            val.add("a", _("_A:"), _("Alpha"), 100);
+            val.add("a", _("_A"), _("Alpha"), 100);
         }
     }
     return sets;

@@ -225,7 +225,7 @@ StrokeStyle::StrokeStyle() :
     widthSpin = Gtk::make_managed<SpinButton>(widthAdj, 0.1, 3);
     widthSpin->set_tooltip_text(_("Stroke width"));
     widthSpin->set_visible(true);
-    spw_label(table, C_("Stroke width", "_Width:"), 0, i, widthSpin);
+    spw_label(table, C_("Stroke width", "_Width"), 0, i, widthSpin);
 
     sp_dialog_defocus_on_enter(*widthSpin);
 
@@ -251,7 +251,7 @@ StrokeStyle::StrokeStyle() :
     i++;
 
     /* Dash */
-    spw_label(table, _("Dashes:"), 0, i, nullptr); //no mnemonic for now
+    spw_label(table, _("Dashes"), 0, i, nullptr); //no mnemonic for now
                                             //decide what to do:
                                             //   implement a set_mnemonic_source function in the
                                             //   DashSelector class, so that we do not have to
@@ -286,7 +286,7 @@ StrokeStyle::StrokeStyle() :
     });
     table->attach(*_pattern_entry, 1, i, 4, 1);
 
-    _pattern_label = spw_label(table, _("_Pattern:"), 0, i, _pattern_entry);
+    _pattern_label = spw_label(table, _("_Pattern"), 0, i, _pattern_entry);
     _pattern_label->set_tooltip_text(_("Repeating \"dash gap ...\" pattern"));
 
     i++;
@@ -295,7 +295,7 @@ StrokeStyle::StrokeStyle() :
     // TRANSLATORS: Path markers are an SVG feature that allows you to attach arbitrary shapes
     // (arrowheads, bullets, faces, whatever) to the start, end, or middle nodes of a path.
 
-    spw_label(table, _("Markers:"), 0, i, nullptr);
+    spw_label(table, _("Markers"), 0, i, nullptr);
 
     hb = spw_hbox(table, 1, 1, i);
     i++;
@@ -328,7 +328,7 @@ StrokeStyle::StrokeStyle() :
     /* Join type */
     // TRANSLATORS: The line join style specifies the shape to be used at the
     //  corners of paths. It can be "miter", "round" or "bevel".
-    spw_label(table, _("Join:"), 0, i, nullptr);
+    spw_label(table, _("Join"), 0, i, nullptr);
 
     hb = spw_hbox(table, 3, 1, i);
 
@@ -381,7 +381,7 @@ StrokeStyle::StrokeStyle() :
     /* Cap type */
     // TRANSLATORS: cap type specifies the shape for the ends of lines
     //spw_label(t, _("_Cap:"), 0, i);
-    spw_label(table, _("Cap:"), 0, i, nullptr);
+    spw_label(table, _("Cap"), 0, i, nullptr);
 
     hb = spw_hbox(table, 3, 1, i);
 
@@ -412,7 +412,7 @@ StrokeStyle::StrokeStyle() :
 
     /* Paint order */
     // TRANSLATORS: Paint order determines the order the 'fill', 'stroke', and 'markers are painted.
-    spw_label(table, _("Order:"), 0, i, nullptr);
+    spw_label(table, _("Order"), 0, i, nullptr);
 
     hb = spw_hbox(table, 4, 1, i);
 
@@ -420,15 +420,15 @@ StrokeStyle::StrokeStyle() :
 
     paintOrderFSM = makeRadioButton(paintOrderGrp, INKSCAPE_ICON("paint-order-fsm"),
                                     hb, STROKE_STYLE_BUTTON_ORDER, "normal");
-    paintOrderFSM->set_tooltip_text(_("Fill, Stroke, Markers")); 
+    paintOrderFSM->set_tooltip_text(_("1.Fill, 2.Stroke, 3.Markers")); 
 
     paintOrderSFM = makeRadioButton(paintOrderGrp, INKSCAPE_ICON("paint-order-sfm"),
                                     hb, STROKE_STYLE_BUTTON_ORDER, "stroke fill markers");
-    paintOrderSFM->set_tooltip_text(_("Stroke, Fill, Markers")); 
+    paintOrderSFM->set_tooltip_text(_("1.Stroke, 2.Fill, 3.Markers")); 
 
     paintOrderFMS = makeRadioButton(paintOrderGrp, INKSCAPE_ICON("paint-order-fms"),
                                     hb, STROKE_STYLE_BUTTON_ORDER, "fill markers stroke");
-    paintOrderFMS->set_tooltip_text(_("Fill, Markers, Stroke")); 
+    paintOrderFMS->set_tooltip_text(_("1.Fill, 2.Markers, 3.Stroke")); 
 
     i++;
 
@@ -436,15 +436,15 @@ StrokeStyle::StrokeStyle() :
 
     paintOrderMFS = makeRadioButton(paintOrderGrp, INKSCAPE_ICON("paint-order-mfs"),
                                     hb, STROKE_STYLE_BUTTON_ORDER, "markers fill stroke");
-    paintOrderMFS->set_tooltip_text(_("Markers, Fill, Stroke")); 
+    paintOrderMFS->set_tooltip_text(_("1.Markers, 2.Fill, 3.Stroke")); 
 
     paintOrderSMF = makeRadioButton(paintOrderGrp, INKSCAPE_ICON("paint-order-smf"),
                                     hb, STROKE_STYLE_BUTTON_ORDER, "stroke markers fill");
-    paintOrderSMF->set_tooltip_text(_("Stroke, Markers, Fill")); 
+    paintOrderSMF->set_tooltip_text(_("1.Stroke, 2.Markers, 3.Fill")); 
 
     paintOrderMSF = makeRadioButton(paintOrderGrp, INKSCAPE_ICON("paint-order-msf"),
                                     hb, STROKE_STYLE_BUTTON_ORDER, "markers stroke fill");
-    paintOrderMSF->set_tooltip_text(_("Markers, Stroke, Fill")); 
+    paintOrderMSF->set_tooltip_text(_("1.Markers, 2.Stroke, 3.Fill")); 
 
     i++;
 }

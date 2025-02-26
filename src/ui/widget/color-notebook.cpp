@@ -178,7 +178,7 @@ void ColorNotebook::_initUI()
     gtk_box_append(rgbabox_box, GTK_WIDGET(pick_under->gobj()));
 
     /* Create RGBA entry and color preview */
-    _rgbal = gtk_label_new_with_mnemonic(_("RGBA_:"));
+    _rgbal = gtk_label_new_with_mnemonic(_("RGBA"));
     gtk_widget_set_halign(_rgbal, GTK_ALIGN_END);
     gtk_widget_set_hexpand(_rgbal, TRUE);
     gtk_box_append(rgbabox_box, _rgbal);

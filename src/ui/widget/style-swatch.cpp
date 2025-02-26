@@ -99,8 +99,8 @@ StyleSwatch::StyleSwatch(SPCSSAttr *css, gchar const *main_tip, Gtk::Orientation
 {
     set_name("StyleSwatch");
     add_css_class(orient == Gtk::Orientation::HORIZONTAL ? "horizontal" : "vertical");
-    _label[SS_FILL].set_markup(_("Fill:"));
-    _label[SS_STROKE].set_markup(_("Stroke:"));
+    _label[SS_FILL].set_markup(_("Fill"));
+    _label[SS_STROKE].set_markup(_("Stroke"));
 
     for (int i = SS_FILL; i <= SS_STROKE; i++) {
         _label[i].set_halign(Gtk::Align::START);
