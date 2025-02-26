@@ -558,7 +558,6 @@
         <child>
           <object class="GtkButton" id="edit-pattern">
             <property name="label" translatable="yes">Edit on canvas</property>
-            <property name="tooltip-text" translatable="yes">You can change Scale, Position and Rotation of this pattern by dragging handles on canvas.</property>
             <property name="visible">True</property>
             <property name="focus-on-click">False</property>
             <property name="receives-default">True</property>
@@ -599,7 +598,7 @@
                 <property name="can-focus">False</property>
                 <property name="margin-end">4</property>
                 <property name="hscrollbar-policy">never</property>
-                <property name="vscrollbar-policy">neverr</property>
+                <property name="vscrollbar-policy">never</property>
                 <child>
                   <object class="GtkViewport" id="preview-box">
                     <property name="visible">True</property>
