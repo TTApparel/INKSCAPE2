@@ -3222,7 +3222,7 @@ void InkscapePreferences::initKeyboardShortcuts(Gtk::TreeModel::iterator iter_ui
     _mod_tree.get_selection()->signal_changed().connect(sigc::mem_fun(*this, &InkscapePreferences::on_modifier_selection_changed));
     on_modifier_selection_changed();
 
-    _kb_notebook.append_page(_kb_page_modifiers, _("Modifiers"));
+    _kb_notebook.append_page(_kb_page_modifiers, _("Tools Modifiers"))
     auto const mod_scroller = Gtk::make_managed<Gtk::ScrolledWindow>();
     mod_scroller->add(_mod_tree);
     mod_scroller->set_hexpand();
@@ -3269,7 +3269,7 @@ void InkscapePreferences::initKeyboardShortcuts(Gtk::TreeModel::iterator iter_ui
     _keyboard_sizegroup->add_widget(*kb_export);
     _keyboard_sizegroup->add_widget(*kb_import);
 
-    this->AddPage(_page_keyshortcuts, _("Keyboard"), iter_ui, PREFS_PAGE_UI_KEYBOARD_SHORTCUTS);
+    this->AddPage(_page_keyshortcuts, _("Keyboard Shortcuts"), iter_ui, PREFS_PAGE_UI_KEYBOARD_SHORTCUTS);
 
     _kb_shortcuts_loaded = false;
     Gtk::TreeStore::iterator iter_group = _kb_store->append();
