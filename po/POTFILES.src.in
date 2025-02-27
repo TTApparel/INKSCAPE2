@@ -281,7 +281,6 @@ ${_build_dir}/share/templates/templates.h
 ../src/ui/dialog/clonetiler.cpp
 ../src/ui/dialog/color-item.cpp
 ../src/ui/dialog/command-palette.cpp
-../src/ui/dialog/dialog-container.cpp
 ../src/ui/dialog/dialog-data.cpp
 ../src/ui/dialog/dialog-data.h
 ../src/ui/dialog/dialog-multipaned.cpp

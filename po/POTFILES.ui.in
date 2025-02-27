@@ -35,6 +35,7 @@
 ../share/ui/dialog-spellcheck.ui
 ../share/ui/document-tab.ui
 ../share/ui/menus.ui
+../share/ui/simple-tab.ui
 ../share/ui/statusbar.ui
 ../share/ui/toolbar-arc.ui
 ../share/ui/toolbar-booleans.ui

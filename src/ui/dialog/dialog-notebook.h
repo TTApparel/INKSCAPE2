@@ -5,6 +5,7 @@
  /*
  * Authors: see git history
  *   Tavmjong Bah
+ *   Mike Kowalski
  *
  * Copyright (c) 2018 Tavmjong Bah, Authors
  *
@@ -24,8 +25,12 @@
 #include <gtkmm/widget.h>
 
 #include <sigc++/scoped_connection.h>
+
+#include "dialog-container.h"
+#include "preferences.h"
 #include "ui/widget/popover-menu.h"
 #include "ui/widget/popover-bin.h"
+#include "ui/widget/tab-strip.h"
 
 namespace Glib {
 class ValueBase;
@@ -45,17 +50,11 @@ namespace Inkscape::UI {
 
 namespace Dialog {
 
-enum class TabsStatus {
-    NONE,
-    SINGLE,
-    ALL
-};
-
-class DialogContainer;
 class DialogWindow;
 
 /**
- * A widget that wraps a Gtk::Notebook with dialogs as pages.
+ * A widget that wraps a Gtk::Notebook with dialogs as pages. Its tabs are hidden.
+ * We use TabStrip to provide tabs for switching pages.
  *
  * A notebook is fixed to a specific DialogContainer which manages the dialogs inside the notebook.
  */
@@ -65,75 +64,71 @@ public:
     DialogNotebook(DialogContainer *container);
     ~DialogNotebook() override;
 
-    void add_page(Gtk::Widget &page, Gtk::Widget &tab, Glib::ustring label);
+    void add_page(Gtk::Widget &page);
     void move_page(Gtk::Widget &page);
+    void select_page(Gtk::Widget& page);
+    Gtk::Widget* get_page(int position);
+    static Gtk::Notebook* get_page_notebook(Gtk::Widget& page);
 
     // Getters
     Gtk::Notebook *get_notebook() { return &_notebook; }
     DialogContainer *get_container() { return _container; }
 
     // Notebook callbacks
-    void close_tab_callback();
-    void close_notebook_callback();
-    DialogWindow* pop_tab_callback();
+    void close_tab(Gtk::Widget* page);
+    void close_notebook();
+    DialogWindow* pop_tab(Gtk::Widget* page);
+    void dock_current_tab(DialogContainer::DockLocation location);
     Gtk::ScrolledWindow * get_scrolledwindow(Gtk::Widget &page);
     Gtk::ScrolledWindow * get_current_scrolledwindow(bool skip_scroll_provider);
     void set_requested_height(int height);
+    DialogWindow* float_tab(Gtk::Widget& page);
 
 private:
     // Widgets
     DialogContainer *_container;
-    UI::Widget::PopoverMenu _menu;
-    UI::Widget::PopoverMenu _menutabs;
+    UI::Widget::PopoverMenu _menu_dialogs{Gtk::PositionType::BOTTOM, true};
+    UI::Widget::PopoverMenu _menu_dock{Gtk::PositionType::BOTTOM};
+    UI::Widget::PopoverMenu _menu_tab_ctx{Gtk::PositionType::BOTTOM, true};
     Gtk::Notebook _notebook;
-    UI::Widget::PopoverBin _popoverbin;
+    UI::Widget::TabStrip _tabs;
+    Gtk::Box _content{Gtk::Orientation::VERTICAL};
+    void add_notebook_page(Gtk::Widget& page, int position);
+    // move page from source notebook to this notebook
+    void move_tab_from(DialogNotebook& source, Gtk::Widget& page, int position);
+    // build dialog docking popup menu
+    void build_docking_menu(UI::Widget::PopoverMenu& menu);
+    // build menu listing all dialogs
+    void build_dialog_menu(UI::Widget::PopoverMenu& menu);
 
     // State variables
-    bool _label_visible;
-    bool _labels_auto;
-    bool _labels_off;
-    bool _labels_set_off = false;
-    bool _detaching_duplicate;
-    bool _reload_context = true;
-    gint _prev_alloc_width = 0;
-    gint _none_tab_width = 0;
-    gint _single_tab_width = 0;
-    TabsStatus tabstatus = TabsStatus::NONE;
-    TabsStatus prev_tabstatus = TabsStatus::NONE;
-    Gtk::Widget *_selected_page;
+    bool _detaching_duplicate = false;
     std::vector<sigc::scoped_connection> _conn;
     std::vector<sigc::scoped_connection> _connmenu;
-    std::multimap<Gtk::Widget *, sigc::scoped_connection> _tab_connections;
+    PrefObserver _label_pref;
+    PrefObserver _tabclose_pref;
 
     static std::list<DialogNotebook *> _instances;
     void add_highlight_header();
     void remove_highlight_header();
 
     // Signal handlers - notebook
-    void on_drag_begin(Glib::RefPtr<Gdk::Drag> const &drag);
-    void on_drag_end  (Glib::RefPtr<Gdk::Drag> const &drag, bool delete_data);
     void on_page_added(Gtk::Widget *page, int page_num);
     void on_page_removed(Gtk::Widget *page, int page_num);
     void size_allocate_vfunc(int width, int height, int baseline) final;
     void on_size_allocate_scroll  (int width);
-    void on_size_allocate_notebook(int width);
-    Gtk::EventSequenceState on_tab_click_event(Gtk::GestureClick const &click,
-                                               int n_press, double x, double y,
-                                               Gtk::Widget *page);
-    void on_close_button_click_event(Gtk::Widget *page);
     void on_page_switch(Gtk::Widget *page, guint page_number);
     bool on_scroll_event(double dx, double dy);
     // Helpers
     bool provide_scroll(Gtk::Widget &page);
-    void preventOverflow();
     void change_page(size_t pagenum);
-    void reload_tab_menu();
-    void toggle_tab_labels_callback(bool show);
-    void add_tab_connections(Gtk::Widget *page);
-    void remove_tab_connections(Gtk::Widget *page);
     void measure_vfunc(Gtk::Orientation orientation, int for_size, int &min, int &nat, int &min_baseline, int &nat_baseline) const override;
+    // helper to correctly restore height of vertically stacked dialogs
     int _natural_height = 0;
 };
+
+Gtk::Widget* find_dialog_page(Widget::TabStrip* tabs, int position);
+DialogNotebook* find_dialog_notebook(Widget::TabStrip* tabs);
 
 } // namespace Dialog
 

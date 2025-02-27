@@ -816,14 +816,14 @@ button.menu-btn-tight {
     border: none;
 }
 
-#DialogMenuButton {
-    padding: 0;
-    border: none;
-    opacity: 0.7;
-}
-#DialogMenuButton:hover {
-    opacity: 1;
-}
+/*#DialogMenuButton {*/
+/*    padding: 0;*/
+/*    border: none;*/
+/*    opacity: 0.7;*/
+/*}*/
+/*#DialogMenuButton:hover {*/
+/*    opacity: 1;*/
+/*}*/
 
 #DesktopStatusBar {
     margin-right: 1em;
@@ -1535,4 +1535,38 @@ listview row.top-separator {
 /* Limit max size of rows in a stack sidebar to something more compact */
 .compact-stack-sidebar list row {
     min-height: 2.25em;
+}
+
+/* TabStrip widget is used for switching docked dialogs */
+#TabStrip {
+    min-height: calc(2em + 4px);
+    padding: 0 4px;
+}
+#SimpleTab {
+    min-width: 4em;
+    min-height: calc(2em + 4px);
+}
+#SimpleTab:hover {
+    box-shadow: inset 0 -3px alpha(@theme_fg_color, 0.15);
+}
+#SimpleTab.tab-active {
+    background-color: @theme_base_color;
+    box-shadow: inset 0 -3px @theme_selected_bg_color,
+        inset -1px 0 alpha(@theme_fg_color, 0.10),
+        inset  1px 0 alpha(@theme_fg_color, 0.10);
+}
+#SimpleTab.tab-active:hover {
+    /*border-bottom-color: @theme_selected_bg_color;*/
+}
+#NewTabButton {
+    margin-left: 3px;
+}
+#DialogMenuButton {
+    margin-left: 3px;
+}
+
+/* Some themes add color decoration for active drop targets; we use our own highlight, so disable them */
+#MultipanedDropZone:drop(active), #MultipanedDropZone:drop(active):focus,
+  #DialogMultipaned:drop(active),   #DialogMultipaned:drop(active):focus {
+    box-shadow: none;
 }

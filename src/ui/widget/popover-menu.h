@@ -41,7 +41,7 @@ class PopoverMenuItem;
 class PopoverMenu final : public Gtk::Popover {
 public:
     /// Create popover with CSS classes `.menu` & `.popover-menu`, positioned as requested.
-    PopoverMenu(Gtk::PositionType position);
+    PopoverMenu(Gtk::PositionType position, bool has_arrow = false);
 
     /// Add child at pos as per Gtk::Menu::attach()
     void attach(Gtk::Widget &child,

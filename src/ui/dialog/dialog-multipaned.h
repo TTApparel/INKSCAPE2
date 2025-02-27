@@ -23,6 +23,9 @@
 
 #include <sigc++/scoped_connection.h>
 
+#include "dialog-container.h"
+#include "dialog-notebook.h"
+
 namespace Glib {
 class ValueBase;
 } // namespace Glib
@@ -55,15 +58,18 @@ public:
     Gtk::Widget *get_first_widget();
     Gtk::Widget *get_last_widget ();
     void get_children() = delete; ///< We manage our own child list. Call get_multipaned_children()
-    std::vector<std::unique_ptr<Gtk::Widget>> const &get_multipaned_children() const { return children; }
+    std::vector<std::unique_ptr<Gtk::Widget>> const &get_multipaned_children() const { return _children; }
     void set_drop_gtypes(std::vector<GType> const &gtypes);
     bool has_empty_widget() const { return static_cast<bool>(_empty_widget); }
 
     // Signals
-    using DropSignal = sigc::signal<bool (Glib::ValueBase const)>;
-    DropSignal signal_prepend_drag_data();
-    DropSignal signal_append_drag_data ();
     sigc::signal<void ()> signal_now_empty();
+    sigc::signal<bool (Gtk::Widget&, DialogNotebook&, DialogContainer::DockLocation, DialogNotebook*)> signal_dock_dialog() {
+        return _signal_dock_dialog;
+    }
+    sigc::signal<bool (Gtk::Widget&, DialogNotebook&)> signal_float_dialog() {
+        return _signal_float_dialog;
+    }
 
     // UI functions
     void set_dropzone_sizes(int start, int end);
@@ -84,14 +90,14 @@ private:
     void size_allocate_vfunc(int width, int height, int baseline) final;
 
     // Signals
-    DropSignal _signal_prepend_drag_data;
-    DropSignal _signal_append_drag_data;
+    sigc::signal<bool (Gtk::Widget&, DialogNotebook&, DialogContainer::DockLocation, DialogNotebook*)> _signal_dock_dialog;
+    sigc::signal<bool (Gtk::Widget&, DialogNotebook&)> _signal_float_dialog;
     sigc::signal<void ()> _signal_now_empty;
 
     // We must manage children ourselves.
-    std::vector<std::unique_ptr<Gtk::Widget>> children;
+    std::vector<std::unique_ptr<Gtk::Widget>> _children;
 
-    Glib::RefPtr<Gtk::DropTarget> const _drop_target;
+    const Glib::RefPtr<Gtk::DropTarget> _drop_target{Gtk::DropTarget::create(G_TYPE_INVALID, Gdk::DragAction::MOVE)};
 
     // Values used when dragging handle.
     int _handle = -1; // Child number of active handle
@@ -112,12 +118,12 @@ private:
     Gtk::EventSequenceState on_drag_end   (double offset_x, double offset_y);
     Gtk::EventSequenceState on_drag_update(double offset_x, double offset_y);
     // drag+drop data
-    bool on_drag_data        (Glib::ValueBase const &value, double x, double y);
+    bool on_drag_data_drop   (Glib::ValueBase const &value, double x, double y);
     bool on_prepend_drag_data(Glib::ValueBase const &value, double x, double y);
     bool on_append_drag_data (Glib::ValueBase const &value, double x, double y);
 
     // Others
-    Gtk::Widget *_empty_widget; // placeholder in an empty container
+    Gtk::Widget* _empty_widget = nullptr; // placeholder in an empty container
     void insert(int pos, std::unique_ptr<Gtk::Widget> child);
     void add_empty_widget();
     void remove_empty_widget();
