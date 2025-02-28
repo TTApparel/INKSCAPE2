@@ -56,6 +56,15 @@
     </screenshot>
   </screenshots>
   <releases>
+   <release version="1.4.1" date="2025-03-01">
+      <description>
+        <p>Inkscape 1.4.1</p>
+        <ul>
+          <li>Many bugfixes!</li>
+        </ul>
+      </description>
+      <url>http://wiki.inkscape.org/wiki/index.php/Release_notes/1.4</url>
+    </release>
     <release version="1.4" date="2024-10-09">
       <description>
         <p>Inkscape 1.4</p>
