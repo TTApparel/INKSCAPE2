@@ -35,7 +35,7 @@
 #include "selection.h"
 #include "style-enums.h"
 #include "ui/dialog/dialog-base.h"
-#include "ui/widget/color-picker.h"
+#include "ui/widget/color-notebook.h"
 #include "ui/widget/popover-bin.h"
 #include "ui/widget/preferences-widget.h"
 #include "xml/node-observer.h"
@@ -134,6 +134,8 @@ private:
     sigc::scoped_connection layer_changed;
     SPObject *_layer;
     Gtk::TreeModel::RowReference _hovered_row_ref;
+    Gdk::RGBA _hovered_row_color;
+    Gdk::RGBA _hovered_row_old_color;
 
     //Show icons in the context menu
     bool _show_contextmenu_icons;
@@ -160,13 +162,13 @@ private:
     Gtk::ScrolledWindow _scroller;
     Gtk::Box _page;
     sigc::scoped_connection _tree_style;
-    Inkscape::UI::Widget::ColorPicker _color_picker;
     Gtk::TreeRow _clicked_item_row;
     UI::Widget::PopoverBin _popoverbin;
 
     void _activateAction(const std::string& layerAction, const std::string& selectionAction);
 
     bool blendModePopup(int x, int y, Gtk::TreeModel::Row row);
+    bool colorTagPopup(int x, int y, Gtk::TreeModel::Row row);
     bool toggleVisible(Gdk::ModifierType state, Gtk::TreeModel::Row row);
     bool toggleLocked (Gdk::ModifierType state, Gtk::TreeModel::Row row);
 
@@ -211,6 +213,9 @@ private:
     int _msg_id;
     Gtk::Popover& _settings_menu;
     Gtk::Popover& _object_menu;
+    std::shared_ptr<Colors::ColorSet> _colors;
+    UI::Widget::ColorNotebook* _color_selector = nullptr;
+
     Gtk::Scale& _opacity_slider;
     std::map<SPBlendMode, Gtk::CheckButton *> _blend_items;
     std::map<SPBlendMode, Glib::ustring> _blend_mode_names;

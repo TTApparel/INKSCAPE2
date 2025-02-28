@@ -93,6 +93,8 @@ static double const SELECTED_ALPHA[16] = {
     0.90, //15 1, 2 , 4 and 8
 };
 
+static double const HOVER_ALPHA = 0.10;
+
 namespace Inkscape::UI::Dialog {
 
 namespace {
@@ -724,10 +726,10 @@ ObjectsPanel::ObjectsPanel()
     , _layer(nullptr)
     , _is_editing(false)
     , _page(Gtk::Orientation::VERTICAL)
-    , _color_picker(_("Highlight color"), "", Colors::Color(0x000000ff), true)
     , _builder(create_builder("dialog-objects.glade"))
     , _settings_menu(get_widget<Gtk::Popover>(_builder, "settings-menu"))
     , _object_menu(get_widget<Gtk::Popover>(_builder, "object-menu"))
+    , _colors(std::make_shared<Colors::ColorSet>(nullptr, false))
     , _searchBox(get_widget<Gtk::SearchEntry2>(_builder, "search"))
     , _opacity_slider(get_widget<Gtk::Scale>(_builder, "opacity-slider"))
     , _setting_layers(get_derived_widget<PrefCheckButton, Glib::ustring, bool>(_builder, "setting-layers", "/dialogs/objects/layers_only", false))
@@ -735,7 +737,6 @@ ObjectsPanel::ObjectsPanel()
     , _tree{*Gtk::make_managed<TreeViewWithCssChanged>()}
 {
     _store = Gtk::TreeStore::create(*_model);
-    _color_picker.set_visible(false);
 
     //Set up the tree
     _tree.set_model(_store);
@@ -752,13 +753,13 @@ ObjectsPanel::ObjectsPanel()
     auto& _move_down_button = get_widget<Gtk::Button>(_builder, "move-down");
     auto& _object_delete_button = get_widget<Gtk::Button>(_builder, "remove-object");
     _move_up_button.signal_clicked().connect([this]() {
-        _activateAction("layer-raise", "selection-stack-up");
+        _activateAction("win.layer-raise", "selection-stack-up");
     });
     _move_down_button.signal_clicked().connect([this]() {
-        _activateAction("layer-lower", "selection-stack-down");
+        _activateAction("win.layer-lower", "selection-stack-down");
     });
     _object_delete_button.signal_clicked().connect([this]() {
-        _activateAction("layer-delete", "delete-selection");
+        _activateAction("win.layer-delete", "delete-selection");
     });
 
     //Label
@@ -929,22 +930,6 @@ ObjectsPanel::ObjectsPanel()
         tag->set_fixed_width(tag_renderer->get_width());
         _color_tag_column = tag;
     }
-    tag_renderer->signal_clicked().connect([this](const Glib::ustring& path) {
-        // object's color indicator clicked - open color picker
-        _clicked_item_row = *_store->get_iter(path);
-        if (auto item = getItem(_clicked_item_row)) {
-            // find object's color
-            _color_picker.setColor(item->highlight_color());
-            _color_picker.open();
-        }
-    });
-
-    _color_picker.connectChanged([this](Colors::Color const &color) {
-        if (auto item = getItem(_clicked_item_row)) {
-            item->setHighlight(color);
-            DocumentUndo::maybeDone(getDocument(), "highlight-color", _("Set item highlight color"), INKSCAPE_ICON("dialog-object-properties"));
-        }
-    });
 
     //Set the expander columns and search columns
     _tree.set_expander_column(*_name_column);
@@ -1329,6 +1314,30 @@ bool ObjectsPanel::blendModePopup(int const x, int const y, Gtk::TreeModel::Row 
     return true;
 }
 
+bool ObjectsPanel::colorTagPopup(int const x, int const y, Gtk::TreeModel::Row row)
+{
+    auto const item = getItem(row);
+    if (item == nullptr) {
+        return false;
+    }
+    _colors->set(item->highlight_color());
+    auto color_popup = Gtk::make_managed<Gtk::Popover>();
+    _color_selector = Gtk::make_managed<ColorNotebook>(_colors);
+    _color_selector->set_label(_("Highlight Color"));
+    _color_selector->set_margin(4);
+    color_popup->set_child(*_color_selector);
+    _colors->signal_changed.connect([this]() {
+        if (auto item = getItem(_clicked_item_row)) {
+            item->setHighlight(_colors->get().value());
+            DocumentUndo::maybeDone(getDocument(), "highlight-color", _("Set item highlight color"), INKSCAPE_ICON("dialog-object-properties"));
+        }
+    });
+    _popoverbin.setPopover(&*color_popup);
+    UI::popup_at(*color_popup, _tree, x, y);
+
+    return true;
+}
+
 /**
  * Sets sensitivity of items in the tree
  * @param iter Current item in the tree
@@ -1412,34 +1421,34 @@ bool ObjectsPanel::on_tree_key_pressed(Gtk::EventControllerKey const &controller
         case GDK_KEY_Delete:
         case GDK_KEY_KP_Delete:
         case GDK_KEY_BackSpace:
-            _activateAction("layer-delete", "delete-selection");
+            _activateAction("win.layer-delete", "delete-selection");
             // NOTE: We could select a sibling object here to make deleting many objects easier.
             return true;
         case GDK_KEY_Page_Up:
         case GDK_KEY_KP_Page_Up:
             if (shift) {
-                _activateAction("layer-top", "selection-top");
+                _activateAction("win.layer-top", "selection-top");
                 return true;
             }
             break;
         case GDK_KEY_Page_Down:
         case GDK_KEY_KP_Page_Down:
             if (shift) {
-                _activateAction("layer-bottom", "selection-bottom");
+                _activateAction("win.layer-bottom", "selection-bottom");
                 return true;
             }
             break;
         case GDK_KEY_Up:
         case GDK_KEY_KP_Up:
             if (shift) {
-                _activateAction("layer-raise", "selection-stack-up");
+                _activateAction("win.layer-raise", "selection-stack-up");
                 return true;
             }
             break;
         case GDK_KEY_Down:
         case GDK_KEY_KP_Down:
             if (shift) {
-                _activateAction("layer-lower", "selection-stack-down");
+                _activateAction("win.layer-lower", "selection-stack-down");
                 return true;
             }
         case GDK_KEY_Return:
@@ -1503,6 +1512,14 @@ void ObjectsPanel::on_motion_motion(Gtk::EventControllerMotion const *controller
         if (auto row = *_store->get_iter(_hovered_row_ref.get_path())) {
             row[_model->_colHover] = false;
             row[_model->_colHoverColor] = false;
+            // selection etc. might change _colBgColor. Erase hover
+            // highlight only if it hasn't changed
+            if (row[_model->_colBgColor] == _hovered_row_color) {
+                row[_model->_colBgColor] = _hovered_row_old_color;
+            }
+            else { // update row's slection color if it has changed
+                _hovered_row_old_color = row[_model->_colBgColor];
+            }
         }
     }
 
@@ -1529,6 +1546,11 @@ void ObjectsPanel::on_motion_motion(Gtk::EventControllerMotion const *controller
         if (auto row = *_store->get_iter(path)) {
             row[_model->_colHover] = true;
             _hovered_row_ref = Gtk::TreeModel::RowReference(_store, path);
+            // update color for hovered row
+            const Gdk::RGBA color = row[_model->_colBgColor]; // current color
+            _hovered_row_old_color = color; // store old color
+            _hovered_row_color = change_alpha(color, color.get_alpha() + HOVER_ALPHA);
+            row[_model->_colBgColor] = _hovered_row_color;
 
             if (col == _color_tag_column) {
                 row[_model->_colHoverColor] = true;
@@ -1635,6 +1657,11 @@ Gtk::EventSequenceState ObjectsPanel::on_click(Gtk::GestureClick const &gesture,
                 auto const [cx, cy] = get_cell_center(_tree, path, *_blend_mode_column);
                 return blendModePopup(cx, cy, row) ? Gtk::EventSequenceState::CLAIMED
                                                    : Gtk::EventSequenceState::NONE;
+            } else if (col == _color_tag_column) {
+                _clicked_item_row = *_store->get_iter(path);
+                auto const [cx, cy] = get_cell_center(_tree, path, *_color_tag_column);
+                return colorTagPopup(cx, cy, row) ? Gtk::EventSequenceState::CLAIMED
+                                                   : Gtk::EventSequenceState::NONE;
             }
         }
     }
@@ -1671,6 +1698,7 @@ Gtk::EventSequenceState ObjectsPanel::on_click(Gtk::GestureClick const &gesture,
 
     auto layer = Inkscape::LayerManager::asLayer(item);
     auto const state = gesture.get_current_event_state();
+    // returns true if layer has to be set as active but not selected
     auto const should_set_current_layer = [&] {
         if (!layer) {
             return false;
@@ -1716,7 +1744,6 @@ Gtk::EventSequenceState ObjectsPanel::on_click(Gtk::GestureClick const &gesture,
             UI::popup_at(*menu, _tree, ex, ey);
         } else if (should_set_current_layer()) {
             getDesktop()->layerManager().setCurrentLayer(item, true);
-            selection->set(item);
             _initial_path = path;
         } else {
             selectCursorItem(state);
