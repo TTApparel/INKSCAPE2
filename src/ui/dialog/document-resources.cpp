@@ -1262,7 +1262,7 @@ void DocumentResources::end_editing(const Glib::ustring& path, const Glib::ustri
 
     setter(*object, new_text);
 
-    auto id = get_id(object);
+    // auto id = get_id(object);
     // row[g_item_columns.label] = label_fmt(new_text.c_str(), id);
 
     if (auto document = object->document) {

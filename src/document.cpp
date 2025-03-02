@@ -129,8 +129,6 @@ SPDocument::SPDocument() :
                 sigc::hide(sigc::bind(
                 sigc::ptr_fun(&DocumentUndo::resetKey), this)));
 
-    Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-
     // Penalise libavoid for choosing paths with needless extra segments.
     // This results in much better looking orthogonal connector paths.
     _router->setRoutingPenalty(Avoid::segmentPenalty);

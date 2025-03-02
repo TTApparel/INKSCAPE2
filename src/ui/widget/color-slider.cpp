@@ -97,8 +97,7 @@ void ColorSlider::on_motion(Gtk::EventControllerMotion const &motion, double x, 
 
 void ColorSlider::update_component(double x, double y, Gdk::ModifierType const state)
 {
-    auto const constrained = Controller::has_flag(state, Gdk::ModifierType::CONTROL_MASK);
-
+    // auto const constrained = Controller::has_flag(state, Gdk::ModifierType::CONTROL_MASK);
     // XXX We don't know how to deal with constraints yet.
     if (_colors->isValid(_component) && _colors->setAll(_component, get_value_at(*this, x, y))) {
         signal_value_changed.emit();

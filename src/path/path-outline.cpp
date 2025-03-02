@@ -471,7 +471,6 @@ item_to_paths(SPItem *item, bool legacy, SPItem *context)
     Inkscape::XML::Node *markers = nullptr;
 
     if (shape->hasMarkers()) {
-        auto linewidth = style->stroke_width.computed;
         if (!legacy) {
             markers = xml_doc->createElement("svg:g");
             g_repr->addChildAtPos(markers, pos);

@@ -430,9 +430,6 @@ FontDiscovery::FontDiscovery() {
             // cache results
             _fonts = *result;
         }
-        else if (auto progress = Async::Msg::get_progress(msg)) {
-            // 
-        }
         // propagate events
         _events.emit(msg);
     });
