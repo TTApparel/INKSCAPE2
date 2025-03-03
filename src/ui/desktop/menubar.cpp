@@ -13,7 +13,7 @@
  *   Kris De Gussem     <Kris.DeGussem@gmail.com>
  *   Sushant A.A.       <sushant.co19@gmail.com>
  *
- * Copyright (C) 2018 Authors
+ * Copyright (C) 2018, 2024, 2025 Authors
  *
  * The contents of this file may be used under the GNU General Public License Version 2 or later.
  * Read the file 'COPYING' for more information.
@@ -174,22 +174,33 @@ build_menu()
                 recent_files.resize(max_files);
 	    }
 
-	    // Create a map of path to shortened path, and prefill.
+            // Ensure that display uri's are unique. It is possible that an XBEL file
+            // has multiple entries for the same file as a path can be written in equivalent
+            // ways: i.e. with a ';' or '%3B', or with a drive name of 'c' or 'C' on Windows.
+            // These entries may have the same display uri's.
+	    auto sort_comparator_uri =
+                [](auto const a, auto const b) -> bool { return a->get_uri_display() < b->get_uri_display(); };
+	    std::sort (recent_files.begin(), recent_files.end(), sort_comparator_uri);
+
+            auto unique_comparator_uri =
+                [](auto const a, auto const b) -> bool { return a->get_uri_display() == b->get_uri_display(); };
+            auto it_u = std::unique (recent_files.begin(), recent_files.end(), unique_comparator_uri);
+            recent_files.erase(it_u, recent_files.end());
+
+	    // Sort by display name (which includes date in file name for files saved during crash).
+	    auto sort_comparator =
+                [](auto const a, auto const b) -> bool { return a->get_display_name() < b->get_display_name(); };
+	    std::sort (recent_files.begin(), recent_files.end(), sort_comparator);
+
+            // Create a map of path to shortened path, and prefill.
 	    std::map<Glib::ustring, Glib::ustring> shortened_path_map;
 	    for (auto recent_file : recent_files) {
                 shortened_path_map[recent_file->get_uri_display()] = recent_file->get_display_name();
 	    }
 
-	    // Sort by display name (which includes date in file name for files saved during crash.
-	    auto sort_comparator = [](auto const a, auto const b) -> bool { return a->get_display_name() < b->get_display_name(); };
-	    std::sort (recent_files.begin(), recent_files.end(), sort_comparator);
-	    for (auto recent_file : recent_files) {
-                shortened_path_map[recent_file->get_uri_display()] = recent_file->get_display_name();
-	    }
-
-
 	    // Look for duplicate short names. These are the only ones that matter here.
-	    auto equal_comparator = [](auto const a, auto const b) -> bool { return a->get_display_name() == b->get_display_name(); };
+	    auto equal_comparator =
+                [](auto const a, auto const b) -> bool { return a->get_display_name() == b->get_display_name(); };
 	    auto it = recent_files.begin();
 	    while (it != (recent_files.end() - 1)) {
                 it = std::adjacent_find(it, recent_files.end(), equal_comparator);
@@ -212,6 +223,7 @@ build_menu()
                             break;
                         }
                     }
+                    assert(i < max_size); // Paths are assured to always have a difference.
 
                     // Override map of path to shortened path.
                     for (auto j = 0; j < 2; j++) {
