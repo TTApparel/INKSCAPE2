@@ -3,11 +3,13 @@
  * Create a list of recentyly used files.
  *
  * Copyright 2025 Martin Owens <doctormo@geek-2.com>
+ * Copyright 2024, 2025 Tavmjong Bah <tavmjong@free.fr>
  *
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
 #include <algorithm>
+#include <cassert>
 
 #include "recent-files.h"
 #include "io/fix-broken-links.h"
@@ -48,6 +50,20 @@ std::vector<Glib::RefPtr<Gtk::RecentInfo>> getInkscapeRecentFiles(unsigned max_f
         recent_files.resize(max_files);
     }
 
+    // Ensure that display uri's are unique. It is possible that an XBEL file
+    // has multiple entries for the same file as a path can be written in equivalent
+    // ways: i.e. with a ';' or '%3B', or with a drive name of 'c' or 'C' on Windows.
+    // These entries may have the same display uri's. This causes segfaults in
+    // getShortendPathmap().
+    auto sort_comparator_uri =
+        [](auto const a, auto const b) -> bool { return a->get_uri_display() < b->get_uri_display(); };
+    std::sort (recent_files.begin(), recent_files.end(), sort_comparator_uri);
+
+    auto unique_comparator_uri =
+        [](auto const a, auto const b) -> bool { return a->get_uri_display() == b->get_uri_display(); };
+    auto it_u = std::unique (recent_files.begin(), recent_files.end(), unique_comparator_uri);
+    recent_files.erase(it_u, recent_files.end());
+
     // Sort by "last modified" time, which puts the most recently opened files first.
     std::sort(std::begin(recent_files), std::end(recent_files), [](auto const &a, auto const &b) -> bool {
         // a should precede b if a->get_modified() is later than b->get_modified()
@@ -59,20 +75,13 @@ std::vector<Glib::RefPtr<Gtk::RecentInfo>> getInkscapeRecentFiles(unsigned max_f
 
 /**
  * Generate the shortened labeles for a list of recently used files.
+ * recent_files must not contain entries with duplicate uri display values.
  */
 std::map<Glib::ustring, std::string> getShortenedPathMap(std::vector<Glib::RefPtr<Gtk::RecentInfo>> const &recent_files)
 {
     // Create a map of path to shortened path, and prefill.
     std::map<Glib::ustring, std::string> shortened_path_map;
-
-    for (auto recent_file : recent_files) {
-        shortened_path_map[recent_file->get_uri_display()] = recent_file->get_display_name();
-    }
-
-    // Sort by display name (which includes date in file name for files saved during crash.
-    auto sort_comparator = [](auto const a, auto const b) -> bool { return a->get_display_name() < b->get_display_name(); };
     std::vector<Glib::RefPtr<Gtk::RecentInfo>> copy = recent_files;
-    std::sort (copy.begin(), copy.end(), sort_comparator);
     for (auto recent_file : copy) {
         shortened_path_map[recent_file->get_uri_display()] = recent_file->get_display_name();
     }
@@ -81,7 +90,7 @@ std::map<Glib::ustring, std::string> getShortenedPathMap(std::vector<Glib::RefPt
     auto equal_comparator = [](auto const a, auto const b) -> bool { return a->get_display_name() == b->get_display_name(); };
     auto it = copy.begin();
 
-    while (it != (recent_files.end() - 1)) {
+    while (it != (copy.end() - 1)) {
         it = std::adjacent_find(it, copy.end(), equal_comparator);
         if (it != copy.end()) {
 
@@ -102,6 +111,7 @@ std::map<Glib::ustring, std::string> getShortenedPathMap(std::vector<Glib::RefPt
                     break;
                 }
             }
+            assert(i < max_size); // Paths are assured to always have a difference.
 
             // Override map of path to shortened path.
             for (int j = 0; j < 2; j++) {
