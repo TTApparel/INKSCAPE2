@@ -217,6 +217,22 @@ add_unit_tests(TEST_SOURCES "colors/cms-profile-test.cpp"
                             "colors/utils-test.cpp"
                  EXTRA_LIBS colors_unit_lib)
 
+include("${CMAKE_SOURCE_DIR}/src/renderer/CMakeUnit.txt")
+get_renderer_unit_lib()
+add_unit_tests(TEST_SOURCES "renderer/pixel-access-test.cpp"
+                            "renderer/pixel-filter-average-color-test.cpp"
+                            "renderer/pixel-filter-color-matrix-test.cpp"
+                            "renderer/pixel-filter-color-space-test.cpp"
+                            "renderer/pixel-filter-component-transfer-test.cpp"
+                            "renderer/pixel-filter-composite-test.cpp"
+                            "renderer/pixel-filter-convolve-matrix-test.cpp"
+                            "renderer/pixel-filter-light-test.cpp"
+                            "renderer/pixel-filter-displacement-map-test.cpp"
+                            "renderer/pixel-filter-turbulence-test.cpp"
+                            "renderer/pixel-filter-morphology-test.cpp"
+                            "renderer/pixel-filter-gaussian-blur-test.cpp"
+                    EXTRA_LIBS renderer_unit_lib colors_unit_lib)
+
 add_unit_test(css-syntactic-decomposition-test TEST_SOURCE "css-syntactic-decomposition-test.cpp"
                                                    SOURCES "css/syntactic-decomposition.cpp"
                                                 EXTRA_LIBS GLibmm::GLibmm croco_LIB)

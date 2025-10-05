@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+set(renderer_unit_SRC
+
+	# -------
+	# Headers
+	pixel-access.h
+	pixel-filters/average-color.h
+	pixel-filters/color-matrix.h
+	pixel-filters/color-space.h
+	pixel-filters/component-transfer.h
+	pixel-filters/composite.h
+	pixel-filters/convolve-matrix.h
+	pixel-filters/displacement-map.h
+	pixel-filters/gaussian-blur.h
+	pixel-filters/light.h
+	pixel-filters/morphology.h
+	pixel-filters/turbulence.h
+)
+
+function(get_renderer_unit_lib)
+    list(TRANSFORM renderer_unit_SRC PREPEND "renderer/")
+    list(PREPEND renderer_unit_SRC "renderer/threading.cpp" "renderer/dispatch-pool.cpp")
+    list(TRANSFORM renderer_unit_SRC PREPEND "${CMAKE_SOURCE_DIR}/src/")
+    add_library(renderer_unit_lib SHARED "${renderer_unit_SRC}")
+    pkg_check_modules(RENDERER_UNIT_DEPS REQUIRED IMPORTED_TARGET cairomm-1.16)
+    target_link_libraries(renderer_unit_lib PkgConfig::RENDERER_UNIT_DEPS 2Geom::2geom)
+    make_target_unit_testable(renderer_unit_lib)
+endfunction(get_renderer_unit_lib)
+
