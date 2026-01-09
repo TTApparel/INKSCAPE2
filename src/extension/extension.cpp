@@ -256,15 +256,17 @@ Extension::loaded ()
 bool
 Extension::check ()
 {
-    char const *inx_failure = _("  This is caused by an improper .inx file for this extension."
-                                "  An improper .inx file could have been caused by a faulty installation of Inkscape.");
+    auto get_inx_error_text = []() {
+        return _("  This is caused by an improper .inx file for this extension."
+                 "  An improper .inx file could have been caused by a faulty installation of Inkscape.");
+    };
 
     if (repr == nullptr) {
-        printFailure(Glib::ustring(_("the XML description of it got lost.")) += inx_failure);
+        printFailure(Glib::ustring(_("the XML description of it got lost.")) += get_inx_error_text());
         return false;
     }
     if (!imp) {
-        printFailure(Glib::ustring(_("no implementation was defined for the extension.")) += inx_failure);
+        printFailure(Glib::ustring(_("no implementation was defined for the extension.")) += get_inx_error_text());
         return false;
     }
 
@@ -500,10 +502,26 @@ char const *Extension::get_translation(char const *msgid, char const *msgctxt) c
         return msgid;
     }
 
+    // Possible enhancement: heterogeneous lookup
+    // https://stackoverflow.com/questions/49709548/c-unordered-mapstring-lookup-without-constructing-string
     if (msgctxt) {
-        return g_dpgettext2(_translationdomain, msgctxt, msgid);
+        auto& map = _translations_by_context[msgctxt];
+
+        auto iter = map.find(msgid);
+        if (iter != map.end())
+            return iter->second.c_str(); // TODO: return std::string
+        // Can g_dgettext return NULL?
+        auto emplaced = map.emplace(msgid, g_dpgettext2(_translationdomain, msgctxt, msgid)).first;
+        return emplaced->second.c_str();
     } else {
-        return g_dgettext(_translationdomain, msgid);
+        auto& map = _translations;
+
+        auto iter = map.find(msgid);
+        if (iter != map.end())
+            return iter->second.c_str(); // TODO: return std::string
+        // Can g_dgettext return NULL?
+        auto emplaced = map.emplace(msgid, g_dgettext(_translationdomain, msgid)).first;
+        return emplaced->second.c_str();
     }
 }
 

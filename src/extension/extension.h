@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include <glibmm/ustring.h>
 #include <sigc++/signal.h>
@@ -151,6 +152,11 @@ private:
     bool _gui = true;
 
     std::vector<ProcessingAction> _actions;    /**< Processing actions */
+
+    using string_map = std::unordered_map<std::string, std::string>;
+    // TODO: use separate object instead of mutable? Or remove const from some methods?
+    mutable std::unordered_map<std::string, string_map> _translations_by_context; /**< Caches of intl translations by context */
+    mutable std::unordered_map<std::string, std::string> _translations; /**< Cache of intl translations */
 
 protected:
     Inkscape::XML::Node *repr;                 /**< The XML description of the Extension */
