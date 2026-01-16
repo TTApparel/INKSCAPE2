@@ -218,6 +218,7 @@ protected:
 template <SPAttr Id, class Base>
 class TypedSPI : public Base {
   public:
+    using BaseType = Base;
     using Base::Base;
 
     /**

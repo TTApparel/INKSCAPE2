@@ -86,6 +86,7 @@
 #include "ui/util.h"
 #include "ui/tools/object-picker-tool.h"
 #include "ui/tools/text-tool.h"
+#include "ui/widget/color-picker.h"
 #include "ui/widget/image-properties.h"
 #include "ui/widget/ink-property-grid.h"
 #include "ui/widget/object-composite-settings.h"
@@ -101,7 +102,7 @@ using Parts = Widget::PaintAttribute::Parts;
 const auto TAG = get_next_object_modified_tag();
 constexpr int MARGIN = 4;
 // Some panels are not ready and kept behind this flag
-constexpr bool INCLUDE_EXPERIMENTAL_PANELS = false;
+constexpr bool INCLUDE_EXPERIMENTAL_PANELS = true;
 
 namespace {
 
@@ -346,6 +347,7 @@ void align_star_shape(SPStar* path) {
     path->updateRepr();
 }
 
+#if false
 void set_dimension_adj(Widget::InkSpinButton& btn) {
     btn.set_adjustment(Gtk::Adjustment::create(0, 0, 1'000'000, 1, 5));
 }
@@ -353,6 +355,7 @@ void set_dimension_adj(Widget::InkSpinButton& btn) {
 void set_location_adj(Widget::InkSpinButton& btn) {
     btn.set_adjustment(Gtk::Adjustment::create(0, -1'000'000, 1'000'000, 1, 5));
 }
+#endif
 
 } // namespace
 
@@ -1643,12 +1646,36 @@ auto paint_to_item(const PaintKey& paint) {
     }
 }
 
+template <typename T>
+struct type_from_member;
+
+template <typename M, typename T>
+struct type_from_member<M T::*> {
+    using class_type = T;
+    using member_type = M;
+};
+
+// template <typename T>
+// auto tttest(T ptr) -> std::add_const_t<typename type_from_member<T>::member_type>* {
+//     SPStyle s;
+//     return &(s.*ptr);
+// }
+
+// void sometest() {
+//     SPStyle s;
+//     auto style = tttest(&SPStyle::font_style);
+//     if (style) {style->value;}
+// }
+
+
 } // namespace
 
 class TextPanel : public details::AttributesPanel {
 public:
     TextPanel(Glib::RefPtr<Gtk::Builder> builder) :
-        _font_size(get_widget<Widget::InkSpinButton>(builder, "text-font-scale")) {
+        _builder(builder),
+        _decoration_color(get_derived_widget<Widget::ColorPicker>(builder, "text-decor-color", _("Text decoration"))) {
+        // _font_size(get_widget<Widget::InkSpinButton>(builder, "text-font-scale")) {
 
         // TODO - text panel
         // add all fill paints widgets:
@@ -1660,10 +1687,10 @@ public:
         _grid.add_gap();
         // add F&S for the main text element
         add_fill_and_stroke();
-        get_widget<Gtk::Box>(builder, "text-font-scale-box").append(_font_size_scale);
-        _font_size_scale.set_max_block_count(1);
-        _font_size_scale.set_hexpand();
-        _font_size_scale.set_adjustment(_font_size.get_adjustment());
+        // get_widget<Gtk::Box>(builder, "text-font-scale-box").append(_font_size_scale);
+        // _font_size_scale.set_max_block_count(1);
+        // _font_size_scale.set_hexpand();
+        // _font_size_scale.set_adjustment(_font_size.get_adjustment());
         add_header(_("Text"));
         Widget::reparent_properties(get_widget<Gtk::Grid>(builder, "text-main"), _grid);
         _section_toggle = _grid.add_section(_("Typography"));
@@ -1691,6 +1718,26 @@ private:
         _grid.open_section(_section_toggle, expand);
     }
 
+    template <typename T>
+    auto get_style_attr(T attr_ptr) -> std::add_const_t<typename type_from_member<T>::member_type>::BaseType* {
+        if (!_current_item || !_current_item->style) return nullptr;
+
+        return (*_current_item->style.*attr_ptr).upcast();
+    }
+
+    template <typename W, typename T>
+    void update_widget(T attr_ptr, const char* widget_id) {
+        auto attr = get_style_attr(attr_ptr);
+        auto& widget = get_widget<W>(_builder, widget_id);
+        if (attr && attr->set) {
+            widget.set_value(attr->computed);
+            widget.set_sensitive(true);
+        }
+        else {
+            widget.set_sensitive(false);
+        }
+    }
+
     void update(SPObject* object) override {
         auto text = cast<SPText>(object);
         _current_item = text;
@@ -1709,6 +1756,41 @@ private:
         // all paints:
         // auto fills = spans.empty() ? collect_paints(text) : collect_paints(spans);
         // update_paints(fills);
+        // auto font_fam = get_style_attr(&SPStyle::font_family);
+
+        // auto font_size = get_style_attr(&SPStyle::font_size);
+        // auto& text_font_size = get_widget<Widget::InkSpinButton>(_builder, "text-font-size");
+        // if (font_size && font_size->set) {
+        //     text_font_size.set_value(font_size->computed);
+        //     text_font_size.set_sensitive(true);
+        // }
+        // else {
+        //     text_font_size.set_sensitive(false);
+        // }
+        // auto letter_spacing = get_style_attr(&SPStyle::letter_spacing);
+        // auto& text_letter_space = get_widget<Widget::InkSpinButton>(_builder, "text-letter-space");
+        // if (letter_spacing && letter_spacing->set) {
+        //     text_letter_space.set_value(letter_spacing->computed);
+        //     text_letter_space.set_sensitive(true);
+        // }
+        // else {
+        //     text_letter_space.set_sensitive(false);
+        // }
+        // auto word_spacing = get_style_attr(&SPStyle::word_spacing);
+        // auto& text_word_space = get_widget<Widget::InkSpinButton>(_builder, "text-word-space");
+        // if (word_spacing && word_spacing->set) {
+        //     text_word_space.set_value(word_spacing->computed);
+        //     text_word_space.set_sensitive(true);
+        // }
+        // else {
+        //     text_word_space.set_sensitive(false);
+        // }
+        update_widget<Widget::InkSpinButton>(&SPStyle::font_size, "text-font-size");
+        update_widget<Widget::InkSpinButton>(&SPStyle::line_height, "text-line-height");
+
+        update_widget<Widget::InkSpinButton>(&SPStyle::letter_spacing, "text-letter-space");
+        update_widget<Widget::InkSpinButton>(&SPStyle::word_spacing, "text-word-space");
+        &SPStyle::text_align
     }
 
     void subselection_changed(const std::vector<SPItem*>& items) override {
@@ -1765,8 +1847,10 @@ private:
         return {};
     }
 
+    Glib::RefPtr<Gtk::Builder> _builder;
     Widget::ScaleBar _font_size_scale;
-    Widget::InkSpinButton& _font_size;
+    // Widget::InkSpinButton& _font_size;
+    Widget::ColorPicker& _decoration_color;
     SPText* _current_item = nullptr;
     Gtk::Button* _section_toggle;
     Widget::WidgetGroup _section_widgets;
