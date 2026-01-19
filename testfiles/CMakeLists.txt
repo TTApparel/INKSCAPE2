@@ -220,7 +220,9 @@ add_unit_tests(TEST_SOURCES "colors/cms-profile-test.cpp"
 
 include("${CMAKE_SOURCE_DIR}/src/renderer/CMakeUnit.txt")
 get_renderer_unit_lib()
-add_unit_tests(TEST_SOURCES "renderer/pixel-access-test.cpp"
+add_unit_tests(TEST_SOURCES 
+                            "renderer/context-test.cpp"
+                            "renderer/pixel-access-test.cpp"
                             "renderer/pixel-filter-average-color-test.cpp"
                             "renderer/pixel-filter-color-matrix-test.cpp"
                             "renderer/pixel-filter-color-space-test.cpp"

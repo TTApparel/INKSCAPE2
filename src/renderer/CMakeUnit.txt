@@ -1,10 +1,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(renderer_unit_SRC
-        surface.cpp
+	context.cpp
+	context-paths.cpp
+	context-pattern.cpp
+	surface.cpp
 
 	# -------
 	# Headers
+	context.h
+	context-paths.h
+	context-pattern.h
 	pixel-access.h
 	pixel-filters/average-color.h
 	pixel-filters/color-matrix.h
@@ -17,7 +23,7 @@ set(renderer_unit_SRC
 	pixel-filters/light.h
 	pixel-filters/morphology.h
 	pixel-filters/turbulence.h
-        surface.h
+	surface.h
 )
 
 function(get_renderer_unit_lib)

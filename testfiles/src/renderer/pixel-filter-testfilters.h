@@ -57,6 +57,21 @@ struct SetPixels
     }  
 };
 
+struct ClearPixels
+{
+    template <typename Access>
+    void filter(Access &surface) const
+    {
+        typename Access::Color blank;
+        for (auto y = 0; y < surface.height(); y++) {
+            for (auto x = 0; x < surface.width(); x++) {
+                surface.colorTo(x, y, blank);
+            }
+        }
+
+    }
+};
+
 /**
  * Construct a string reprentation of the image pixels.
  */
