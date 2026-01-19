@@ -5,6 +5,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 # custom "check" target with proper dependencies (builds inkscape and tests)
 file(TO_NATIVE_PATH "/" _separator)
+add_definitions(-DUNIT_TEST="true")
 add_definitions(-DINKSCAPE_TESTS_DIR="${CMAKE_SOURCE_DIR}/testfiles")
 add_definitions(-DINKSCAPE_SHARE_DIR="${CMAKE_SOURCE_DIR}/share")
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
@@ -231,6 +232,18 @@ add_unit_tests(TEST_SOURCES "renderer/pixel-access-test.cpp"
                             "renderer/pixel-filter-turbulence-test.cpp"
                             "renderer/pixel-filter-morphology-test.cpp"
                             "renderer/pixel-filter-gaussian-blur-test.cpp"
+                            "renderer/surface-filter-average-color-test.cpp"
+                            "renderer/surface-filter-color-matrix-test.cpp"
+                            "renderer/surface-filter-color-space-test.cpp"
+                            "renderer/surface-filter-component-transfer-test.cpp"
+                            "renderer/surface-filter-composite-test.cpp"
+                            "renderer/surface-filter-convolve-matrix-test.cpp"
+                            "renderer/surface-filter-light-test.cpp"
+                            "renderer/surface-filter-displacement-map-test.cpp"
+                            "renderer/surface-filter-turbulence-test.cpp"
+                            "renderer/surface-filter-morphology-test.cpp"
+                            "renderer/surface-filter-gaussian-blur-test.cpp"
+                            "renderer/surface-test.cpp"
                     EXTRA_LIBS renderer_unit_lib colors_unit_lib)
 
 add_unit_test(css-syntactic-decomposition-test TEST_SOURCE "css-syntactic-decomposition-test.cpp"
