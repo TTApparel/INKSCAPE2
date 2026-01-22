@@ -77,6 +77,7 @@
 #include "live_effects/lpe-test-doEffect-stack.h"
 #include "live_effects/lpe-text_label.h"
 #include "live_effects/lpe-tiling.h"
+#include "live_effects/lpe-slice-markers.h"
 #include "live_effects/lpe-transform_2pts.h"
 #include "live_effects/lpe-vonkoch.h"
 #include "message-stack.h"
@@ -691,6 +692,21 @@ const EnumEffectData<EffectType> LPETypeData[] = {
         false ,//on_text
         false ,//experimental
     },
+    /* 1.5 */
+    {
+        SLICE_MARKERS,
+        NC_("path effect", "Slice markers") ,//label
+        "slice_markers" ,//key
+        "slice-markerss" ,//icon
+        N_("Slice markers") ,//description
+        LPECategory::Convert ,//category
+        true  ,//on_path
+        true  ,//on_shape
+        false  ,//on_group
+        false ,//on_image
+        false ,//on_text
+        false ,//experimental
+    },
     // VISIBLE experimental LPEs
     {
         ANGLE_BISECTOR,
@@ -1112,6 +1128,9 @@ Effect::New(EffectType lpenr, LivePathEffectObject *lpeobj)
             break;
         case TILING:
             neweffect = static_cast<Effect*> ( new LPETiling(lpeobj) );
+            break;
+        case SLICE_MARKERS:
+            neweffect = static_cast<Effect*> ( new LPESliceMarkers(lpeobj) );
             break;
         default:
             g_warning("LivePathEffect::Effect::New called with invalid patheffect type (%d)", lpenr);

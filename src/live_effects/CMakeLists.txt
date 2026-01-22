@@ -60,6 +60,7 @@ target_sources(inkscape_base PRIVATE
 	lpe-test-doEffect-stack.cpp
 	lpe-text_label.cpp
 	lpe-tiling.cpp
+	lpe-slice-markers.cpp
 	lpe-transform_2pts.cpp
 	lpegroupbbox.cpp
 	lpeobject-reference.cpp
@@ -158,6 +159,7 @@ target_sources(inkscape_base PRIVATE
 	lpe-test-doEffect-stack.h
 	lpe-text_label.h
 	lpe-tiling.h
+	lpe-slice-markers.h
 	lpe-transform_2pts.h
 	lpe-vonkoch.h
 	lpegroupbbox.h

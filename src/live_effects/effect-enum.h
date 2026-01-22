@@ -59,6 +59,7 @@ enum EffectType {
     BOOL_OP,
     SLICE,
     TILING,
+    SLICE_MARKERS,
     // PUT NEW LPE BEFORE EXPERIMENTAL IN THE SAME ORDER AS IN effect.cpp
     // Visible Experimental LPE's
     ANGLE_BISECTOR,
