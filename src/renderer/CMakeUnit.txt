@@ -28,11 +28,75 @@ set(renderer_unit_SRC
 
 function(get_renderer_unit_lib)
     list(TRANSFORM renderer_unit_SRC PREPEND "renderer/")
-    list(PREPEND renderer_unit_SRC "renderer/threading.cpp" "renderer/dispatch-pool.cpp")
+    list(PREPEND renderer_unit_SRC
+        "renderer/threading.cpp"
+        "renderer/dispatch-pool.cpp"
+    )
     list(TRANSFORM renderer_unit_SRC PREPEND "${CMAKE_SOURCE_DIR}/src/")
     add_library(renderer_unit_lib SHARED "${renderer_unit_SRC}")
     pkg_check_modules(RENDERER_UNIT_DEPS REQUIRED IMPORTED_TARGET cairomm-1.16)
-    target_link_libraries(renderer_unit_lib PkgConfig::RENDERER_UNIT_DEPS 2Geom::2geom)
+    target_link_libraries(renderer_unit_lib PkgConfig::RENDERER_UNIT_DEPS 2Geom::2geom GLibmm::GLibmm)
     make_target_unit_testable(renderer_unit_lib)
 endfunction(get_renderer_unit_lib)
 
+# Pixel access shouldn't need drawing access so we split it up
+
+set(drawing_unit_SRC
+        drawing-filters/blend.cpp
+        drawing-filters/color-matrix.cpp
+        drawing-filters/component-transfer.cpp
+        drawing-filters/composite.cpp
+        drawing-filters/convolve-matrix.cpp
+        drawing-filters/displacement-map.cpp
+        drawing-filters/drop-shadow.cpp
+        drawing-filters/filter.cpp
+        drawing-filters/flood.cpp
+        drawing-filters/gaussian-blur.cpp
+        drawing-filters/image.cpp
+        drawing-filters/light.cpp
+        drawing-filters/merge.cpp
+	drawing-filters/morphology.cpp
+	drawing-filters/offset.cpp
+        drawing-filters/primitive.cpp
+        drawing-filters/slot.cpp
+        drawing-filters/tile.cpp
+        drawing-filters/turbulence.cpp
+        drawing-filters/units.cpp
+
+        # -------
+        drawing-filters/blend.h
+        drawing-filters/color-matrix.h
+        drawing-filters/component-transfer.h
+        drawing-filters/composite.h
+        drawing-filters/convolve-matrix.h
+        drawing-filters/displacement-map.h
+        drawing-filters/drop-shadow.h
+        drawing-filters/filter.h
+        drawing-filters/flood.h
+        drawing-filters/gaussian-blur.h
+        drawing-filters/image.h
+        drawing-filters/light.h
+        drawing-filters/merge.h
+	drawing-filters/morphology.h
+	drawing-filters/offset.h
+        drawing-filters/primitive.h
+        drawing-filters/slot.h
+        drawing-filters/tile.h
+        drawing-filters/turbulence.h
+        drawing-filters/units.h
+)
+
+function(get_drawing_unit_lib)
+    list(TRANSFORM drawing_unit_SRC PREPEND "renderer/")
+    list(PREPEND drawing_unit_SRC
+        "svg/stringstream.cpp"
+        "svg/strip-trailing-zeros.cpp"
+        "svg/svg-length.cpp"
+        "util/units.cpp"
+    )
+    list(TRANSFORM drawing_unit_SRC PREPEND "${CMAKE_SOURCE_DIR}/src/")
+    add_library(drawing_unit_lib SHARED "${drawing_unit_SRC}")
+    pkg_check_modules(DRAWING_UNIT_DEPS REQUIRED IMPORTED_TARGET cairomm-1.16)
+    target_link_libraries(drawing_unit_lib PkgConfig::DRAWING_UNIT_DEPS 2Geom::2geom GLibmm::GLibmm)
+    make_target_unit_testable(drawing_unit_lib)
+endfunction(get_drawing_unit_lib)

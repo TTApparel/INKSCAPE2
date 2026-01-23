@@ -22,7 +22,7 @@
 
 #include "colors/forward.h"
 #include "context-pattern.h"
-#include "enums.h"
+#include "renderer/enums.h"
 
 namespace Inkscape::Renderer {
 

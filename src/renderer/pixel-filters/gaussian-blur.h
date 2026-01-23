@@ -35,17 +35,9 @@
 #include <2geom/point.h>
 
 #include "renderer/threading.h"
+#include "renderer/pixel-filters/enums.h"
 
 namespace Inkscape::Renderer::PixelFilter {
-
-enum class BlurQuality
-{
-    BEST = 2,
-    BETTER = 1,
-    NORMAL = 0,
-    WORSE = -1,
-    WORST = -2
-};
 
 /*
  * Number of IIR filter coefficients used. Currently only 3 is supported.

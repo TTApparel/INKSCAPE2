@@ -248,6 +248,30 @@ add_unit_tests(TEST_SOURCES
                             "renderer/surface-test.cpp"
                     EXTRA_LIBS renderer_unit_lib colors_unit_lib)
 
+get_drawing_unit_lib()
+add_unit_tests(TEST_SOURCES 
+                            "renderer/drawing-filter-blend-test.cpp"
+                            "renderer/drawing-filter-color-matrix-test.cpp"
+                            "renderer/drawing-filter-component-transfer-test.cpp"
+                            "renderer/drawing-filter-composite-test.cpp"
+                            "renderer/drawing-filter-convolve-matrix-test.cpp"
+                            "renderer/drawing-filter-displacement-map-test.cpp"
+                            "renderer/drawing-filter-drop-shadow-test.cpp"
+                            "renderer/drawing-filter-flood-test.cpp"
+                            "renderer/drawing-filter-gaussian-blur-test.cpp"
+                            "renderer/drawing-filter-image-test.cpp"
+                            "renderer/drawing-filter-light-test.cpp"
+                            "renderer/drawing-filter-merge-test.cpp"
+                            "renderer/drawing-filter-morphology-test.cpp"
+                            "renderer/drawing-filter-offset-test.cpp"
+                            "renderer/drawing-filter-slot-test.cpp"
+                            "renderer/drawing-filter-test.cpp"
+                            "renderer/drawing-filter-tile-test.cpp"
+                            "renderer/drawing-filter-turbulence-test.cpp"
+                    SOURCES "mocks/util-units-filename.cpp"
+                            "mocks/util-numeric-precision.cpp"
+                    EXTRA_LIBS renderer_unit_lib drawing_unit_lib colors_unit_lib)
+
 add_unit_test(css-syntactic-decomposition-test TEST_SOURCE "css-syntactic-decomposition-test.cpp"
                                                    SOURCES "css/syntactic-decomposition.cpp"
                                                 EXTRA_LIBS GLibmm::GLibmm croco_LIB)

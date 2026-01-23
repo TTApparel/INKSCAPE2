@@ -30,12 +30,12 @@ public:
      * Create a new Surface with the given domentions and device scale.
      *
      * @arg dimensions   - The width and height in pixels of the surface memory.
-     * @arg device_scale - The scale of the pixels as used by Cairo::ImageSurface.
+     * @arg device_scale - The scale of the pixels as used by Cairo::ImageSurface, default 1.
      * @arg color_space  - A color space which allows this surface to be translated to
      *                     other color spaces. If one is not provided everything is
      *                     assumed to be sRGB and floating point precion is turned off.
      */
-    explicit Surface(Geom::IntPoint const &dimensions, int device_scale, std::shared_ptr<Colors::Space::AnySpace> const &color_space);
+    explicit Surface(Geom::IntPoint const &dimensions, int device_scale = 1, std::shared_ptr<Colors::Space::AnySpace> const &color_space = {});
 
     /**
      * Returns true if the memory has been allocated for this surface.
@@ -109,7 +109,10 @@ public:
 #define INNER(...)\
         auto d_comp = components();\
         auto d_format = format();\
-        if (d_format == CAIRO_FORMAT_ARGB32) {\
+        if (d_format == CAIRO_FORMAT_A8) {\
+            auto s1 = A8((*this), DstEdgeMode);\
+            return filter.filter(s1 __VA_OPT__(,) __VA_ARGS__);\
+        } else if (d_format == CAIRO_FORMAT_ARGB32) {\
             auto s1 = RGB((*this), DstEdgeMode);\
             return filter.filter(s1 __VA_OPT__(,) __VA_ARGS__);\
         } else if (d_format == CAIRO_FORMAT_RGBA128F && d_comp == 3) {\
