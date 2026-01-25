@@ -62,6 +62,19 @@
             </child>
           </object>
         </child>
+        <child>
+          <object class="GtkMenuButton" id="btn-menu">
+            <property name="visible">false</property>
+            <property name="always-show-arrow">true</property>
+            <property name="focusable">True</property>
+            <property name="focus-on-click">False</property>
+            <property name="receives-default">True</property>
+            <property name="halign">fill</property>
+            <property name="valign">center</property>
+            <property name="has-frame">false</property>
+            <property name="tooltip-text" translatable="yes">Color Pickers</property>
+            </object>
+        </child>
       </object>
     </child>
     <child>

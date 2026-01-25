@@ -220,7 +220,6 @@ target_sources(inkscape_base PRIVATE
 	widget/export-lists.cpp
 	widget/export-preview.cpp
 	widget/filter-effect-chooser.cpp
-	widget/fill-style.cpp
 	widget/font-button.cpp
 	widget/font-collection-selector.cpp
 	widget/font-list.cpp
@@ -554,7 +553,6 @@ target_sources(inkscape_base PRIVATE
 	widget/events/enums.h
 	widget/export-lists.h
 	widget/export-preview.h
-	widget/fill-style.h
 	widget/filter-effect-chooser.h
 	widget/font-button.h
 	widget/font-collection-selector.h
