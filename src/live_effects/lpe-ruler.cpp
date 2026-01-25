@@ -120,24 +120,17 @@ LPERuler::ruler_mark(Geom::Point const &A, Geom::Point const &n, MarkType const 
     }
 
     Point C, D;
-    double factor = 1.0;
     double mark_gap = 0;
     switch (marktype) {
         case MARK_MAJOR:
             mark_gap = major_mark_gap;
             C = A;
             D = A + n_major;
-            if (real_mark_length && real_minor_mark_length && real_mark_length < real_minor_mark_length) {
-                factor = real_mark_length/real_minor_mark_length;
-            }
             if (mark_dir == MARKDIR_BOTH)
                 C -= n_major;
             break;
         case MARK_MINOR:
             mark_gap = minor_mark_gap;
-            if (real_mark_length && real_minor_mark_length && real_mark_length > real_minor_mark_length) {
-                factor = real_minor_mark_length / real_mark_length;
-            }
             C = A;
             D = A + n_minor;
             if (mark_dir == MARKDIR_BOTH)
@@ -160,10 +153,10 @@ LPERuler::ruler_mark(Geom::Point const &A, Geom::Point const &n, MarkType const 
         if (mark_gap) {
             Geom::PathVector pv;
             if (mark_dir == MARKDIR_BOTH) {
-                pv.push_back(pvec[0].portion(0, 0.5 - ((mark_gap * 0.5 * (1 + (1 - factor)))/100.0)));  
-                pv.push_back(pvec[0].portion(0.5 + ((mark_gap * 0.5 * (1 + (1 - factor)))/100.0), 1));  
+                pv.push_back(pvec[0].portion(0, 0.5 - ((mark_gap * 0.5)/100.0)));
+                pv.push_back(pvec[0].portion(0.5 + ((mark_gap * 0.5)/100.0), 1));
             } else {
-                pv.push_back(pvec[0].portion((mark_gap * (1 + (1 - factor)))/100.0,1));  
+                pv.push_back(pvec[0].portion(mark_gap/100.0,1));
             }
             seg = paths_to_pw(pv);  
         }
