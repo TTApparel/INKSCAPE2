@@ -8,6 +8,7 @@ set(colors_unit_SRC
 	manager.cpp
 	parser.cpp
 	printer.cpp
+	spaces/alpha.cpp
 	spaces/base.cpp
 	spaces/cms.cpp
 	spaces/cmyk.cpp
@@ -41,6 +42,7 @@ set(colors_unit_SRC
 	manager.h
 	parser.h
 	printer.h
+	spaces/alpha.h
 	spaces/base.h
 	spaces/cms.h
 	spaces/cmyk.h

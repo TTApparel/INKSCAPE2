@@ -261,7 +261,19 @@ const std::shared_ptr<TransformSurface> &System::getDisplayTransform()
 
     if (need_to_update) {
         if (display_profile) {
-            _display_transform = std::make_shared<TransformSurface>(Profile::create_srgb(), sizeof(char), true, display_profile, sizeof(char), true);
+            // No High bit depths here! Just low resolution gamma curved sRGB.
+            // TODO: Replace with something with a better gammut and depth.
+            TransformSurface::Format in = {
+                Profile::create_srgb(), // sRGB profile input
+                sizeof(char),           // Char 8 per channel
+                true,                   // Integral
+            };
+            TransformSurface::Format out = {
+                display_profile,
+                sizeof(char),
+                true,
+            };
+            _display_transform = std::make_shared<TransformSurface>(in, out);
         } else {
             _display_transform = nullptr;
         }

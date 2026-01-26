@@ -16,6 +16,7 @@
 #include "colors/parser.h"
 
 // Each Internal space should be imported here.
+#include "spaces/alpha.h"
 #include "spaces/cmyk.h"
 #include "spaces/gray.h"
 #include "spaces/hsl.h"
@@ -58,6 +59,9 @@ Manager::Manager()
     addSpace(new Space::OkLch());
     addSpace(new Space::XYZ());
     addSpace(new Space::XYZ50());
+
+    // Image rendering spaces
+    addSpace(new Space::Alpha());
 }
 
 /**

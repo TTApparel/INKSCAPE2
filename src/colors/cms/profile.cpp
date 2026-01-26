@@ -83,6 +83,19 @@ std::shared_ptr<Profile> Profile::create_from_data(std::string const &contents)
 }
 
 /**
+ * Construct a D65 gray identity profile.
+ */
+std::shared_ptr<Profile> Profile::create_gray()
+{
+    cmsCIExyY D65;
+    cmsWhitePointFromTemp(&D65, 6504);
+    auto gammaCurve = cmsBuildGamma(NULL, 2.158); // Gamma curve for luminosity
+    auto hProfile = cmsCreateGrayProfile(&D65, gammaCurve);
+    cmsFreeToneCurve(gammaCurve);
+    return Profile::create(hProfile);
+}
+
+/**
  * Construct the default lcms sRGB color profile and return.
  */
 std::shared_ptr<Profile> Profile::create_srgb()
