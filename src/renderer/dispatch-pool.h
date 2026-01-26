@@ -5,8 +5,8 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DISPLAY_DISPATCH_POOL_H
-#define INKSCAPE_DISPLAY_DISPATCH_POOL_H
+#ifndef INKSCAPE_RENDERER_DISPATCH_POOL_H
+#define INKSCAPE_RENDERER_DISPATCH_POOL_H
 
 #include <condition_variable>
 #include <functional>
@@ -111,7 +111,7 @@ private:
 
 } // namespace Inkscape
 
-#endif // INKSCAPE_DISPLAY_DISPATCH_POOL_H
+#endif // INKSCAPE_RENDERER_DISPATCH_POOL_H
 
 /*
   Local Variables:

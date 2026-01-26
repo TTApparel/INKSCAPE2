@@ -10,11 +10,12 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#include "drawing-group.h"
-#include "cairo-utils.h"
-#include "drawing-context.h"
-#include "drawing-surface.h"
-#include "drawing-text.h"
+#include "group.h"
+
+#include "renderer/context.h"
+#include "renderer/surface.h"
+
+#include "text.h"
 #include "drawing.h"
 #include "style.h"
 

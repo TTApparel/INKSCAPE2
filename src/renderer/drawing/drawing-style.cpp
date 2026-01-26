@@ -10,8 +10,8 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#include "display/nr-style.h"
 #include "style.h"
+#include "drawing-style.h"
 
 #include "colors/manager.h"
 #include "display/cairo-utils.h"
@@ -21,7 +21,7 @@
 
 #include "object/sp-paint-server.h"
 
-namespace Inkscape {
+namespace Inkscape::Renderer {
 
 void NRStyleData::Paint::clear()
 {
@@ -303,7 +303,7 @@ auto NRStyle::preparePaint(Inkscape::DrawingContext &dc, Inkscape::RenderContext
     if (paint.type == NRStyleData::PaintType::SERVER && pattern) {
         // If a DrawingPattern, then always regenerate the pattern, because it may depend on 'area'.
         // Even if not, regenerating the pattern is a no-op because DrawingPattern has a cache.
-        return CairoPatternUniqPtr(pattern->renderPattern(rc, area, paint.opacity, dc.surface()->device_scale()));
+        //return CairoPatternUniqPtr(pattern->renderPattern(rc, area, paint.opacity, dc.surface()->device_scale()));
     }
 
     // Otherwise, init or re-use cached pattern.
@@ -312,7 +312,7 @@ auto NRStyle::preparePaint(Inkscape::DrawingContext &dc, Inkscape::RenderContext
         switch (paint.type) {
             case NRStyleData::PaintType::SERVER:
                 if (paint.server) {
-                    cp.pattern = CairoPatternUniqPtr(paint.server->create_pattern(dc.raw(), paintbox, paint.opacity));
+                    cp.pattern = CairoPatternUniqPtr(paint.server->create_pattern(&dc, paintbox, paint.opacity));
                     ink_cairo_pattern_set_dither(cp.pattern.get(), rc.dithering && paint.server->ditherable());
                 } else {
                     std::cerr << "Null pattern detected" << std::endl;

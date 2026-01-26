@@ -10,15 +10,15 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DISPLAY_DRAWING_SHAPE_H
-#define INKSCAPE_DISPLAY_DRAWING_SHAPE_H
+#ifndef INKSCAPE_RENDERER_DRAWING_SHAPE_H
+#define INKSCAPE_RENDERER_DRAWING_SHAPE_H
 
-#include "display/drawing-item.h"
-#include "display/nr-style.h"
+#include "drawing-item.h"
+#include "drawing-style.h"
 
 class SPStyle;
 
-namespace Inkscape {
+namespace Inkscape::Renderer {
 
 class DrawingShape
     : public DrawingItem
@@ -35,14 +35,14 @@ protected:
     ~DrawingShape() override = default;
 
     unsigned _updateItem(Geom::IntRect const &area, UpdateContext const &ctx, unsigned flags, unsigned reset) override;
-    unsigned _renderItem(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const override;
-    void _clipItem(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area) const override;
+    unsigned _renderItem(Context &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const override;
+    void _clipItem(Context &dc, RenderContext &rc, Geom::IntRect const &area) const override;
     DrawingItem *_pickItem(Geom::Point const &p, double delta, unsigned flags) override;
     bool _canClip() const override { return true; }
 
-    void _renderFill(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area) const;
-    void _renderStroke(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags) const;
-    void _renderMarkers(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const;
+    void _renderFill(Context &dc, RenderContext &rc, Geom::IntRect const &area) const;
+    void _renderStroke(Context &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags) const;
+    void _renderMarkers(Context &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const;
 
     bool style_vector_effect_stroke : 1;
     bool style_stroke_extensions_hairline : 1;
@@ -57,9 +57,9 @@ protected:
     unsigned _repick_after;
 };
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
-#endif // INKSCAPE_DISPLAY_DRAWING_SHAPE_H
+#endif // INKSCAPE_RENDERER_DRAWING_SHAPE_H
 
 /*
   Local Variables:

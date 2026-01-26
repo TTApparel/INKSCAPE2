@@ -10,30 +10,24 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DISPLAY_DRAWING_SURFACE_H
-#define INKSCAPE_DISPLAY_DRAWING_SURFACE_H
+#ifndef INKSCAPE_RENDERER_DRAWING_AREA_H
+#define INKSCAPE_RENDERER_DRAWING_AREA_H
 
 #include <cairo.h>
 #include <2geom/affine.h>
 #include <2geom/rect.h>
 #include <2geom/transforms.h>
 
-extern "C" {
-typedef struct _cairo cairo_t;
-typedef struct _cairo_surface cairo_surface_t;
-typedef struct _cairo_region cairo_region_t;
-}
+namespace Inkscape::Renderer {
+class Context;
 
-namespace Inkscape {
-class DrawingContext;
-
-class DrawingSurface
+class DrawingArea
 {
 public:
-    explicit DrawingSurface(Geom::IntRect const &area, int device_scale = 1);
-    DrawingSurface(Geom::Rect const &logbox, Geom::IntPoint const &pixdims, int device_scale = 1);
-    DrawingSurface(cairo_surface_t *surface, Geom::Point const &origin);
-    virtual ~DrawingSurface();
+    explicit DrawingArea(Geom::IntRect const &area, int device_scale = 1);
+    DrawingArea(Geom::Rect const &logbox, Geom::IntPoint const &pixdims, int device_scale = 1);
+    DrawingArea(cairo_surface_t *surface, Geom::Point const &origin);
+    virtual ~DrawingArea();
 
     Geom::Rect area() const { return Geom::Rect::from_xywh(_origin, dimensions()); } ///< Get the logical extents of the surface.
     Geom::IntPoint pixels() const { return _pixels; } ///< Get the pixel dimensions of the surface
@@ -57,11 +51,11 @@ protected:
     int _device_scale;
     bool _has_context;
 
-    friend class DrawingContext;
+    friend class Context;
 };
 
 class DrawingCache
-    : public DrawingSurface
+    : public DrawingArea
 {
 public:
     explicit DrawingCache(Geom::IntRect const &area, int device_scale = 1);
@@ -71,7 +65,7 @@ public:
     void markClean(Geom::IntRect const &area = Geom::IntRect::infinite());
     void scheduleTransform(Geom::IntRect const &new_area, Geom::Affine const &trans);
     void prepare();
-    void paintFromCache(DrawingContext &dc, Geom::OptIntRect &area, bool is_filter);
+    void paintFromCache(Context &dc, Geom::OptIntRect &area, bool is_filter);
 
 protected:
     cairo_region_t *_clean_region;
@@ -82,9 +76,9 @@ private:
     void _dumpCache(Geom::OptIntRect const &area);
 };
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
-#endif // INKSCAPE_DISPLAY_DRAWING_SURFACE_H
+#endif // INKSCAPE_RENDERER_DRAWING_AREA_H
 
 /*
   Local Variables:

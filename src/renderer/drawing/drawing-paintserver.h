@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-#ifndef INKSCAPE_DISPLAY_DRAWING_PAINT_SERVER_H
-#define INKSCAPE_DISPLAY_DRAWING_PAINT_SERVER_H
 /**
  * @file
  * Representation of paint servers used when rendering.
@@ -11,22 +9,24 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
+#ifndef INKSCAPE_RENDERER_DRAWING_PAINT_SERVER_H
+#define INKSCAPE_RENDERER_DRAWING_PAINT_SERVER_H
+
 #include <array>
 #include <vector>
-#include <cairo.h>
 #include <2geom/rect.h>
 #include <2geom/affine.h>
 #include "object/sp-gradient-spread.h"
 #include "object/sp-gradient-units.h"
 #include "object/sp-gradient-vector.h"
 
+#include "colors/forward.h"
 class SPGradient;
 
-namespace Inkscape {
-namespace Colors {
-class Color;
-}
+namespace Inkscape::Renderer {
 
+class Surface;
+class Context;
 /**
  * A DrawingPaintServer is a lightweight copy of the resources needed to paint using a paint server.
  *
@@ -41,12 +41,12 @@ public:
     virtual ~DrawingPaintServer() = 0;
 
     /// Produce a pattern that can be used for painting with Cairo.
-    virtual cairo_pattern_t *create_pattern(cairo_t *ct, Geom::OptRect const &bbox, double opacity) const = 0;
+    virtual Surface create_pattern(Context *, Geom::OptRect const &bbox, double opacity) const = 0;
 
     /// Return whether this paint server could benefit from dithering.
     virtual bool ditherable() const { return false; }
 
-    /// Return whether create_pattern() uses its cairo_t argument. Such pattern cannot be cached, but recreated each time.
+    /// Return whether create_pattern() uses its DrawingContext argument. Such pattern cannot be cached, but recreated each time.
     /// Fixme: The only reson this exists is to work around https://gitlab.freedesktop.org/cairo/cairo/-/issues/146.
     virtual bool uses_cairo_ctx() const { return false; }
 };
@@ -60,7 +60,7 @@ class DrawingSolidColor final
 {
 public:
     DrawingSolidColor(Colors::Color color);
-    cairo_pattern_t *create_pattern(cairo_t *, Geom::OptRect const &, double opacity) const override;
+    Surface create_pattern(Context *, Geom::OptRect const &, double opacity) const override;
 
 private:
     Colors::Color color;
@@ -81,7 +81,7 @@ protected:
     bool ditherable() const override { return true; }
 
     /// Perform some common initialization steps on the given Cairo pattern.
-    void common_setup(cairo_pattern_t *pat, Geom::OptRect const &bbox, double opacity) const;
+    void common_setup(Surface *pat, Geom::OptRect const &bbox, double opacity) const;
 
     SPGradientSpread spread;
     SPGradientUnits units;
@@ -104,7 +104,7 @@ public:
         , y2(y2)
         , stops(std::move(stops)) {}
 
-    cairo_pattern_t *create_pattern(cairo_t*, Geom::OptRect const &bbox, double opacity) const override;
+    Surface create_pattern(Context*, Geom::OptRect const &bbox, double opacity) const override;
 
 private:
     float x1, y1, x2, y2;
@@ -129,7 +129,7 @@ public:
         , fr(fr)
         , stops(std::move(stops)) {}
 
-    cairo_pattern_t *create_pattern(cairo_t *ct, Geom::OptRect const &bbox, double opacity) const override;
+    Surface create_pattern(Context *ct, Geom::OptRect const &bbox, double opacity) const override;
 
     bool uses_cairo_ctx() const override { return true; }
 
@@ -161,7 +161,7 @@ public:
         , cols(cols)
         , patchdata(std::move(patchdata)) {}
 
-    cairo_pattern_t *create_pattern(cairo_t*, Geom::OptRect const &bbox, double opacity) const override;
+    Surface create_pattern(Context*, Geom::OptRect const &bbox, double opacity) const override;
 
 private:
     int rows;
@@ -169,9 +169,9 @@ private:
     std::vector<std::vector<PatchData>> patchdata;
 };
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
-#endif // INKSCAPE_DISPLAY_DRAWING_PAINT_SERVER_H
+#endif // INKSCAPE_RENDERER_DRAWING_PAINT_SERVER_H
 /*
   Local Variables:
   mode:c++

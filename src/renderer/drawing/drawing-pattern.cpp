@@ -11,17 +11,17 @@
  */
 
 #include <cairomm/region.h>
-#include <cairo.h>
-#include "cairo-utils.h"
-#include "display/drawing-item.h"
-#include "drawing-context.h"
-#include "drawing-pattern.h"
-#include "drawing-surface.h"
-#include "drawing.h"
-#include "helper/geom.h"
-#include "ui/util.h"
 
-namespace Inkscape {
+#include "renderer/context.h"
+#include "renderer/surface.h"
+#include "item.h"
+#include "pattern.h"
+#include "drawing.h"
+
+#include "helper/geom.h"
+// WHY #include "ui/util.h"
+
+namespace Inkscape::Renderer {
 
 auto constexpr PATTERN_MATRIX_EPSILON = 1e-18;
 
@@ -251,7 +251,7 @@ cairo_pattern_t *DrawingPattern::renderPattern(RenderContext &rc, Geom::IntRect 
                     // Apply opacity, if necessary.
                     if (opacity < 1.0 - 1e-3) {
                         dc.setOperator(CAIRO_OPERATOR_DEST_IN);
-                        dc.setSource(0.0, 0.0, 0.0, opacity);
+                        dc.resetSource(opacity);
                         dc.paint();
                     }
                 }
@@ -304,7 +304,7 @@ void DrawingPattern::_dropPatternCache()
     surfaces.clear();
 }
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
 /*
   Local Variables:

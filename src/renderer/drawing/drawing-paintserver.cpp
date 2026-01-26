@@ -6,6 +6,8 @@
 #include "cairo-utils.h"
 #include "colors/color.h"
 
+#include "display/drawing-context.h"
+
 namespace Inkscape {
 
 DrawingPaintServer::~DrawingPaintServer() = default;
@@ -13,7 +15,7 @@ DrawingPaintServer::~DrawingPaintServer() = default;
 DrawingSolidColor::DrawingSolidColor(Colors::Color color)
     : color(std::move(color)) {}
 
-cairo_pattern_t *DrawingSolidColor::create_pattern(cairo_t *, Geom::OptRect const &, double opacity) const
+cairo_pattern_t *DrawingSolidColor::create_pattern(DrawingContext *, Geom::OptRect const &, double opacity) const
 {
     return ink_cairo_pattern_create(color.withOpacity(opacity));
 }
@@ -43,7 +45,7 @@ void DrawingGradient::common_setup(cairo_pattern_t *pat, Geom::OptRect const &bb
     ink_cairo_pattern_set_matrix(pat, gs2user.inverse());
 }
 
-cairo_pattern_t *DrawingLinearGradient::create_pattern(cairo_t *, Geom::OptRect const &bbox, double opacity) const
+cairo_pattern_t *DrawingLinearGradient::create_pattern(DrawingContext *, Geom::OptRect const &bbox, double opacity) const
 {
     auto pat = cairo_pattern_create_linear(x1, y1, x2, y2);
 
@@ -60,7 +62,7 @@ cairo_pattern_t *DrawingLinearGradient::create_pattern(cairo_t *, Geom::OptRect 
     return pat;
 }
 
-cairo_pattern_t *DrawingRadialGradient::create_pattern(cairo_t *ct, Geom::OptRect const &bbox, double opacity) const
+cairo_pattern_t *DrawingRadialGradient::create_pattern(DrawingContext *ct, Geom::OptRect const &bbox, double opacity) const
 {
     Geom::Point focus(fx, fy);
     Geom::Point center(cx, cy);
@@ -68,7 +70,7 @@ cairo_pattern_t *DrawingRadialGradient::create_pattern(cairo_t *ct, Geom::OptRec
     double radius = r;
     double focusr = fr;
     double scale = 1.0;
-    double tolerance = cairo_get_tolerance(ct);
+    double tolerance = ct->getTolerance();
 
     Geom::Affine gs2user = transform;
 
@@ -87,16 +89,15 @@ cairo_pattern_t *DrawingRadialGradient::create_pattern(cairo_t *ct, Geom::OptRec
     r_user *= gs2user.withoutTranslation();
     fr_user *= gs2user.withoutTranslation();
 
-    double dx = d_user.x(), dy = d_user.y();
-    cairo_user_to_device_distance(ct, &dx, &dy);
+    auto d_device = ct->get_device_distance(d_user);
 
     // compute the tolerance distance in user space
     // create a vector with the same direction as the transformed d,
     // with the length equal to tolerance
-    double dl = hypot(dx, dy);
-    double tx = tolerance * dx / dl, ty = tolerance * dy / dl;
-    cairo_device_to_user_distance(ct, &tx, &ty);
-    double tolerance_user = hypot(tx, ty);
+    double dl = d_device.length();
+    auto t_device = Geom::Point(tolerance * d_device.x() / dl,
+                                tolerance * d_device.y() / dl);
+    auto tolerance_user = ct->get_user_distance(t_device).length();
 
     if (d_user.length() + tolerance_user > r_user.length()) {
         scale = r_user.length() / d_user.length();
@@ -113,14 +114,14 @@ cairo_pattern_t *DrawingRadialGradient::create_pattern(cairo_t *ct, Geom::OptRec
     for (auto &stop : stops) {
         // multiply stop opacity by paint opacity
         if (stop.color.has_value()) {
-            ink_cairo_pattern_add_color_stop(pat, stop.offset, *stop.color, opacity);
+            ink_cairo_pattern_add_color_stop(pat, stop.offset, stop.color->withOpacity(opacity));
         }
     }
 
     return pat;
 }
 
-cairo_pattern_t *DrawingMeshGradient::create_pattern(cairo_t *, Geom::OptRect const &bbox, double opacity) const
+cairo_pattern_t *DrawingMeshGradient::create_pattern(DrawingContext *, Geom::OptRect const &bbox, double opacity) const
 {
 #ifdef MESH_DEBUG
     std::cout << "sp_meshgradient_create_pattern: " << bbox << " " << opacity << std::endl;

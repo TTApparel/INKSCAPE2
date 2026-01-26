@@ -16,22 +16,10 @@
 #include <array>
 #include <thread>
 
-#include "cairo-utils.h"
-#include "control/canvas-item-drawing.h"
-#include "drawing-context.h"
-#include "nr-filter-gaussian.h"
-#include "nr-filter-types.h"
+#include "renderer/context.h"
 #include "threading.h"
 
-namespace Inkscape {
-
-// Hardcoded grayscale color matrix values as default.
-static auto constexpr grayscale_matrix = std::array{
-    0.21, 0.72, 0.072, 0.0, 0.0,
-    0.21, 0.72, 0.072, 0.0, 0.0,
-    0.21, 0.72, 0.072, 0.0, 0.0,
-    0.0 , 0.0 , 0.0  , 1.0, 0.0
-};
+namespace Inkscape::Renderer {
 
 static auto rendermode_to_renderflags(RenderMode mode)
 {
@@ -47,16 +35,6 @@ static auto default_numthreads()
 {
     auto ret = std::thread::hardware_concurrency();
     return ret == 0 ? 4 : ret; // Sensible fallback if not reported.
-}
-
-Drawing::Drawing(Inkscape::CanvasItemDrawing *canvas_item_drawing)
-    : _canvas_item_drawing(canvas_item_drawing)
-    , _grayscale_matrix(std::vector<double>(grayscale_matrix.begin(), grayscale_matrix.end()))
-    , _clip_outline_color{0xFF}
-    , _mask_outline_color{0xFF}
-    , _image_outline_color{0xFF}
-{
-    _loadPrefs();
 }
 
 Drawing::~Drawing()
@@ -104,16 +82,6 @@ void Drawing::setOutlineOverlay(bool outlineoverlay)
         if (outlineoverlay == _outlineoverlay) return;
         _outlineoverlay = outlineoverlay;
         _root->_markForUpdate(DrawingItem::STATE_ALL, true);
-    });
-}
-
-void Drawing::setGrayscaleMatrix(double value_matrix[20])
-{
-    defer([=, this] {
-        _grayscale_matrix = Filters::FilterColorMatrix::ColorMatrixMatrix(std::vector<double>(value_matrix, value_matrix + 20));
-        if (_rendermode != RenderMode::OUTLINE) {
-            _root->_markForRendering();
-        }
     });
 }
 
@@ -239,23 +207,23 @@ void Drawing::update(Geom::IntRect const &area, Geom::Affine const &affine, unsi
     }
 }
 
-void Drawing::render(DrawingContext &dc, Geom::IntRect const &area, unsigned flags) const
+void Drawing::render(Context &dc, Geom::IntRect const &area, unsigned flags) const
 {
-    apply_antialias(dc, _antialiasing_override.value_or(Antialiasing(_root->_antialias)));
-
-    auto rc = RenderContext{
+    auto opt = Options{
         .outline_color = Colors::Color(0xff),
         .antialiasing_override = _antialiasing_override,
         .dithering = _use_dithering
+        // TODO: Add blurquality and filterquality
     };
     flags |= rendermode_to_renderflags(_rendermode);
 
+    dc.setAntialias(_antialiasing_override.value_or(Antialiasing(_root->_antialias)));
     if (_clip) {
         dc.save();
         dc.path(*_clip * _root->_ctm);
         dc.clip();
     }
-    _root->render(dc, rc, area, flags);
+    _root->render(dc, opt, area, flags);
     if (_clip) {
         dc.restore();
     }
@@ -377,7 +345,7 @@ void Drawing::_loadPrefs()
 Colors::Color Drawing::averageColor(Geom::IntRect const &area) const
 {
     auto surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, area.width(), area.height());
-    auto dc = Inkscape::DrawingContext(surface->cobj(), area.min());
+    auto dc = Inkscape::Context(surface->cobj(), area.min());
     render(dc, area);
     return ink_cairo_surface_average_color(surface->cobj());
 }
@@ -401,19 +369,19 @@ Colors::Color Drawing::averageColor(Geom::PathVector const &path, bool evenodd) 
 
     // Build a mask of pixels to ignore
     auto mask = Cairo::ImageSurface::create(Cairo::Surface::Format::A8, width, height);
-    auto dc_mask = Inkscape::DrawingContext(mask->cobj(), offset);
+    auto dc_mask = Context(mask->cobj(), offset);
     dc_mask.scale(affine);
 
     dc_mask.setFillRule(evenodd ? CAIRO_FILL_RULE_EVEN_ODD : CAIRO_FILL_RULE_WINDING);
     dc_mask.path(path);
     dc_mask.clip();
-    dc_mask.setSource(1, 1, 1, 1);
+    dc_mask.resetSource(1.0);
     dc_mask.setOperator(CAIRO_OPERATOR_SOURCE);
     dc_mask.paint();
 
     // Render the output, no need to clip as the mask will say what values to use
     auto image = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, width, height);
-    auto dc = Inkscape::DrawingContext(image->cobj(), offset);
+    auto dc = Context(image->cobj(), offset);
     dc.scale(affine);
     render(dc, area->roundOutwards());
 

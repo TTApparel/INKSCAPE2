@@ -10,8 +10,8 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DISPLAY_DRAWING_H
-#define INKSCAPE_DISPLAY_DRAWING_H
+#ifndef INKSCAPE_RENDERER_DRAWING_H
+#define INKSCAPE_RENDERER_DRAWING_H
 
 #include <optional>
 #include <set>
@@ -23,29 +23,25 @@
 #include <sigc++/sigc++.h>
 
 #include "colors/color.h"
-#include "display/drawing-item.h"
 #include "display/rendermode.h"
-#include "nr-filter-colormatrix.h"
+#include "drawing-item.h"
 #include "preferences.h"
 #include "util/funclog.h"
 
-namespace Inkscape {
+namespace Inkscape::Renderer {
 
 class DrawingItem;
-class CanvasItemDrawing;
-class DrawingContext;
+class Context;
 
 class Drawing
 {
 public:
-    Drawing(CanvasItemDrawing *drawing = nullptr);
     Drawing(Drawing const &) = delete;
     Drawing &operator=(Drawing const &) = delete;
     ~Drawing();
 
     void setRoot(DrawingItem *root);
     DrawingItem *root() { return _root; }
-    CanvasItemDrawing *getCanvasItemDrawing() { return _canvas_item_drawing; }
 
     void setRenderMode(RenderMode);
     void setColorMode(ColorMode);
@@ -68,7 +64,6 @@ public:
     RenderMode renderMode() const { return _rendermode; }
     ColorMode colorMode() const { return _colormode; }
     bool outlineOverlay() const { return _outlineoverlay; }
-    auto &grayscaleMatrix() const { return _grayscale_matrix; }
     Colors::Color const &clipOutlineColor() const { return _clip_outline_color; }
     Colors::Color const &maskOutlineColor() const { return _mask_outline_color; }
     Colors::Color const &imageOutlineColor() const { return _image_outline_color; }
@@ -82,7 +77,7 @@ public:
 
     void update(Geom::IntRect const &area = Geom::IntRect::infinite(), Geom::Affine const &affine = Geom::identity(),
                 unsigned flags = DrawingItem::STATE_ALL, unsigned reset = 0);
-    void render(DrawingContext &dc, Geom::IntRect const &area, unsigned flags = 0) const;
+    void render(Context &dc, Geom::IntRect const &area, unsigned flags = 0) const;
     DrawingItem *pick(Geom::Point const &p, double delta, unsigned flags);
 
     void snapshot();
@@ -101,13 +96,11 @@ private:
     void _loadPrefs();
 
     DrawingItem *_root = nullptr;
-    CanvasItemDrawing *_canvas_item_drawing = nullptr;
     std::unique_ptr<Preferences::PreferencesObserver> _pref_tracker;
 
     RenderMode _rendermode = RenderMode::NORMAL;
     ColorMode _colormode = ColorMode::NORMAL;
     bool _outlineoverlay = false;
-    Filters::FilterColorMatrix::ColorMatrixMatrix _grayscale_matrix;
     Colors::Color _clip_outline_color;
     Colors::Color _mask_outline_color;
     Colors::Color _image_outline_color;
@@ -141,9 +134,9 @@ private:
     friend class DrawingItem;
 };
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
-#endif // INKSCAPE_DISPLAY_DRAWING_H
+#endif // INKSCAPE_RENDERER_DRAWING_H
 
 /*
   Local Variables:

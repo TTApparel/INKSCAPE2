@@ -10,16 +10,13 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DISPLAY_DRAWING_PATTERN_H
-#define INKSCAPE_DISPLAY_DRAWING_PATTERN_H
+#ifndef INKSCAPE_RENDERER_DRAWING_PATTERN_H
+#define INKSCAPE_RENDERER_DRAWING_PATTERN_H
 
 #include <mutex>
-#include <cairomm/surface.h>
 #include "drawing-group.h"
 
-using cairo_pattern_t = struct _cairo_pattern;
-
-namespace Inkscape {
+namespace Inkscape::Renderer {
 
 /**
  * @brief Drawing tree node used for rendering paints.
@@ -60,7 +57,7 @@ public:
      *
      * Returns cairo_pattern_t structure that can be set as source surface.
      */
-    cairo_pattern_t *renderPattern(RenderContext &rc, Geom::IntRect const &area, float opacity, int device_scale) const;
+    Surface renderPattern(Context &rc, Geom::IntRect const &area, float opacity, int device_scale) const;
 
 protected:
     ~DrawingPattern() override = default;
@@ -81,11 +78,11 @@ protected:
     // Set on update.
     Geom::IntPoint _pattern_resolution;
 
-    struct Surface
+    struct PatternSurface // WTF is this?
     {
-        Surface(Geom::IntRect const &rect, int device_scale);
+        PatternSurface(Geom::IntRect const &rect, int device_scale);
         Geom::IntRect rect;
-        Cairo::RefPtr<Cairo::ImageSurface> surface;
+        std::shared_ptr<Surface> surface;
     };
 
     mutable std::mutex mutables;
@@ -94,9 +91,9 @@ protected:
     mutable std::vector<Surface> surfaces;
 };
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
-#endif // INKSCAPE_DISPLAY_DRAWING_PATTERN_H
+#endif // INKSCAPE_RENDERER_DRAWING_PATTERN_H
 
 /*
   Local Variables:

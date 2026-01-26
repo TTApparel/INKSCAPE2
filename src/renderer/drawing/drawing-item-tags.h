@@ -5,8 +5,8 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DRAWINGITEM_TAGS_H
-#define INKSCAPE_DRAWINGITEM_TAGS_H
+#ifndef INKSCAPE_RENDERER_DRAWING_ITEM_TAGS_H
+#define INKSCAPE_RENDERER_DRAWING_ITEM_TAGS_H
 
 #include "util/cast.h"
 
@@ -23,7 +23,7 @@ X(DrawingItem,\
     X(DrawingGlyphs)\
 )
 
-namespace Inkscape {
+namespace Inkscape::Renderer {
 
 // Forward declarations
 
@@ -40,21 +40,21 @@ enum class DrawingItemTag : int
     #undef X
 };
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
 // Tag specialization
 
-#define X(n, ...) template <> inline constexpr int first_tag<Inkscape::n> = static_cast<int>(Inkscape::DrawingItemTag::n##_first); __VA_ARGS__
+#define X(n, ...) template <> inline constexpr int first_tag<Inkscape::Renderer::n> = static_cast<int>(Inkscape::Renderer::DrawingItemTag::n##_first); __VA_ARGS__
 DRAWINGITEM_HIERARCHY_DATA(X)
 #undef X
 
-#define X(n, ...) template <> inline constexpr int last_tag<Inkscape::n> = static_cast<int>(Inkscape::DrawingItemTag::n##_last); __VA_ARGS__
+#define X(n, ...) template <> inline constexpr int last_tag<Inkscape::Renderer::n> = static_cast<int>(Inkscape::Renderer::DrawingItemTag::n##_last); __VA_ARGS__
 DRAWINGITEM_HIERARCHY_DATA(X)
 #undef X
 
 #undef DRAWINGITEM_HIERARCHY_DATA
 
-#endif // INKSCAPE_DRAWINGITEM_TAGS_H
+#endif // INKSCAPE_RENDERER_DRAWING_ITEM_TAGS_H
 
 /*
   Local Variables:

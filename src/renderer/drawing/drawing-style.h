@@ -11,24 +11,25 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DISPLAY_NR_STYLE_H
-#define INKSCAPE_DISPLAY_NR_STYLE_H
+#ifndef INKSCAPE_RENDERER_DRAWING_STYLE_H
+#define INKSCAPE_RENDERER_DRAWING_STYLE_H
 
 #include <memory>
 #include <array>
 #include <cairo.h>
 #include <2geom/rect.h>
 #include "drawing-paintserver.h"
-#include "initlock.h"
+#include "display/initlock.h"
 
 class SPPaintServer;
 class SPStyle;
 class SPIPaint;
 
-namespace Inkscape {
-class DrawingContext;
+namespace Inkscape::Renderer {
+
+class Context;
 class DrawingPattern;
-class RenderContext;
+class Options;
 
 struct CairoPatternFreer { void operator()(cairo_pattern_t *p) const { cairo_pattern_destroy(p); } };
 using CairoPatternUniqPtr = std::unique_ptr<cairo_pattern_t, CairoPatternFreer>;
@@ -135,14 +136,14 @@ class NRStyle
 {
 public:
     void set(NRStyleData &&data);
-    CairoPatternUniqPtr prepareFill(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern) const;
-    CairoPatternUniqPtr prepareStroke(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern) const;
-    CairoPatternUniqPtr prepareTextDecorationFill(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern) const;
-    CairoPatternUniqPtr prepareTextDecorationStroke(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern) const;
-    void applyFill(DrawingContext &dc, CairoPatternUniqPtr const &cp) const;
-    void applyStroke(DrawingContext &dc, CairoPatternUniqPtr const &cp) const;
-    void applyTextDecorationFill(DrawingContext &dc, CairoPatternUniqPtr const &cp) const;
-    void applyTextDecorationStroke(DrawingContext &dc, CairoPatternUniqPtr const &cp) const;
+    CairoPatternUniqPtr prepareFill(Context &dc, Options &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern) const;
+    CairoPatternUniqPtr prepareStroke(Context &dc, Options &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern) const;
+    CairoPatternUniqPtr prepareTextDecorationFill(Context &dc, Options &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern) const;
+    CairoPatternUniqPtr prepareTextDecorationStroke(Context &dc, Options &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern) const;
+    void applyFill(Context &dc, CairoPatternUniqPtr const &cp) const;
+    void applyStroke(Context &dc, CairoPatternUniqPtr const &cp) const;
+    void applyTextDecorationFill(Context &dc, CairoPatternUniqPtr const &cp) const;
+    void applyTextDecorationStroke(Context &dc, CairoPatternUniqPtr const &cp) const;
     void invalidate();
 
    NRStyleData data;
@@ -155,7 +156,7 @@ private:
         void reset() { inited.reset(); pattern.reset(); }
     };
 
-    CairoPatternUniqPtr preparePaint(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern, NRStyleData::Paint const &paint, CachedPattern const &cp) const;
+    CairoPatternUniqPtr preparePaint(Context &dc, Options &rc, Geom::IntRect const &area, Geom::OptRect const &paintbox, DrawingPattern const *pattern, NRStyleData::Paint const &paint, CachedPattern const &cp) const;
 
     CachedPattern fill_pattern;
     CachedPattern stroke_pattern;
@@ -163,9 +164,9 @@ private:
     CachedPattern text_decoration_stroke_pattern;
 };
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
-#endif // INKSCAPE_DISPLAY_NR_STYLE_H
+#endif // INKSCAPE_RENDERER_DRAWING_STYLE_H
 
 /*
   Local Variables:

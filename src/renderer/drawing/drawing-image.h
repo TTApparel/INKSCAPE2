@@ -10,18 +10,15 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DISPLAY_DRAWING_IMAGE_H
-#define INKSCAPE_DISPLAY_DRAWING_IMAGE_H
+#ifndef INKSCAPE_RENDERER_DRAWING_IMAGE_H
+#define INKSCAPE_RENDERER_DRAWING_IMAGE_H
 
 #include <memory>
 #include <2geom/transforms.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
-#include <cairo.h>
 
-#include "display/drawing-item.h"
+#include "drawing-item.h"
 
-namespace Inkscape {
-class Pixbuf;
+namespace Inkscape::Renderer {
 
 class DrawingImage
     : public DrawingItem
@@ -32,7 +29,7 @@ public:
 
     void setStyle(SPStyle const *style, SPStyle const *context_style = nullptr) override;
 
-    void setPixbuf(std::shared_ptr<Inkscape::Pixbuf const> pb);
+    //void setPixbuf(std::shared_ptr<Inkscape::Pixbuf const> pb);
     void setScale(double sx, double sy);
     void setOrigin(Geom::Point const &o);
     void setClipbox(Geom::Rect const &box);
@@ -42,10 +39,10 @@ protected:
     ~DrawingImage() override = default;
 
     unsigned _updateItem(Geom::IntRect const &area, UpdateContext const &ctx, unsigned flags, unsigned reset) override;
-    unsigned _renderItem(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const override;
+    unsigned _renderItem(Context &dc, Options &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const override;
     DrawingItem *_pickItem(Geom::Point const &p, double delta, unsigned flags) override;
 
-    std::shared_ptr<Inkscape::Pixbuf const> _pixbuf;
+    //std::shared_ptr<Inkscape::Pixbuf const> _pixbuf;
 
     SPImageRendering style_image_rendering;
 
@@ -57,7 +54,7 @@ protected:
 
 } // namespace Inkscape
 
-#endif // INKSCAPE_DISPLAY_DRAWING_IMAGE_H
+#endif // INKSCAPE_RENDERER_DRAWING_IMAGE_H
 
 /*
   Local Variables:

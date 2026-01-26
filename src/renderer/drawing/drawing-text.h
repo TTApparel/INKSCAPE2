@@ -10,19 +10,17 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#ifndef INKSCAPE_DISPLAY_DRAWING_TEXT_H
-#define INKSCAPE_DISPLAY_DRAWING_TEXT_H
+#ifndef INKSCAPE_RENDERER_DRAWING_TEXT_H
+#define INKSCAPE_RENDERER_DRAWING_TEXT_H
 
 #include <memory>
-#include "display/drawing-group.h"
-#include "display/nr-style.h"
+#include "drawing-group.h"
+#include "drawing-style.h"
 
 class SPStyle;
 class FontInstance;
 
-namespace Inkscape {
-
-class Pixbuf;
+namespace Inkscape::Renderer {
 
 class DrawingGlyphs
     : public DrawingItem
@@ -50,7 +48,7 @@ protected:
 
     double design_units;
     Geom::PathVector const *pathvec = nullptr; // pathvector of glyph.
-    Inkscape::Pixbuf const *pixbuf = nullptr;  // pixbuf, if SVG font
+    //Pixbuf const *pixbuf = nullptr;  // pixbuf, if SVG font
     Geom::Rect              bbox_exact;        // Exact bounding box of glyph.
     Geom::Rect              bbox_pick;         // Pick bounding box of glyph.
     Geom::Rect              bbox_draw;         // Draw bounding box of glyph (adds space for text decorations)
@@ -79,13 +77,13 @@ protected:
     ~DrawingText() override = default;
 
     unsigned _updateItem(Geom::IntRect const &area, UpdateContext const &ctx, unsigned flags, unsigned reset) override;
-    unsigned _renderItem(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const override;
-    void _clipItem(DrawingContext &dc, RenderContext &rc, Geom::IntRect const &area) const override;
+    unsigned _renderItem(Context &dc, Options &rc, Geom::IntRect const &area, unsigned flags, DrawingItem const *stop_at) const override;
+    void _clipItem(Context &dc, Options &rc, Geom::IntRect const &area) const override;
     DrawingItem *_pickItem(Geom::Point const &p, double delta, unsigned flags) override;
     bool _canClip() const override { return true; }
 
-    void decorateItem(DrawingContext &dc, double phase_length, bool under) const;
-    void decorateStyle(DrawingContext &dc, double vextent, double xphase, Geom::Point const &p1, Geom::Point const &p2, double thickness) const;
+    void decorateItem(Context &dc, double phase_length, bool under) const;
+    void decorateStyle(Context &dc, double vextent, double xphase, Geom::Point const &p1, Geom::Point const &p2, double thickness) const;
     NRStyle _nrstyle;
 
     bool style_vector_effect_stroke : 1;
@@ -95,9 +93,9 @@ protected:
     friend class DrawingGlyphs;
 };
 
-} // namespace Inkscape
+} // namespace Inkscape::Renderer
 
-#endif // INKSCAPE_DISPLAY_DRAWING_TEXT_H
+#endif // INKSCAPE_RENDERER_DRAWING_TEXT_H
 
 /*
   Local Variables:

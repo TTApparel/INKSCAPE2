@@ -16,7 +16,6 @@
 #include "drawing-context.h"
 #include "drawing-image.h"
 #include "cairo-utils.h"
-#include "cairo-templates.h"
 
 namespace Inkscape {
 
@@ -154,7 +153,7 @@ unsigned DrawingImage::_renderItem(DrawingContext &dc, RenderContext &rc, Geom::
         dc.paint();
 
         if (greyscale_exception) {
-            ink_cairo_surface_filter(dc.rawTarget(), dc.rawTarget(), _drawing.grayscaleMatrix());
+            // TODO dc.filter(_drawing.grayscaleMatrix());
             dc.popGroupToSource();
             dc.paint();
         }
