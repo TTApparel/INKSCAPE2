@@ -308,6 +308,10 @@ bool PagesTool::root_handler(CanvasEvent const &event)
 {
     bool ret = false;
     auto &page_manager = _desktop->getDocument()->getPageManager();
+    
+    if (!page_manager.hasPages()) {
+        page_manager.enablePages();
+    }
 
     inspect_event(event,
         [&] (ButtonPressEvent const &event) {
