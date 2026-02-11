@@ -16,23 +16,40 @@
 
 #include <glibmm/i18n.h>
 
-#include "attributes.h"          // for SPAttr
 #include <2geom/curve.h>         // for Curve
-#include "helper/geom-curves.h"  // for is_straight_curve
-#include "object/sp-object.h"    // for SP_OBJECT_WRITE_BUILD
-#include "object/sp-shape.h"     // for SPShape
 #include <2geom/path.h>          // for Path, BaseIterator
 #include <2geom/pathvector.h>    // for PathVector
 #include <2geom/point.h>         // for Point
+
+#include "attributes.h"          // for SPAttr
+#include "document.h"            // for SPDocument
+#include "helper/geom-curves.h"  // for is_straight_curve
+#include "object/sp-object.h"    // for SP_OBJECT_WRITE_BUILD
+#include "object/sp-shape.h"     // for SPShape
 #include "svg/stringstream.h"    // for SVGOStringStream
+#include "svg/svg.h"             // for sp_svg_write_path
 #include "xml/document.h"        // for Document
 #include "xml/node.h"            // for Node
+
 class SPDocument;
 
 SPPolygon::SPPolygon() : SPShape() {
 }
 
 SPPolygon::~SPPolygon() = default;
+
+/*
+ * Can change type when LPE applied.
+ */
+void SPPolygon::tag_name_changed(gchar const* oldname, gchar const* newname)
+{
+    const std::string typeString = newname;
+    if (typeString == "svg:polygon") {
+        type = SP_GENERIC_POLYGON;
+    } else if (typeString == "svg:path") {
+        type = SP_GENERIC_PATH;
+    }
+}
 
 void SPPolygon::build(SPDocument *document, Inkscape::XML::Node *repr) {
 	SPPolygon* object = this;
@@ -42,49 +59,101 @@ void SPPolygon::build(SPDocument *document, Inkscape::XML::Node *repr) {
     object->readAttr(SPAttr::POINTS);
 }
 
-/*
- * sp_svg_write_polygon: Write points attribute for polygon tag.
- * pathv may only contain paths with only straight line segments
- * Return value: points attribute string.
- */
-static char *sp_svg_write_polygon(Geom::PathVector const &pathv)
-{
-    Inkscape::SVGOStringStream os;
-
-    for (const auto & pit : pathv) {
-        for (Geom::Path::const_iterator cit = pit.begin(); cit != pit.end_default(); ++cit) {
-            if ( is_straight_curve(*cit) )
-            {
-                os << cit->finalPoint()[0] << "," << cit->finalPoint()[1] << " ";
-            } else {
-                g_error("sp_svg_write_polygon: polygon path contains non-straight line segments");
-            }
-        }
+void SPPolygon::update(SPCtx* ctx, unsigned int flags) {
+    if (flags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_STYLE_MODIFIED_FLAG | SP_OBJECT_VIEWPORT_MODIFIED_FLAG)) {
+        set_shape();
     }
 
-    return g_strdup(os.str().c_str());
+    SPShape::update(ctx, flags);
 }
 
 Inkscape::XML::Node* SPPolygon::write(Inkscape::XML::Document *xml_doc, Inkscape::XML::Node *repr, guint flags) {
     // Tolerable workaround: we need to update the object's curve before we set points=
     // because it's out of sync when e.g. some extension attrs of the polygon or star are changed in XML editor
-	this->set_shape();
+    set_shape();
 
+#ifdef OBJECT_TRACE
+    objectTrace( "SPPolygon::write", true, flags );
+#endif
+    GenericPolygonType new_type = SP_GENERIC_POLYGON;
+    if (hasPathEffectOnClipOrMaskRecursive(this)) {
+        new_type = SP_GENERIC_PATH;
+    }
     if ((flags & SP_OBJECT_WRITE_BUILD) && !repr) {
-        repr = xml_doc->createElement("svg:polygon");
+        switch (new_type) {
+            case SP_GENERIC_POLYGON:
+                repr = xml_doc->createElement("svg:polygon");
+                break;
+            case SP_GENERIC_PATH:
+                repr = xml_doc->createElement("svg:path");
+                break;
+            default:
+                std::cerr << "SPGenericPolygon::write(): unknown type." << std::endl;
+        }
+    }
+    if (type != new_type) {
+        switch (new_type) {
+            case SP_GENERIC_POLYGON:
+                repr->setCodeUnsafe(g_quark_from_string("svg:polygon"));
+                break;
+            case SP_GENERIC_PATH:
+                repr->setCodeUnsafe(g_quark_from_string("svg:path"));
+                repr->setAttribute("sodipodi:type", "polygon");
+                break;
+            default:
+                std::cerr << "SPGenericPolygon::write(): unknown type." << std::endl;
+        }
+        type = new_type;
     }
 
-    /* We can safely write points here, because all subclasses require it too (Lauris) */
-    /* While saving polygon element without points attribute _curve is NULL (see bug 1202753) */
-    if (_curve) {
-        char *str = sp_svg_write_polygon(*_curve);
-        repr->setAttribute("points", str);
-        g_free(str);
+    if (type == SP_GENERIC_PATH) {
+        // write d=
+        if (_curve) {
+            repr->setAttribute("d", sp_svg_write_path(*_curve));
+        } else {
+            repr->removeAttribute("d");
+        }
+    } else {
+        Inkscape::SVGOStringStream os;
+        for (auto point : points) {
+            os << point.x() << "," << point.y() << " ";
+        }
+        repr->setAttribute("points", os.str().c_str());
     }
 
     SPShape::write(xml_doc, repr, flags);
 
     return repr;
+}
+
+void SPPolygon::set_shape()
+{
+    if (checkBrokenPathEffect()) {
+        return;
+    }
+
+    Geom::Path c;
+    auto first = true;
+    for (auto point : points) {
+        if (first) {
+            c.start(point);
+            first = false;
+        } else {
+            c.appendNew<Geom::LineSegment>(point);
+        }
+    }
+    c.close();
+
+    prepareShapeForLPE(std::move(c));
+}
+
+void SPPolygon::modified(unsigned int flags)
+{
+    if (flags & (SP_OBJECT_MODIFIED_FLAG | SP_OBJECT_STYLE_MODIFIED_FLAG | SP_OBJECT_VIEWPORT_MODIFIED_FLAG)) {
+        set_shape();
+    }
+
+    SPShape::modified(flags);
 }
 
 /**
@@ -160,6 +229,7 @@ static void sp_poly_print_warning(char const *points, char const *error_location
  *
  * @param points The points attribute.
  * @return The corresponding polyline curve (open).
+ * To do: move to sp-polyline. (No longer used here.)
  */
 std::optional<Geom::Path> sp_poly_parse_curve(char const *points)
 {
@@ -194,6 +264,41 @@ std::optional<Geom::Path> sp_poly_parse_curve(char const *points)
     return result;
 }
 
+/**
+ * @brief Parse a 'points' attribute, printing a warning when an error occurs.
+ *
+ * @param points The points attribute.
+ * @return A vector of points parsed.
+ */
+std::vector<Geom::Point> sp_poly_parse_points(char const *points)
+{
+    std::vector<Geom::Point> result;
+    char const *cptr = points;
+
+    while (true) {
+        double x, y;
+
+        if (auto error = sp_poly_get_value(&cptr, &x)) {
+            // If the error is something other than end of input, we must report it.
+            // End of input is allowed when scanning for the next x coordinate: it
+            // simply means that we have reached the end of the coordinate list.
+            if (error != POLY_END_OF_STRING) {
+                sp_poly_print_warning(points, cptr, error);
+            }
+            break;
+        }
+        if (auto error = sp_poly_get_value(&cptr, &y)) {
+            // End of input is not allowed when scanning for y.
+            sp_poly_print_warning(points, cptr, error);
+            break;
+        }
+
+        result.emplace_back(Geom::Point{x, y});
+    }
+
+    return result;
+}
+
 void SPPolygon::set(SPAttr key, const gchar* value) {
     switch (key) {
         case SPAttr::POINTS: {
@@ -203,9 +308,8 @@ void SPPolygon::set(SPAttr key, const gchar* value) {
                 break;
             }
 
-            auto curve = sp_poly_parse_curve(value).value_or(Geom::Path{});
-            curve.close();
-            setCurve(std::move(curve));
+            points = sp_poly_parse_points(value);
+            requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
             break;
         }
         default:
@@ -214,8 +318,19 @@ void SPPolygon::set(SPAttr key, const gchar* value) {
     }
 }
 
+void SPPolygon::update_patheffect(bool write) {
+    if (type != SP_GENERIC_PATH && !cloned && hasPathEffectOnClipOrMaskRecursive(this)) {
+        SPPolygon::write(document->getReprDoc(), getRepr(), SP_OBJECT_MODIFIED_FLAG);
+    }
+    SPShape::update_patheffect(write);
+}
+
 const char* SPPolygon::typeName() const {
-    return "path";
+    return "polygon";
+}
+
+const char* SPPolygon::displayName() const {
+    return _("Polygon");
 }
 
 gchar* SPPolygon::description() const {
