@@ -866,8 +866,13 @@ void PrefEditFolder::init(Glib::ustring const &entry_string, Glib::ustring const
 
     // open button
     openButton = Gtk::make_managed<Gtk::Button>();
+    Gtk::Box *openBox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 2);
     auto const openim = sp_get_icon_image("document-open", Gtk::IconSize::NORMAL);
-    openButton->set_child(*openim);
+    UI::pack_start(*openBox, *openim);
+    auto const openl = Gtk::make_managed<Gtk::Label>();
+    openl->set_markup_with_mnemonic(("Open"));
+    UI::pack_end(*openBox, *openl, false, false, 0);
+    openButton->set_child(*openBox);
     openButton->set_tooltip_text(_("Open directory"));
     openButton->set_margin_start(4);
     UI::pack_end(*this, *openButton, false, false, 0);
@@ -881,7 +886,7 @@ void PrefEditFolder::init(Glib::ustring const &entry_string, Glib::ustring const
     // select button
     selectButton = Gtk::make_managed<Gtk::Button>();
     auto const selectl = Gtk::make_managed<Gtk::Label>();
-    selectl->set_markup_with_mnemonic(_("..."));
+    selectl->set_markup_with_mnemonic(("..."));
     selectButton->set_child(*selectl);
     selectButton->set_tooltip_text(_("Select a new directory"));
     UI::pack_end(*relatedPathBox, *selectButton, false, false, 0);
