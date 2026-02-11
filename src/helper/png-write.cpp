@@ -451,6 +451,7 @@ ExportResult sp_export_png_file(SPDocument *doc, gchar const *filename,
     drawing.root()->setTransform(affine);
     drawing.setExact(); // export with maximum blur rendering quality
     drawing.setAntialiasingOverride(static_cast<Inkscape::Antialiasing>(antialiasing));
+    drawing.setCacheLimit(Geom::IntRect::from_xywh(0, 0, width, height)); // enable caching for filtered objects to prevent seams at stripe boundaries #878
 
     ebp.drawing = &drawing;
 
