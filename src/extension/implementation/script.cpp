@@ -436,10 +436,11 @@ void Script::save(Inkscape::Extension::Output *module,
     module->paramListString(params);
     module->set_environment(doc);
 
-    std::string tempfilename_in;
+    std::string lfilename = Glib::filename_from_utf8(filenameArg);
+    std::string tempfilename_in = Glib::build_filename(Glib::path_get_dirname(lfilename), "ink_ext_XXXXXX.svg");
     int tempfd_in = 0;
     try {
-        tempfd_in = Glib::file_open_tmp(tempfilename_in, "ink_ext_XXXXXX.svg");
+        tempfd_in = Glib::mkstemp(tempfilename_in);
     } catch (...) {
         /// \todo Popup dialog here
         throw Inkscape::Extension::Output::save_failed();
@@ -464,7 +465,6 @@ void Script::save(Inkscape::Extension::Output *module,
     bool success = false;
 
     if (data_read > 0) {
-        std::string lfilename = Glib::filename_from_utf8(filenameArg);
         success = fileout.toFile(lfilename);
     }
 
