@@ -20,11 +20,13 @@ class LPEDashedStroke : public Effect {
     ~LPEDashedStroke() override;
     void doBeforeEffect (SPLPEItem const* lpeitem) override;
     Geom::PathVector doEffect_path (Geom::PathVector const & path_in) override;
+    void doOnApply(SPLPEItem const *lpeitem) override;
     double timeAtLength(double const A, Geom::Path const &segment);
     double timeAtLength(double const A, Geom::Piecewise<Geom::D2<Geom::SBasis> > pwd2);
 private:
     ScalarParam numberdashes;
     ScalarParam holefactor;
+    ScalarParam offset;
     BoolParam splitsegments;
     BoolParam halfextreme;
     BoolParam unifysegment;
