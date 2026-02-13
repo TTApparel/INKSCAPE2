@@ -9,7 +9,9 @@
 #include "text-utils.h"
 
 #include <cstring>
+#include <glibmm/regex.h>
 #include "desktop-style.h"
+#include "font-discovery.h"
 #include "object/sp-flowdiv.h"
 #include "object/sp-flowtext.h"
 #include "object/sp-item.h"
@@ -22,7 +24,7 @@
 #include "ui/tools/text-tool.h"
 #include "xml/repr.h"
 
-namespace Inkscape::UI {
+namespace Inkscape {
 
 namespace {
 
@@ -58,13 +60,18 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items) {
             props.font_family.state = PropState::Mixed;
         }
 
-        // --- font style (specification string for face lookup) ---
-        auto spec = style->font_specification.set && style->font_specification.value()
-            ? Glib::ustring(style->font_specification.value()) : Glib::ustring();
+        // --- font style (face style string for combo lookup) ---
+        // Build a Pango description from the CSS font properties and extract the face style
+        Pango::FontDescription desc;
+        if (family.size()) desc.set_family(family.raw());
+        desc.set_style(static_cast<Pango::Style>(style->font_style.computed));
+        desc.set_weight(static_cast<Pango::Weight>(style->font_weight.computed));
+        desc.set_stretch(static_cast<Pango::Stretch>(style->font_stretch.computed));
+        auto face_style = get_face_style(desc);
         if (first) {
-            props.font_style.style = spec;
+            props.font_style.style = face_style;
             props.font_style.state = PropState::Single;
-        } else if (props.font_style.state != PropState::Mixed && props.font_style.style != spec) {
+        } else if (props.font_style.state != PropState::Mixed && props.font_style.style != face_style) {
             props.font_style.state = PropState::Mixed;
         }
 
@@ -221,7 +228,91 @@ int get_text_align_button_index(bool rtl, SPCSSTextAlign text_align) {
     return activeButton;
 }
 
-void apply_text_css(SPItem* text_item, Tools::TextTool* tool, SPCSSAttr* css) {
+void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
+                                     const Pango::FontDescription& desc) {
+    if (!css) return;
+
+    // font-family — properly quoted for CSS
+    Glib::ustring quoted_family = family;
+    css_font_family_quote(quoted_family);
+    sp_repr_css_set_property(css, "font-family", quoted_family.c_str());
+
+    // font-weight — full Pango weight mapping (matches FontLister::fill_css)
+    auto weight = static_cast<int>(desc.get_weight());
+    switch (weight) {
+        case PANGO_WEIGHT_THIN:       sp_repr_css_set_property(css, "font-weight", "100"); break;
+        case PANGO_WEIGHT_ULTRALIGHT: sp_repr_css_set_property(css, "font-weight", "200"); break;
+        case PANGO_WEIGHT_LIGHT:      sp_repr_css_set_property(css, "font-weight", "300"); break;
+        case PANGO_WEIGHT_SEMILIGHT:  sp_repr_css_set_property(css, "font-weight", "350"); break;
+        case PANGO_WEIGHT_BOOK:       sp_repr_css_set_property(css, "font-weight", "380"); break;
+        case PANGO_WEIGHT_NORMAL:     sp_repr_css_set_property(css, "font-weight", "normal"); break;
+        case PANGO_WEIGHT_MEDIUM:     sp_repr_css_set_property(css, "font-weight", "500"); break;
+        case PANGO_WEIGHT_SEMIBOLD:   sp_repr_css_set_property(css, "font-weight", "600"); break;
+        case PANGO_WEIGHT_BOLD:       sp_repr_css_set_property(css, "font-weight", "bold"); break;
+        case PANGO_WEIGHT_ULTRABOLD:  sp_repr_css_set_property(css, "font-weight", "800"); break;
+        case PANGO_WEIGHT_HEAVY:      sp_repr_css_set_property(css, "font-weight", "900"); break;
+        case PANGO_WEIGHT_ULTRAHEAVY: sp_repr_css_set_property(css, "font-weight", "1000"); break;
+        default:
+            if (weight > 0 && weight < 1000) {
+                sp_repr_css_set_property(css, "font-weight", std::to_string(weight).c_str());
+            }
+            break;
+    }
+
+    // font-style
+    switch (desc.get_style()) {
+        case Pango::Style::NORMAL:  sp_repr_css_set_property(css, "font-style", "normal"); break;
+        case Pango::Style::OBLIQUE: sp_repr_css_set_property(css, "font-style", "oblique"); break;
+        case Pango::Style::ITALIC:  sp_repr_css_set_property(css, "font-style", "italic"); break;
+    }
+
+    // font-stretch
+    switch (desc.get_stretch()) {
+        case Pango::Stretch::ULTRA_CONDENSED: sp_repr_css_set_property(css, "font-stretch", "ultra-condensed"); break;
+        case Pango::Stretch::EXTRA_CONDENSED: sp_repr_css_set_property(css, "font-stretch", "extra-condensed"); break;
+        case Pango::Stretch::CONDENSED:       sp_repr_css_set_property(css, "font-stretch", "condensed"); break;
+        case Pango::Stretch::SEMI_CONDENSED:  sp_repr_css_set_property(css, "font-stretch", "semi-condensed"); break;
+        case Pango::Stretch::NORMAL:          sp_repr_css_set_property(css, "font-stretch", "normal"); break;
+        case Pango::Stretch::SEMI_EXPANDED:   sp_repr_css_set_property(css, "font-stretch", "semi-expanded"); break;
+        case Pango::Stretch::EXPANDED:        sp_repr_css_set_property(css, "font-stretch", "expanded"); break;
+        case Pango::Stretch::EXTRA_EXPANDED:  sp_repr_css_set_property(css, "font-stretch", "extra-expanded"); break;
+        case Pango::Stretch::ULTRA_EXPANDED:  sp_repr_css_set_property(css, "font-stretch", "ultra-expanded"); break;
+    }
+
+    // font-variant
+    switch (desc.get_variant()) {
+        case Pango::Variant::NORMAL:     sp_repr_css_set_property(css, "font-variant", "normal"); break;
+        case Pango::Variant::SMALL_CAPS: sp_repr_css_set_property(css, "font-variant", "small-caps"); break;
+    }
+
+    // font-variation-settings — convert Pango format "axis=value,..." to CSS "'axis' value, ..."
+    auto vars = desc.get_variations();
+    if (!vars.empty()) {
+        std::string css_vars;
+        auto tokens = Glib::Regex::split_simple(",", vars);
+        auto regex = Glib::Regex::create("(\\w{4})=([-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?)");
+        Glib::MatchInfo match_info;
+        for (auto const& token : tokens) {
+            regex->match(token, match_info);
+            if (match_info.matches()) {
+                css_vars += "'";
+                css_vars += match_info.fetch(1).raw();
+                css_vars += "' ";
+                css_vars += match_info.fetch(2).raw();
+                css_vars += ", ";
+            }
+        }
+        if (css_vars.length() >= 2) {
+            css_vars.pop_back();
+            css_vars.pop_back();
+        }
+        sp_repr_css_set_property(css, "font-variation-settings", css_vars.c_str());
+    } else {
+        sp_repr_css_unset_property(css, "font-variation-settings");
+    }
+}
+
+void apply_text_css(SPItem* text_item, UI::Tools::TextTool* tool, SPCSSAttr* css) {
     if (!text_item || !css) return;
 
     // If text tool has a subselection, apply to that range directly

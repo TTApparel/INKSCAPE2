@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifndef INKSCAPE_UTIL_FONT_DISCOVERY_H
+#define INKSCAPE_UTIL_FONT_DISCOVERY_H
+
 #include <functional>
 #include <glibmm/ustring.h>
 #include <memory>
@@ -89,3 +92,5 @@ int get_font_style_order(const Pango::FontDescription& desc);
 Glib::ustring get_full_font_name(Glib::RefPtr<Pango::FontFamily> ff, Glib::RefPtr<Pango::FontFace> face);
 
 } // namespace Inkscape
+
+#endif // INKSCAPE_UTIL_FONT_DISCOVERY_H

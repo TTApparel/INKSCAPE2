@@ -11,12 +11,13 @@
 
 #include <vector>
 #include <glibmm/ustring.h>
+#include <pangomm.h>
 #include "style-enums.h"
 
 class SPCSSAttr;
 class SPItem;
 
-namespace Inkscape::UI {
+namespace Inkscape {
 
 // Input:
 // rtl - text direction right-to-left
@@ -58,12 +59,18 @@ struct TextProperties {
 // First item's values are used as baseline; subsequent items flag Mixed if different.
 TextProperties query_text_properties(const std::vector<SPItem*>& items);
 
-namespace Tools { class TextTool; }
+namespace UI::Tools { class TextTool; }
+
+// Fill CSS attributes from a Pango font description: sets font-family, font-style,
+// font-weight, font-stretch, and font-variant. Mirrors FontLister::fill_css but takes
+// a FontDescription directly instead of going through FontLister.
+void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
+                                     const Pango::FontDescription& desc);
 
 // Apply CSS to text: if text tool has a subselection, apply to that range via sp_te_apply_style;
 // otherwise apply recursively to the text item. Does NOT call DocumentUndo — caller is
 // responsible for maybeDone with a per-property undo key.
-void apply_text_css(SPItem* text_item, Tools::TextTool* tool, SPCSSAttr* css);
+void apply_text_css(SPItem* text_item, UI::Tools::TextTool* tool, SPCSSAttr* css);
 
 }
 
