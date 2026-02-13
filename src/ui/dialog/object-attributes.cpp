@@ -1782,6 +1782,14 @@ public:
                 auto css = make_css();
                 fill_css_from_font_description(css.get(), font->ff->get_name(), desc);
                 apply_css(css.get(), "ttb:font-style");
+            } else {
+                // Generic family — apply style/weight directly
+                auto css = make_css();
+                bool bold = style_name.find("Bold") != Glib::ustring::npos;
+                bool italic = style_name.find("Italic") != Glib::ustring::npos;
+                sp_repr_css_set_property(css.get(), "font-weight", bold ? "bold" : "normal");
+                sp_repr_css_set_property(css.get(), "font-style", italic ? "italic" : "normal");
+                apply_css(css.get(), "ttb:font-style");
             }
         });
 
@@ -2239,6 +2247,12 @@ private:
     void populate_families() {
         auto model = Gtk::StringList::create({});
         _family_names.clear();
+        // Generic CSS font family names
+        static const char* generic_families[] = {"serif", "sans-serif", "monospace", "cursive", "fantasy"};
+        for (auto name : generic_families) {
+            _family_names.push_back(name);
+            model->append(name);
+        }
         for (auto& family : _font_families) {
             auto& regular = get_family_font(family);
             auto name = regular.ff->get_name();
@@ -2260,6 +2274,13 @@ private:
                     _style_names.push_back(style);
                     model->append(style);
                 }
+            }
+        } else {
+            // Generic font family — provide default styles
+            static const char* default_styles[] = {"Normal", "Italic", "Bold", "Bold Italic"};
+            for (auto s : default_styles) {
+                _style_names.emplace_back(s);
+                model->append(s);
             }
         }
         _font_styles.set_model(model);
