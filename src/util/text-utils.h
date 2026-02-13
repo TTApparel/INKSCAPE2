@@ -58,6 +58,7 @@ struct TextProperties {
     struct { bool value = false; PropState state = PropState::Unset; } overline;
     struct { bool value = false; PropState state = PropState::Unset; } strikethrough;
     // decoration extras
+    struct { bool value = false; PropState state = PropState::Unset; } decoration_syntax_error;
     struct { int value = 0; PropState state = PropState::Unset; } decoration_style; // 0=solid,1=double,2=dotted,3=dashed,4=wavy
     struct { std::optional<Colors::Color> color; PropState state = PropState::Unset; } decoration_color;
 };

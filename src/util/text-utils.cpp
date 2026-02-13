@@ -203,6 +203,15 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items) {
             }
         }
 
+        bool syntax_error = style->text_decoration_line.spelling_error;
+        if (first) {
+            props.decoration_syntax_error.value = syntax_error;
+            props.decoration_syntax_error.state = PropState::Single;
+        } else if (props.decoration_syntax_error.state != PropState::Mixed &&
+                   props.decoration_syntax_error.value != syntax_error) {
+            props.decoration_syntax_error.state = PropState::Mixed;
+        }
+
         // --- decoration style ---
         int ds = 0; // solid by default
         if (style->text_decoration_style.isdouble) ds = 1;

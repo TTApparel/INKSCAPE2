@@ -17,7 +17,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <memory>
-#include <optional>
 #include <string>
 #include <tuple>
 #include <2geom/rect.h>
@@ -40,6 +39,7 @@
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/version.h>
 
+#include "colors/color.h"
 #include "css-chemistry.h"
 #include "desktop.h"
 #include "desktop-style.h"
@@ -1690,22 +1690,19 @@ public:
         _kern_horz(get_widget<Widget::InkSpinButton>(builder, "text-kern-horz")),
         _kern_vert(get_widget<Widget::InkSpinButton>(builder, "text-kern-vert")),
         _char_rotation(get_widget<Widget::InkSpinButton>(builder, "text-char-rotation")),
-        _decoration_color(get_derived_widget<Widget::ColorPicker>(builder, "text-decor-color", _("Text decoration")))
+        _decoration_color(get_derived_widget<Widget::ColorPicker>(builder, "text-decor-color", _("Text decoration"))),
+        _thickness_auto(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-auto")),
+        _thickness_font(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-font")),
+        _thickness_custom(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-length")),
+        _line_thickness(get_widget<Widget::InkSpinButton>(builder, "text-line-thickness")),
+        _decor_color_default(get_widget<Gtk::CheckButton>(builder, "text-decor-color-default")),
+        _decor_color_custom(get_widget<Gtk::CheckButton>(builder, "text-decor-color-custom"))
     {
         // alignment buttons
         _align_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-align-left");
         _align_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-align-center");
         _align_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-align-right");
         _align_buttons[3] = &get_widget<Gtk::ToggleButton>(builder, "text-align-justify");
-
-        // super/subscript
-        _superscript_btn = &get_widget<Gtk::ToggleButton>(builder, "text-super");
-        _subscript_btn = &get_widget<Gtk::ToggleButton>(builder, "text-sub");
-
-        // text decorations
-        _underline_btn = &get_widget<Gtk::ToggleButton>(builder, "text-underline");
-        _overline_btn = &get_widget<Gtk::ToggleButton>(builder, "text-overline");
-        _strikethrough_btn = &get_widget<Gtk::ToggleButton>(builder, "text-strike-thru");
 
         // writing mode buttons
         _writing_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-horz-text");
@@ -1727,16 +1724,6 @@ public:
         _line_style_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-line-dotted");
         _line_style_buttons[3] = &get_widget<Gtk::ToggleButton>(builder, "text-line-dashed");
         _line_style_buttons[4] = &get_widget<Gtk::ToggleButton>(builder, "text-line-wavy");
-
-        // decoration popover: thickness
-        _thickness_auto = &get_widget<Gtk::CheckButton>(builder, "text-line-thickness-auto");
-        _thickness_font = &get_widget<Gtk::CheckButton>(builder, "text-line-thickness-font");
-        _thickness_custom = &get_widget<Gtk::CheckButton>(builder, "text-line-thickness-length");
-        _line_thickness = &get_widget<Widget::InkSpinButton>(builder, "text-line-thickness");
-
-        // decoration popover: color
-        _decor_color_default = &get_widget<Gtk::CheckButton>(builder, "text-decor-color-default");
-        _decor_color_custom = &get_widget<Gtk::CheckButton>(builder, "text-decor-color-custom");
 
         // --- font discovery ---
 
@@ -1851,17 +1838,17 @@ public:
             });
         }
 
-        _superscript_btn->signal_toggled().connect([this] {
+        _superscript_btn.signal_toggled().connect([this] {
             if (!can_update()) return;
-            apply_baseline_shift(_superscript_btn->get_active() ? "super" : "baseline");
+            apply_baseline_shift(_superscript_btn.get_active() ? "super" : "baseline");
         });
-        _subscript_btn->signal_toggled().connect([this] {
+        _subscript_btn.signal_toggled().connect([this] {
             if (!can_update()) return;
-            apply_baseline_shift(_subscript_btn->get_active() ? "sub" : "baseline");
+            apply_baseline_shift(_subscript_btn.get_active() ? "sub" : "baseline");
         });
 
-        auto connect_decoration = [this](Gtk::ToggleButton* btn) {
-            btn->signal_toggled().connect([this] {
+        auto connect_decoration = [this](Gtk::ToggleButton& btn) {
+            btn.signal_toggled().connect([this] {
                 if (!can_update()) return;
                 apply_decorations();
             });
@@ -1869,10 +1856,12 @@ public:
         connect_decoration(_underline_btn);
         connect_decoration(_overline_btn);
         connect_decoration(_strikethrough_btn);
+        connect_decoration(_syntax_error_btn);
 
         for (int i = 0; i < 3; ++i) {
             _writing_buttons[i]->signal_toggled().connect([this, i] {
                 if (!can_update() || !_writing_buttons[i]->get_active()) return;
+
                 static const char* modes[] = {"lr-tb", "tb-rl", "vertical-lr"};
                 auto css = make_css();
                 sp_repr_css_set_property(css.get(), "writing-mode", modes[i]);
@@ -1883,6 +1872,7 @@ public:
         for (int i = 0; i < 2; ++i) {
             _direction_buttons[i]->signal_toggled().connect([this, i] {
                 if (!can_update() || !_direction_buttons[i]->get_active()) return;
+
                 auto css = make_css();
                 sp_repr_css_set_property(css.get(), "direction", i == 0 ? "ltr" : "rtl");
                 apply_css(css.get(), "ttb:direction");
@@ -1893,6 +1883,7 @@ public:
         for (int i = 0; i < 3; ++i) {
             _orientation_buttons[i]->signal_toggled().connect([this, i] {
                 if (!can_update() || !_orientation_buttons[i]->get_active()) return;
+
                 static const char* orientations[] = {"auto", "upright", "sideways"};
                 auto css = make_css();
                 sp_repr_css_set_property(css.get(), "text-orientation", orientations[i]);
@@ -1904,6 +1895,7 @@ public:
         for (int i = 0; i < 5; ++i) {
             _line_style_buttons[i]->signal_toggled().connect([this, i] {
                 if (!can_update() || !_line_style_buttons[i]->get_active()) return;
+
                 static const char* styles[] = {"solid", "double", "dotted", "dashed", "wavy"};
                 auto css = make_css();
                 sp_repr_css_set_property(css.get(), "text-decoration-style", styles[i]);
@@ -1912,26 +1904,29 @@ public:
         }
 
         // decoration popover: thickness
-        _thickness_auto->signal_toggled().connect([this] {
-            if (!can_update() || !_thickness_auto->get_active()) return;
+        _thickness_auto.signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_auto.get_active()) return;
+
             auto css = make_css();
             sp_repr_css_set_property(css.get(), "text-decoration-thickness", "auto");
             apply_css(css.get(), "ttb:text-decoration-thickness");
-            _line_thickness->set_sensitive(false);
+            _line_thickness.set_sensitive(false);
         });
-        _thickness_font->signal_toggled().connect([this] {
-            if (!can_update() || !_thickness_font->get_active()) return;
+        _thickness_font.signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_font.get_active()) return;
+
             auto css = make_css();
             sp_repr_css_set_property(css.get(), "text-decoration-thickness", "from-font");
             apply_css(css.get(), "ttb:text-decoration-thickness");
-            _line_thickness->set_sensitive(false);
+            _line_thickness.set_sensitive(false);
         });
-        _thickness_custom->signal_toggled().connect([this] {
-            if (!can_update() || !_thickness_custom->get_active()) return;
-            _line_thickness->set_sensitive(true);
+        _thickness_custom.signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_custom.get_active()) return;
+            _line_thickness.set_sensitive(true);
         });
-        _line_thickness->signal_value_changed().connect([this](double value) {
+        _line_thickness.signal_value_changed().connect([this](double value) {
             if (!can_update()) return;
+
             auto css = make_css();
             sp_repr_css_set_property_double(css.get(), "text-decoration-thickness", value);
             apply_css(css.get(), "ttb:text-decoration-thickness");
@@ -1940,6 +1935,7 @@ public:
         // clear all decorations button
         get_widget<Gtk::Button>(builder, "text-clear-decor").signal_clicked().connect([this] {
             if (!can_update()) return;
+
             auto css = make_css();
             sp_repr_css_set_property(css.get(), "text-decoration-line", "none");
             sp_repr_css_unset_property(css.get(), "text-decoration-style");
@@ -1949,24 +1945,25 @@ public:
         });
 
         // decoration popover: color
-        _decor_color_default->signal_toggled().connect([this] {
-            if (!can_update() || !_decor_color_default->get_active()) return;
+        _decor_color_default.signal_toggled().connect([this] {
+            if (!can_update() || !_decor_color_default.get_active()) return;
+
             auto css = make_css();
             sp_repr_css_unset_property(css.get(), "text-decoration-color");
             apply_css(css.get(), "ttb:text-decoration-color");
             _decoration_color.set_sensitive(false);
         });
-        _decor_color_custom->signal_toggled().connect([this] {
-            if (!can_update() || !_decor_color_custom->get_active()) return;
+        _decor_color_custom.signal_toggled().connect([this] {
+            if (!can_update() || !_decor_color_custom.get_active()) return;
+
             _decoration_color.set_sensitive(true);
         });
-        _decoration_color.connectChanged([this](Colors::Color const& color) {
+        _decoration_color.connectChanged([this](const Colors::Color& color) {
             if (!can_update()) return;
+
             auto css = make_css();
-            auto rgba = color.toRGBA();
-            char buf[16];
-            std::snprintf(buf, sizeof(buf), "#%06x", rgba >> 8);
-            sp_repr_css_set_property(css.get(), "text-decoration-color", buf);
+            auto str = color.toString(false);
+            sp_repr_css_set_property(css.get(), "text-decoration-color", str.c_str());
             apply_css(css.get(), "ttb:text-decoration-color");
         });
 
@@ -2107,28 +2104,36 @@ private:
         if (props.text_align.state == PropState::Single && props.text_align.value >= 0 && props.text_align.value < 4) {
             _align_buttons[props.text_align.value]->set_active(true);
         }
+        else {
+            for (auto& btn : _align_buttons) {
+                btn->set_active(false);
+            }
+        }
 
         // super/subscript — check subselection first, then fall back to _current_item
         if (props.superscript.state != PropState::Unset) {
-            _superscript_btn->set_active(props.superscript.value);
-            _subscript_btn->set_active(props.subscript.value);
+            _superscript_btn.set_active(props.superscript.value);
+            _subscript_btn.set_active(props.subscript.value);
         } else if (_current_item && _current_item->style) {
             auto& bs = _current_item->style->baseline_shift;
             bool is_super = bs.set && bs.type == SP_BASELINE_SHIFT_LITERAL && bs.literal == SP_CSS_BASELINE_SHIFT_SUPER;
             bool is_sub   = bs.set && bs.type == SP_BASELINE_SHIFT_LITERAL && bs.literal == SP_CSS_BASELINE_SHIFT_SUB;
-            _superscript_btn->set_active(is_super);
-            _subscript_btn->set_active(is_sub);
+            _superscript_btn.set_active(is_super);
+            _subscript_btn.set_active(is_sub);
         }
 
-        // decorations
+        // decorations; TODO: handle mixed state better
         if (props.underline.state != PropState::Unset) {
-            _underline_btn->set_active(props.underline.value);
+            _underline_btn.set_active(props.underline.value);
         }
         if (props.overline.state != PropState::Unset) {
-            _overline_btn->set_active(props.overline.value);
+            _overline_btn.set_active(props.overline.value);
         }
         if (props.strikethrough.state != PropState::Unset) {
-            _strikethrough_btn->set_active(props.strikethrough.value);
+            _strikethrough_btn.set_active(props.strikethrough.value);
+        }
+        if (props.decoration_syntax_error.state != PropState::Unset) {
+            _syntax_error_btn.set_active(props.decoration_syntax_error.value);
         }
 
         // writing mode: map CSS enum to button index
@@ -2175,29 +2180,26 @@ private:
             SPCSSAttr* item_css = sp_repr_css_attr(_current_item->getRepr(), "style");
             auto thickness = sp_repr_css_property(item_css, "text-decoration-thickness", "auto");
             if (!strcmp(thickness, "from-font")) {
-                _thickness_font->set_active(true);
-                _line_thickness->set_sensitive(false);
+                _thickness_font.set_active(true);
+                _line_thickness.set_sensitive(false);
             } else if (!strcmp(thickness, "auto")) {
-                _thickness_auto->set_active(true);
-                _line_thickness->set_sensitive(false);
+                _thickness_auto.set_active(true);
+                _line_thickness.set_sensitive(false);
             } else {
-                _thickness_custom->set_active(true);
-                _line_thickness->set_sensitive(true);
-                _line_thickness->set_value(std::atof(thickness));
+                _thickness_custom.set_active(true);
+                _line_thickness.set_sensitive(true);
+                _line_thickness.set_value(std::atof(thickness));
             }
             sp_repr_css_attr_unref(item_css);
         }
 
         // decoration color
         if (props.decoration_color.state == PropState::Single) {
-            if (props.decoration_color.color) {
-                _decor_color_custom->set_active(true);
-                _decoration_color.set_sensitive(true);
-                _decoration_color.setColor(*props.decoration_color.color);
-            } else {
-                _decor_color_default->set_active(true);
-                _decoration_color.set_sensitive(false);
-            }
+            _decor_color_custom.set_active(true);
+            _decoration_color.setColor(props.decoration_color.color.value_or(Colors::Color(0)));
+        } else {
+            //TODO: mixed state for color button?
+            // _decor_color_default.set_active(true);
         }
 
         // Dx, Dy, rotation (not CSS attributes — read from text tag attributes)
@@ -2268,9 +2270,10 @@ private:
 
     void apply_decorations() {
         std::string decor;
-        if (_underline_btn->get_active()) decor += "underline ";
-        if (_overline_btn->get_active()) decor += "overline ";
-        if (_strikethrough_btn->get_active()) decor += "line-through ";
+        if (_underline_btn.get_active()) decor += "underline ";
+        if (_overline_btn.get_active()) decor += "overline ";
+        if (_strikethrough_btn.get_active()) decor += "line-through ";
+        if (_syntax_error_btn.get_active()) decor += "spelling-error ";
         if (decor.empty()) decor = "none";
 
         auto css = make_css();
@@ -2368,24 +2371,25 @@ private:
     Widget::InkSpinButton& _char_rotation;
     Widget::ColorPicker& _decoration_color;
     Gtk::ToggleButton* _align_buttons[4] = {};
-    Gtk::ToggleButton* _superscript_btn = nullptr;
-    Gtk::ToggleButton* _subscript_btn = nullptr;
-    Gtk::ToggleButton* _underline_btn = nullptr;
-    Gtk::ToggleButton* _overline_btn = nullptr;
-    Gtk::ToggleButton* _strikethrough_btn = nullptr;
+    Gtk::ToggleButton& _superscript_btn = get_widget<Gtk::ToggleButton>(_builder, "text-super");
+    Gtk::ToggleButton& _subscript_btn = get_widget<Gtk::ToggleButton>(_builder, "text-sub");
+    Gtk::ToggleButton& _underline_btn = get_widget<Gtk::ToggleButton>(_builder, "text-underline");
+    Gtk::ToggleButton& _overline_btn = get_widget<Gtk::ToggleButton>(_builder, "text-overline");
+    Gtk::ToggleButton& _strikethrough_btn = get_widget<Gtk::ToggleButton>(_builder, "text-strike-thru");
+    Gtk::ToggleButton& _syntax_error_btn = get_widget<Gtk::ToggleButton>(_builder, "text-decor-syntax");
     Gtk::ToggleButton* _writing_buttons[3] = {};
     Gtk::ToggleButton* _direction_buttons[2] = {};
     Gtk::ToggleButton* _orientation_buttons[3] = {}; // auto, upright, sideways
     // decoration popover
     Gtk::ToggleButton* _line_style_buttons[5] = {}; // solid, double, dotted, dashed, wavy
-    Gtk::CheckButton* _thickness_auto = nullptr;
-    Gtk::CheckButton* _thickness_font = nullptr;
-    Gtk::CheckButton* _thickness_custom = nullptr;
-    Widget::InkSpinButton* _line_thickness = nullptr;
-    Gtk::CheckButton* _decor_color_default = nullptr;
-    Gtk::CheckButton* _decor_color_custom = nullptr;
+    Gtk::CheckButton& _thickness_auto;
+    Gtk::CheckButton& _thickness_font;
+    Gtk::CheckButton& _thickness_custom;
+    Widget::InkSpinButton& _line_thickness;
+    Gtk::CheckButton& _decor_color_default;
+    Gtk::CheckButton& _decor_color_custom;
     SPText* _current_item = nullptr;
-    Gtk::Button* _section_toggle;
+    Gtk::Button* _section_toggle = nullptr;
     Widget::WidgetGroup _section_widgets;
     Pref<bool> _section_props_visibility = {details::dlg_pref_path + "/options/show_typography_section"};
     std::vector<std::vector<FontInfo>> _font_families;
