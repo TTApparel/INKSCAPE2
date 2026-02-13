@@ -1686,6 +1686,8 @@ public:
         _line_height(get_widget<Widget::InkSpinButton>(builder, "text-line-height")),
         _letter_spacing(get_widget<Widget::InkSpinButton>(builder, "text-letter-space")),
         _word_spacing(get_widget<Widget::InkSpinButton>(builder, "text-word-space")),
+        _kern_horz(get_widget<Widget::InkSpinButton>(builder, "text-kern-horz")),
+        _kern_vert(get_widget<Widget::InkSpinButton>(builder, "text-kern-vert")),
         _char_rotation(get_widget<Widget::InkSpinButton>(builder, "text-char-rotation")),
         _decoration_color(get_derived_widget<Widget::ColorPicker>(builder, "text-decor-color", _("Text decoration")))
     {
@@ -1810,6 +1812,30 @@ public:
             auto css = make_css();
             sp_repr_css_set_property_double(css.get(), "word-spacing", value);
             apply_css(css.get(), "ttb:word-spacing");
+        });
+
+        _kern_horz.signal_value_changed().connect([this](double new_dx) {
+            if (!can_update()) return;
+            if (auto tc = get_text_tool()) {
+                unsigned char_index = -1;
+                if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
+                    double delta = new_dx - attributes->getDx(char_index);
+                    sp_te_adjust_dx(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta);
+                    DocumentUndo::maybeDone(_document, "ttb:dx", RC_("Undo", "Text: Change dx (kern)"), INKSCAPE_ICON("draw-text"));
+                }
+            }
+        });
+
+        _kern_vert.signal_value_changed().connect([this](double new_dy) {
+            if (!can_update()) return;
+            if (auto tc = get_text_tool()) {
+                unsigned char_index = -1;
+                if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
+                    double delta = new_dy - attributes->getDy(char_index);
+                    sp_te_adjust_dy(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta);
+                    DocumentUndo::maybeDone(_document, "ttb:dy", RC_("Undo", "Text: Change dy (kern)"), INKSCAPE_ICON("draw-text"));
+                }
+            }
         });
 
         _char_rotation.signal_value_changed().connect([this](double new_degrees) {
@@ -2160,7 +2186,14 @@ private:
             }
         }
 
-        // character rotation (not a CSS attribute — read from text tag attributes)
+        // Dx, Dy, rotation (not CSS attributes — read from text tag attributes)
+        if (auto tc = get_text_tool()) {
+            unsigned char_index = -1;
+            if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
+                _kern_horz.set_value(attributes->getDx(char_index));
+                _kern_vert.set_value(attributes->getDy(char_index));
+            }
+        }
         _char_rotation.set_value(query_text_char_rotation(get_text_tool()).value_or(0));
     }
 
@@ -2290,6 +2323,8 @@ private:
     Widget::InkSpinButton& _line_height;
     Widget::InkSpinButton& _letter_spacing;
     Widget::InkSpinButton& _word_spacing;
+    Widget::InkSpinButton& _kern_horz;
+    Widget::InkSpinButton& _kern_vert;
     Widget::InkSpinButton& _char_rotation;
     Widget::ColorPicker& _decoration_color;
     Gtk::ToggleButton* _align_buttons[4] = {};

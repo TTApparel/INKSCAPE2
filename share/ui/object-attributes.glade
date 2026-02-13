@@ -937,6 +937,7 @@
     </child>
     <child>
       <object class="gtkmm__CustomObject_InkSpinButton" id="text-kern-horz">
+        <property name="min-value">-100000.000000</property>
         <property name="icon">text_horz_kern</property>
         <property name="tooltip-text" translatable="yes">Horizontal kerning</property>
         <property name="max-value">100000.000000</property>
@@ -949,6 +950,7 @@
     </child>
     <child>
       <object class="gtkmm__CustomObject_InkSpinButton" id="text-kern-vert">
+        <property name="min-value">-100000.000000</property>
         <property name="icon">text_vert_kern</property>
         <property name="tooltip-text" translatable="yes">Vertical kerning</property>
         <property name="max-value">100000.000000</property>
