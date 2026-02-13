@@ -624,9 +624,10 @@
       </object>
     </child>
     <child>
-      <object class="GtkButton" id="text-font-size-units">
+      <object class="GtkMenuButton" id="text-font-size-units">
+        <property name="popover">text-font-size-unit-menu</property>
         <property name="valign">center</property>
-        <property name="icon-name">pan-down</property>
+        <property name="icon-name">tool-measure</property>
         <property name="has-frame">false</property>
         <layout>
           <property name="column">4</property>
@@ -728,9 +729,10 @@
       </object>
     </child>
     <child>
-      <object class="GtkButton" id="text-line-height-unit">
+      <object class="GtkMenuButton" id="text-line-height-unit">
+        <property name="popover">text-line-hight-unit-menu</property>
         <property name="valign">center</property>
-        <property name="icon-name">pan-down</property>
+        <property name="icon-name">tool-measure</property>
         <property name="has-frame">false</property>
         <layout>
           <property name="column">4</property>
@@ -1328,4 +1330,6 @@
       </object>
     </property>
   </object>
+  <object class="GtkPopoverMenu" id="text-font-size-unit-menu"></object>
+  <object class="GtkPopoverMenu" id="text-line-hight-unit-menu"></object>
 </interface>

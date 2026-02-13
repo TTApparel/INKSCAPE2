@@ -1813,21 +1813,21 @@ public:
         _kern_horz.signal_value_changed().connect([this](double new_dx) {
             if (!can_update()) return;
             if (apply_text_dx(get_text_tool(), _desktop, new_dx)) {
-                DocumentUndo::maybeDone(_document, "ttb:dx", RC_("Undo", "Text: Change dx (kern)"), INKSCAPE_ICON("draw-text"));
+                DocumentUndo::maybeDone(_document, "ttb:dx", RC_("Undo", "Text: Change horizontal kerning"), INKSCAPE_ICON("draw-text"));
             }
         });
 
         _kern_vert.signal_value_changed().connect([this](double new_dy) {
             if (!can_update()) return;
             if (apply_text_dy(get_text_tool(), _desktop, new_dy)) {
-                DocumentUndo::maybeDone(_document, "ttb:dy", RC_("Undo", "Text: Change dy (kern)"), INKSCAPE_ICON("draw-text"));
+                DocumentUndo::maybeDone(_document, "ttb:dy", RC_("Undo", "Text: Change vertical kerning"), INKSCAPE_ICON("draw-text"));
             }
         });
 
         _char_rotation.signal_value_changed().connect([this](double new_degrees) {
             if (!can_update()) return;
             if (apply_text_char_rotation(get_text_tool(), _desktop, new_degrees)) {
-                DocumentUndo::maybeDone(_document, "ttb:rotate", RC_("Undo", "Text: Change rotate"), INKSCAPE_ICON("draw-text"));
+                DocumentUndo::maybeDone(_document, "ttb:rotate", RC_("Undo", "Text: Rotate characters"), INKSCAPE_ICON("draw-text"));
             }
         });
 
@@ -1848,9 +1848,9 @@ public:
         });
 
         auto connect_decoration = [this](Gtk::ToggleButton& btn) {
-            btn.signal_toggled().connect([this] {
+            btn.signal_toggled().connect([this, &btn] {
                 if (!can_update()) return;
-                apply_decorations();
+                apply_decorations(btn);
             });
         };
         connect_decoration(_underline_btn);
@@ -2268,12 +2268,19 @@ private:
         apply_css(css.get(), "ttb:baseline-shift");
     }
 
-    void apply_decorations() {
+    void apply_decorations(Gtk::ToggleButton& source) {
+        bool is_syntax_error = (&source == &_syntax_error_btn);
+
+        // CSS Text Decoration 3: spelling-error cannot be combined with line keywords.
+        // The button that fired the toggle takes precedence.
         std::string decor;
-        if (_underline_btn.get_active()) decor += "underline ";
-        if (_overline_btn.get_active()) decor += "overline ";
-        if (_strikethrough_btn.get_active()) decor += "line-through ";
-        if (_syntax_error_btn.get_active()) decor += "spelling-error ";
+        if (is_syntax_error) {
+            if (_syntax_error_btn.get_active()) decor = "spelling-error ";
+        } else {
+            if (_underline_btn.get_active()) decor += "underline ";
+            if (_overline_btn.get_active()) decor += "overline ";
+            if (_strikethrough_btn.get_active()) decor += "line-through ";
+        }
         if (decor.empty()) decor = "none";
 
         auto css = make_css();

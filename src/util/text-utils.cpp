@@ -64,7 +64,13 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items) {
         // Build a Pango description from the CSS font properties and extract the face style
         Pango::FontDescription desc;
         if (family.size()) desc.set_family(family.raw());
-        desc.set_style(static_cast<Pango::Style>(style->font_style.computed));
+        // CSS and Pango swap italic/oblique enum values:
+        // CSS: NORMAL=0, ITALIC=1, OBLIQUE=2; Pango: NORMAL=0, OBLIQUE=1, ITALIC=2
+        static const Pango::Style css_to_pango_style[] = {
+            Pango::Style::NORMAL, Pango::Style::ITALIC, Pango::Style::OBLIQUE
+        };
+        auto fs = style->font_style.computed;
+        desc.set_style(fs < 3 ? css_to_pango_style[fs] : Pango::Style::NORMAL);
         desc.set_weight(static_cast<Pango::Weight>(style->font_weight.computed));
         desc.set_stretch(static_cast<Pango::Stretch>(style->font_stretch.computed));
         auto face_style = get_face_style(desc);
