@@ -97,6 +97,10 @@ public:
     void set_context_menu_callback(const std::function<bool ()>& callback) { _context_menu_call = callback; }
     // Should pressing enter/return activate the default widget
     void set_activates_default(bool setting =  true);
+    // Show placeholder text instead of the current value (e.g. for mixed-state indication)
+    void set_placeholder(const Glib::ustring& text);
+    // Clear placeholder and restore normal value display
+    void clear_placeholder();
     // format number
     static std::string format_number(double value, int precision, bool trim_zeros, bool limit_size);
 
@@ -208,6 +212,7 @@ private:
     std::function<double (double)> _input_transformer;
     std::function<bool ()> _context_menu_call;
     sigc::signal<void ()> _signal_activate;
+    Glib::ustring _placeholder;
 
     // ----------- PROPERTIES ------------
     Glib::Property<Glib::RefPtr<Gtk::Adjustment>> _adjust;

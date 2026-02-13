@@ -614,7 +614,10 @@ void InkSpinButton::update(bool fire_change_notification) {
     }
     auto text = format(value, false, false, _trim_zeros, false);
     _entry.set_text(text);
-    if (_suffix.get_value().empty() && _prefix.get_value().empty()) {
+    if (!_placeholder.empty()) {
+        _value.set_text(_placeholder);
+    }
+    else if (_suffix.get_value().empty() && _prefix.get_value().empty()) {
         _value.set_text(text);
     }
     else {
@@ -878,7 +881,19 @@ void InkSpinButton::on_scroll_end() {
 }
 
 void InkSpinButton::set_value(double new_value) {
+    _placeholder.clear();
     set_new_value(new_value * _fmt_scaling_factor);
+}
+
+void InkSpinButton::set_placeholder(const Glib::ustring& text) {
+    _placeholder = text;
+    _value.set_text(_placeholder);
+}
+
+void InkSpinButton::clear_placeholder() {
+    if (_placeholder.empty()) return;
+    _placeholder.clear();
+    update(false);
 }
 
 double InkSpinButton::get_value() const {
