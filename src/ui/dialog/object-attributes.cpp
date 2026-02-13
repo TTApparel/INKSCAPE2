@@ -66,6 +66,7 @@
 #include "object/sp-image.h"
 #include "object/sp-item.h"
 #include "object/sp-lpe-item.h"
+#include "object/sp-flowtext.h"
 #include "object/sp-namedview.h"
 #include "object/sp-object-iterator.h"
 #include "object/sp-object.h"
@@ -2206,10 +2207,19 @@ private:
         _kern_horz.set_value(query_text_dx(get_text_tool()).value_or(0));
         _kern_vert.set_value(query_text_dy(get_text_tool()).value_or(0));
         _char_rotation.set_value(query_text_char_rotation(get_text_tool()).value_or(0));
+
+        // Flow text: SPFlowtext or SPText with shape-inside (same logic as text-toolbar)
+        bool is_flow = is<SPFlowtext>(_current_item) || !is_kerning_supported(_current_item);
+        _align_buttons[3]->set_sensitive(is_flow); // justify only for flow text
+        _kern_horz.set_sensitive(!is_flow);
+        _kern_vert.set_sensitive(!is_flow);
+        _kerning_label.set_sensitive(!is_flow);
+        _char_rotation.set_sensitive(!is_flow);
+        _rotation_label.set_sensitive(!is_flow);
     }
 
     void update(SPObject* object) override {
-        _current_item = cast<SPText>(object);
+        _current_item = cast<SPItem>(object);
         if (_current_item) {
             _title = _current_item->displayName();
             if (SP_IS_TEXT_TEXTPATH(_current_item)) {
@@ -2223,6 +2233,7 @@ private:
     void update_paint(SPObject* object) override {
         if (!_paint) return;
 
+        _current_item = cast<SPItem>(object);
         _paint->update_visibility(object);
 
         auto items = get_query_items();
@@ -2255,9 +2266,9 @@ private:
     }
 
     void apply_alignment(int index) {
-        if (!_current_item || !_document) return;
+        if (!is<SPText>(_current_item) || !_document) return;
 
-        if (apply_text_alignment(_current_item, index)) {
+        if (apply_text_alignment(cast<SPText>(_current_item), index)) {
             DocumentUndo::done(_document, RC_("Undo", "Text: Change alignment"), INKSCAPE_ICON("draw-text"));
         }
     }
@@ -2395,7 +2406,9 @@ private:
     Widget::InkSpinButton& _line_thickness;
     Gtk::CheckButton& _decor_color_default;
     Gtk::CheckButton& _decor_color_custom;
-    SPText* _current_item = nullptr;
+    Gtk::Label& _kerning_label = get_widget<Gtk::Label>(_builder, "text-kerning-label");
+    Gtk::Label& _rotation_label = get_widget<Gtk::Label>(_builder, "text-rotation-label");
+    SPItem* _current_item = nullptr;
     Gtk::Button* _section_toggle = nullptr;
     Widget::WidgetGroup _section_widgets;
     Pref<bool> _section_props_visibility = {details::dlg_pref_path + "/options/show_typography_section"};

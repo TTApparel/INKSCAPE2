@@ -817,7 +817,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkLabel">
+      <object class="GtkLabel" id="text-kerning-label">
         <property name="label" translatable="yes">Kerning</property>
         <layout>
           <property name="column">0</property>
@@ -835,7 +835,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkLabel">
+      <object class="GtkLabel" id="text-rotation-label">
         <property name="label" translatable="yes">Rotation</property>
         <layout>
           <property name="column">0</property>
