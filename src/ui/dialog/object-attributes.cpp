@@ -1816,25 +1816,15 @@ public:
 
         _kern_horz.signal_value_changed().connect([this](double new_dx) {
             if (!can_update()) return;
-            if (auto tc = get_text_tool()) {
-                unsigned char_index = -1;
-                if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-                    double delta = new_dx - attributes->getDx(char_index);
-                    sp_te_adjust_dx(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta);
-                    DocumentUndo::maybeDone(_document, "ttb:dx", RC_("Undo", "Text: Change dx (kern)"), INKSCAPE_ICON("draw-text"));
-                }
+            if (apply_text_dx(get_text_tool(), _desktop, new_dx)) {
+                DocumentUndo::maybeDone(_document, "ttb:dx", RC_("Undo", "Text: Change dx (kern)"), INKSCAPE_ICON("draw-text"));
             }
         });
 
         _kern_vert.signal_value_changed().connect([this](double new_dy) {
             if (!can_update()) return;
-            if (auto tc = get_text_tool()) {
-                unsigned char_index = -1;
-                if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-                    double delta = new_dy - attributes->getDy(char_index);
-                    sp_te_adjust_dy(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta);
-                    DocumentUndo::maybeDone(_document, "ttb:dy", RC_("Undo", "Text: Change dy (kern)"), INKSCAPE_ICON("draw-text"));
-                }
+            if (apply_text_dy(get_text_tool(), _desktop, new_dy)) {
+                DocumentUndo::maybeDone(_document, "ttb:dy", RC_("Undo", "Text: Change dy (kern)"), INKSCAPE_ICON("draw-text"));
             }
         });
 
@@ -2187,13 +2177,8 @@ private:
         }
 
         // Dx, Dy, rotation (not CSS attributes — read from text tag attributes)
-        if (auto tc = get_text_tool()) {
-            unsigned char_index = -1;
-            if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-                _kern_horz.set_value(attributes->getDx(char_index));
-                _kern_vert.set_value(attributes->getDy(char_index));
-            }
-        }
+        _kern_horz.set_value(query_text_dx(get_text_tool()).value_or(0));
+        _kern_vert.set_value(query_text_dy(get_text_tool()).value_or(0));
         _char_rotation.set_value(query_text_char_rotation(get_text_tool()).value_or(0));
     }
 

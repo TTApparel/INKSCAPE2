@@ -1139,19 +1139,8 @@ void TextToolbar::dx_value_changed()
     _freeze = true;
 
     double new_dx = _dx_item.get_adjustment()->get_value();
-    bool modified = false;
 
-    if (auto tc = SP_TEXT_CONTEXT(_desktop->getTool())) {
-        unsigned char_index = -1;
-        if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-            double old_dx = attributes->getDx(char_index);
-            double delta_dx = new_dx - old_dx;
-            sp_te_adjust_dx(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta_dx);
-            modified = true;
-        }
-    }
-
-    if (modified) {
+    if (Inkscape::apply_text_dx(SP_TEXT_CONTEXT(_desktop->getTool()), _desktop, new_dx)) {
         DocumentUndo::maybeDone(_desktop->getDocument(), "ttb:dx", RC_("Undo", "Text: Change dx (kern)"), INKSCAPE_ICON("draw-text"));
     }
 
@@ -1167,19 +1156,8 @@ void TextToolbar::dy_value_changed()
     _freeze = true;
 
     double new_dy = _dy_item.get_adjustment()->get_value();
-    bool modified = false;
 
-    if (auto tc = SP_TEXT_CONTEXT(_desktop->getTool())) {
-        unsigned char_index = -1;
-        if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-            double old_dy = attributes->getDy(char_index);
-            double delta_dy = new_dy - old_dy;
-            sp_te_adjust_dy(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta_dy);
-            modified = true;
-        }
-    }
-
-    if (modified) {
+    if (Inkscape::apply_text_dy(SP_TEXT_CONTEXT(_desktop->getTool()), _desktop, new_dy)) {
         DocumentUndo::maybeDone(_desktop->getDocument(), "ttb:dy", RC_("Undo", "Text: Change dy"), INKSCAPE_ICON("draw-text"));
     }
 
@@ -1558,26 +1536,20 @@ void TextToolbar::_selectionChanged(Selection *selection) // don't bother to upd
     }
 
     // Kerning (xshift), yshift, rotation.  NB: These are not CSS attributes.
-    if (auto tc = SP_TEXT_CONTEXT(_desktop->getTool())) {
-        unsigned char_index = -1;
-        if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-            // Dx
-            double dx = attributes->getDx(char_index);
-            _dx_item.get_adjustment()->set_value(dx);
-
-            // Dy
-            double dy = attributes->getDy(char_index);
-            _dy_item.get_adjustment()->set_value(dy);
-
-            if constexpr (DEBUG_TEXT) {
-                std::cout << "    GUI: Dx: " << dx << std::endl;
-                std::cout << "    GUI: Dy: " << dy << std::endl;
-            }
+    auto tc = SP_TEXT_CONTEXT(_desktop->getTool());
+    if (auto dx = Inkscape::query_text_dx(tc)) {
+        _dx_item.get_adjustment()->set_value(*dx);
+        if constexpr (DEBUG_TEXT) {
+            std::cout << "    GUI: Dx: " << *dx << std::endl;
         }
     }
-
-    // Rotation
-    if (auto rotation = Inkscape::query_text_char_rotation(SP_TEXT_CONTEXT(_desktop->getTool()))) {
+    if (auto dy = Inkscape::query_text_dy(tc)) {
+        _dy_item.get_adjustment()->set_value(*dy);
+        if constexpr (DEBUG_TEXT) {
+            std::cout << "    GUI: Dy: " << *dy << std::endl;
+        }
+    }
+    if (auto rotation = Inkscape::query_text_char_rotation(tc)) {
         _rotation_item.get_adjustment()->set_value(*rotation);
         if constexpr (DEBUG_TEXT) {
             std::cout << "    GUI: Rotation: " << *rotation << std::endl;

@@ -83,6 +83,24 @@ bool apply_text_alignment(SPText* text, int align_mode);
 void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
                                      const Pango::FontDescription& desc);
 
+// Apply horizontal kerning (dx) at the text tool's cursor/selection position.
+// Computes delta from current dx and calls sp_te_adjust_dx.
+// Returns true if applied. Does NOT call DocumentUndo.
+bool apply_text_dx(UI::Tools::TextTool* tool, SPDesktop* desktop, double new_dx);
+
+// Apply vertical kerning (dy) at the text tool's cursor/selection position.
+// Computes delta from current dy and calls sp_te_adjust_dy.
+// Returns true if applied. Does NOT call DocumentUndo.
+bool apply_text_dy(UI::Tools::TextTool* tool, SPDesktop* desktop, double new_dy);
+
+// Query horizontal kerning (dx) at the text tool's cursor position.
+// Returns the dx value, or nullopt if unavailable.
+std::optional<double> query_text_dx(UI::Tools::TextTool* tool);
+
+// Query vertical kerning (dy) at the text tool's cursor position.
+// Returns the dy value, or nullopt if unavailable.
+std::optional<double> query_text_dy(UI::Tools::TextTool* tool);
+
 // Apply character rotation at the text tool's cursor/selection position.
 // Computes delta from current rotation and calls sp_te_adjust_rotation.
 // Returns true if rotation was applied. Does NOT call DocumentUndo.

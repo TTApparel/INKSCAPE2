@@ -438,6 +438,54 @@ void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
     }
 }
 
+bool apply_text_dx(UI::Tools::TextTool* tool, SPDesktop* desktop, double new_dx) {
+    if (!tool || !tool->textItem()) return false;
+
+    unsigned char_index = -1;
+    auto attributes = text_tag_attributes_at_position(
+        tool->textItem(), std::min(tool->text_sel_start, tool->text_sel_end), &char_index);
+    if (!attributes) return false;
+
+    double delta = new_dx - attributes->getDx(char_index);
+    sp_te_adjust_dx(tool->textItem(), tool->text_sel_start, tool->text_sel_end, desktop, delta);
+    return true;
+}
+
+bool apply_text_dy(UI::Tools::TextTool* tool, SPDesktop* desktop, double new_dy) {
+    if (!tool || !tool->textItem()) return false;
+
+    unsigned char_index = -1;
+    auto attributes = text_tag_attributes_at_position(
+        tool->textItem(), std::min(tool->text_sel_start, tool->text_sel_end), &char_index);
+    if (!attributes) return false;
+
+    double delta = new_dy - attributes->getDy(char_index);
+    sp_te_adjust_dy(tool->textItem(), tool->text_sel_start, tool->text_sel_end, desktop, delta);
+    return true;
+}
+
+std::optional<double> query_text_dx(UI::Tools::TextTool* tool) {
+    if (!tool || !tool->textItem()) return std::nullopt;
+
+    unsigned char_index = -1;
+    auto attributes = text_tag_attributes_at_position(
+        tool->textItem(), std::min(tool->text_sel_start, tool->text_sel_end), &char_index);
+    if (!attributes) return std::nullopt;
+
+    return attributes->getDx(char_index);
+}
+
+std::optional<double> query_text_dy(UI::Tools::TextTool* tool) {
+    if (!tool || !tool->textItem()) return std::nullopt;
+
+    unsigned char_index = -1;
+    auto attributes = text_tag_attributes_at_position(
+        tool->textItem(), std::min(tool->text_sel_start, tool->text_sel_end), &char_index);
+    if (!attributes) return std::nullopt;
+
+    return attributes->getDy(char_index);
+}
+
 bool apply_text_char_rotation(UI::Tools::TextTool* tool, SPDesktop* desktop, double new_degrees) {
     if (!tool || !tool->textItem()) return false;
 
