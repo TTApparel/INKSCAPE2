@@ -1250,7 +1250,7 @@
           </object>
         </child>
         <child>
-          <object class="gtkmm__CustomObject_InkSpinButton">
+          <object class="gtkmm__CustomObject_InkSpinButton" id="text-line-thickness">
             <property name="valign">fill</property>
             <layout>
               <property name="column">3</property>

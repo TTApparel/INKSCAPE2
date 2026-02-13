@@ -202,6 +202,31 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items) {
             }
         }
 
+        // --- decoration style ---
+        int ds = 0; // solid by default
+        if (style->text_decoration_style.isdouble) ds = 1;
+        else if (style->text_decoration_style.dotted) ds = 2;
+        else if (style->text_decoration_style.dashed) ds = 3;
+        else if (style->text_decoration_style.wavy) ds = 4;
+        if (first) {
+            props.decoration_style.value = ds;
+            props.decoration_style.state = PropState::Single;
+        } else if (props.decoration_style.state != PropState::Mixed && props.decoration_style.value != ds) {
+            props.decoration_style.state = PropState::Mixed;
+        }
+
+        // --- decoration color ---
+        std::optional<Colors::Color> dc;
+        if (style->text_decoration_color.set && !style->text_decoration_color.inherit) {
+            dc = style->text_decoration_color.getColor();
+        }
+        if (first) {
+            props.decoration_color.color = dc;
+            props.decoration_color.state = PropState::Single;
+        } else if (props.decoration_color.state != PropState::Mixed && props.decoration_color.color != dc) {
+            props.decoration_color.state = PropState::Mixed;
+        }
+
         first = false;
     }
 

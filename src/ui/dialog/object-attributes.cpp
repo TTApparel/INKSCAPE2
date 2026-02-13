@@ -54,6 +54,7 @@
 #include "selection-chemistry.h"
 #include "selection.h"
 #include "style.h"
+#include "text-editing.h"
 #include "actions/actions-tools.h"
 #include "live_effects/effect.h"
 #include "live_effects/lpeobject.h"
@@ -1685,6 +1686,7 @@ public:
         _line_height(get_widget<Widget::InkSpinButton>(builder, "text-line-height")),
         _letter_spacing(get_widget<Widget::InkSpinButton>(builder, "text-letter-space")),
         _word_spacing(get_widget<Widget::InkSpinButton>(builder, "text-word-space")),
+        _char_rotation(get_widget<Widget::InkSpinButton>(builder, "text-char-rotation")),
         _decoration_color(get_derived_widget<Widget::ColorPicker>(builder, "text-decor-color", _("Text decoration")))
     {
         // alignment buttons
@@ -1710,6 +1712,23 @@ public:
         // direction buttons
         _direction_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-l2r");
         _direction_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-r2l");
+
+        // decoration popover: line style
+        _line_style_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-line-solid");
+        _line_style_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-line-double");
+        _line_style_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-line-dotted");
+        _line_style_buttons[3] = &get_widget<Gtk::ToggleButton>(builder, "text-line-dashed");
+        _line_style_buttons[4] = &get_widget<Gtk::ToggleButton>(builder, "text-line-wavy");
+
+        // decoration popover: thickness
+        _thickness_auto = &get_widget<Gtk::CheckButton>(builder, "text-line-thickness-auto");
+        _thickness_font = &get_widget<Gtk::CheckButton>(builder, "text-line-thickness-font");
+        _thickness_custom = &get_widget<Gtk::CheckButton>(builder, "text-line-thickness-length");
+        _line_thickness = &get_widget<Widget::InkSpinButton>(builder, "text-line-thickness");
+
+        // decoration popover: color
+        _decor_color_default = &get_widget<Gtk::CheckButton>(builder, "text-decor-color-default");
+        _decor_color_custom = &get_widget<Gtk::CheckButton>(builder, "text-decor-color-custom");
 
         // --- font discovery ---
 
@@ -1788,6 +1807,13 @@ public:
             apply_css(css.get(), "ttb:word-spacing");
         });
 
+        _char_rotation.signal_value_changed().connect([this](double new_degrees) {
+            if (!can_update()) return;
+            if (apply_text_char_rotation(get_text_tool(), _desktop, new_degrees)) {
+                DocumentUndo::maybeDone(_document, "ttb:rotate", RC_("Undo", "Text: Change rotate"), INKSCAPE_ICON("draw-text"));
+            }
+        });
+
         for (int i = 0; i < 4; ++i) {
             _align_buttons[i]->signal_toggled().connect([this, i] {
                 if (!can_update() || !_align_buttons[i]->get_active()) return;
@@ -1832,6 +1858,65 @@ public:
                 apply_css(css.get(), "ttb:direction");
             });
         }
+
+        // decoration popover: line style
+        for (int i = 0; i < 5; ++i) {
+            _line_style_buttons[i]->signal_toggled().connect([this, i] {
+                if (!can_update() || !_line_style_buttons[i]->get_active()) return;
+                static const char* styles[] = {"solid", "double", "dotted", "dashed", "wavy"};
+                auto css = make_css();
+                sp_repr_css_set_property(css.get(), "text-decoration-style", styles[i]);
+                apply_css(css.get(), "ttb:text-decoration-style");
+            });
+        }
+
+        // decoration popover: thickness
+        _thickness_auto->signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_auto->get_active()) return;
+            auto css = make_css();
+            sp_repr_css_set_property(css.get(), "text-decoration-thickness", "auto");
+            apply_css(css.get(), "ttb:text-decoration-thickness");
+            _line_thickness->set_sensitive(false);
+        });
+        _thickness_font->signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_font->get_active()) return;
+            auto css = make_css();
+            sp_repr_css_set_property(css.get(), "text-decoration-thickness", "from-font");
+            apply_css(css.get(), "ttb:text-decoration-thickness");
+            _line_thickness->set_sensitive(false);
+        });
+        _thickness_custom->signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_custom->get_active()) return;
+            _line_thickness->set_sensitive(true);
+        });
+        _line_thickness->signal_value_changed().connect([this](double value) {
+            if (!can_update()) return;
+            auto css = make_css();
+            sp_repr_css_set_property_double(css.get(), "text-decoration-thickness", value);
+            apply_css(css.get(), "ttb:text-decoration-thickness");
+        });
+
+        // decoration popover: color
+        _decor_color_default->signal_toggled().connect([this] {
+            if (!can_update() || !_decor_color_default->get_active()) return;
+            auto css = make_css();
+            sp_repr_css_unset_property(css.get(), "text-decoration-color");
+            apply_css(css.get(), "ttb:text-decoration-color");
+            _decoration_color.set_sensitive(false);
+        });
+        _decor_color_custom->signal_toggled().connect([this] {
+            if (!can_update() || !_decor_color_custom->get_active()) return;
+            _decoration_color.set_sensitive(true);
+        });
+        _decoration_color.connectChanged([this](Colors::Color const& color) {
+            if (!can_update()) return;
+            auto css = make_css();
+            auto rgba = color.toRGBA();
+            char buf[16];
+            std::snprintf(buf, sizeof(buf), "#%06x", rgba >> 8);
+            sp_repr_css_set_property(css.get(), "text-decoration-color", buf);
+            apply_css(css.get(), "ttb:text-decoration-color");
+        });
 
         // --- layout ---
 
@@ -1995,6 +2080,45 @@ private:
         if (props.direction.state == PropState::Single && props.direction.value >= 0 && props.direction.value < 2) {
             _direction_buttons[props.direction.value]->set_active(true);
         }
+
+        // decoration style
+        if (props.decoration_style.state == PropState::Single &&
+            props.decoration_style.value >= 0 && props.decoration_style.value < 5) {
+            _line_style_buttons[props.decoration_style.value]->set_active(true);
+        }
+
+        // decoration thickness (not in style system — read from raw style attribute)
+        if (_current_item) {
+            SPCSSAttr* item_css = sp_repr_css_attr(_current_item->getRepr(), "style");
+            auto thickness = sp_repr_css_property(item_css, "text-decoration-thickness", "auto");
+            if (!strcmp(thickness, "from-font")) {
+                _thickness_font->set_active(true);
+                _line_thickness->set_sensitive(false);
+            } else if (!strcmp(thickness, "auto")) {
+                _thickness_auto->set_active(true);
+                _line_thickness->set_sensitive(false);
+            } else {
+                _thickness_custom->set_active(true);
+                _line_thickness->set_sensitive(true);
+                _line_thickness->set_value(std::atof(thickness));
+            }
+            sp_repr_css_attr_unref(item_css);
+        }
+
+        // decoration color
+        if (props.decoration_color.state == PropState::Single) {
+            if (props.decoration_color.color) {
+                _decor_color_custom->set_active(true);
+                _decoration_color.set_sensitive(true);
+                _decoration_color.setColor(*props.decoration_color.color);
+            } else {
+                _decor_color_default->set_active(true);
+                _decoration_color.set_sensitive(false);
+            }
+        }
+
+        // character rotation (not a CSS attribute — read from text tag attributes)
+        _char_rotation.set_value(query_text_char_rotation(get_text_tool()).value_or(0));
     }
 
     void update(SPObject* object) override {
@@ -2026,10 +2150,11 @@ private:
     }
 
     void apply_alignment(int index) {
-        static const char* aligns_ltr[] = {"start", "center", "end", "justify"};
-        auto css = make_css();
-        sp_repr_css_set_property(css.get(), "text-align", aligns_ltr[index]);
-        apply_css(css.get(), "ttb:text-align");
+        if (!_current_item || !_document) return;
+
+        if (apply_text_alignment(_current_item, index)) {
+            DocumentUndo::done(_document, RC_("Undo", "Text: Change alignment"), INKSCAPE_ICON("draw-text"));
+        }
     }
 
     void apply_baseline_shift(const char* value) {
@@ -2122,6 +2247,7 @@ private:
     Widget::InkSpinButton& _line_height;
     Widget::InkSpinButton& _letter_spacing;
     Widget::InkSpinButton& _word_spacing;
+    Widget::InkSpinButton& _char_rotation;
     Widget::ColorPicker& _decoration_color;
     Gtk::ToggleButton* _align_buttons[4] = {};
     Gtk::ToggleButton* _superscript_btn = nullptr;
@@ -2131,6 +2257,14 @@ private:
     Gtk::ToggleButton* _strikethrough_btn = nullptr;
     Gtk::ToggleButton* _writing_buttons[3] = {};
     Gtk::ToggleButton* _direction_buttons[2] = {};
+    // decoration popover
+    Gtk::ToggleButton* _line_style_buttons[5] = {}; // solid, double, dotted, dashed, wavy
+    Gtk::CheckButton* _thickness_auto = nullptr;
+    Gtk::CheckButton* _thickness_font = nullptr;
+    Gtk::CheckButton* _thickness_custom = nullptr;
+    Widget::InkSpinButton* _line_thickness = nullptr;
+    Gtk::CheckButton* _decor_color_default = nullptr;
+    Gtk::CheckButton* _decor_color_custom = nullptr;
     SPText* _current_item = nullptr;
     Gtk::Button* _section_toggle;
     Widget::WidgetGroup _section_widgets;
