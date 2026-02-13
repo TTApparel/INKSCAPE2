@@ -103,17 +103,18 @@ class PolicyChecker:
 
     def violation(self, ui, key, obj, props):
         self.report(ui, key, obj, " ".join([p + "=" + obj['properties'].get(p, 'N/A') for p in props if p not in ('self', 'cls', 'props')]))
-        
+
 
 class PolicyCheckerToolbars(PolicyChecker):
     name = "TOOLBAR"
     search = "toolbar-*.ui"
     ignore = ['toolbar-tool-prefs.ui']
     errors = {
+        'parse': ("Parser Error", "Found something unusual in the XML"),
         'button-focus1': ("Button Takes Focus", "A toolbar button can have focus and will take that focus when clicked. Add focus-on-click=False to fix this."),
         'button-focus2': ("Button Refuses Focus", "A toolbar button is refusing focus, which makes it inaccessable to keyboard navigation. Remove focusable=False"),
         'entry-focus': ("Entry Refuses Focus", "A toolbar entry doesn't allow itself to be in focus, stopping text from being entered. Change focusable to True and focus-on-click to True (or remove them)"),
-}
+    }
 
     def policy_01_entries(self, cls, focusable="True", focus_on_click="True", **props):
         # Policy 1. All Buttons should have focusable: False
@@ -130,10 +131,25 @@ class PolicyCheckerToolbars(PolicyChecker):
                 yield 'entry-focus'
 
 
+class PolicyCheckerStatusbar(PolicyCheckerToolbars):
+    """Check statusbar.ui file for focus policy violations"""
+    name = "STATUSBAR"
+    search = "statusbar.ui"
+    ignore = []
+
+
+class PolicyCheckerDialogs(PolicyCheckerToolbars):
+    """Check dialog files for focus policy violations"""
+    name = "DIALOG"
+    search = "dialog-*.ui"
+    ignore = []
+
 
 if __name__ == '__main__':
     errors = 0
     errors += PolicyCheckerToolbars().check()
+    errors += PolicyCheckerStatusbar().check()
+    errors += PolicyCheckerDialogs().check()
 
     if errors:
         sys.exit(-5)

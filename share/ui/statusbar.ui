@@ -165,7 +165,6 @@
         <property name="digits">1</property>
         <property name="suffix" translatable="yes">°</property>
         <property name="wrap-around">True</property>
-        <property name="valign">center</property>
       </object>
     </child>
   </object>
