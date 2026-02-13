@@ -1936,6 +1936,17 @@ public:
             apply_css(css.get(), "ttb:text-decoration-thickness");
         });
 
+        // clear all decorations button
+        get_widget<Gtk::Button>(builder, "text-clear-decor").signal_clicked().connect([this] {
+            if (!can_update()) return;
+            auto css = make_css();
+            sp_repr_css_set_property(css.get(), "text-decoration-line", "none");
+            sp_repr_css_unset_property(css.get(), "text-decoration-style");
+            sp_repr_css_unset_property(css.get(), "text-decoration-thickness");
+            sp_repr_css_unset_property(css.get(), "text-decoration-color");
+            apply_css(css.get(), "ttb:text-decoration");
+        });
+
         // decoration popover: color
         _decor_color_default->signal_toggled().connect([this] {
             if (!can_update() || !_decor_color_default->get_active()) return;
