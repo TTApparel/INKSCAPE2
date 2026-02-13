@@ -42,6 +42,7 @@
 
 #include "css-chemistry.h"
 #include "desktop.h"
+#include "desktop-style.h"
 #include "document-undo.h"
 #include "dialog-container.h"
 #include "filter-chemistry.h"
@@ -1975,6 +1976,10 @@ public:
         add_size_properties();
         _grid.add_gap();
         add_fill_and_stroke();
+        _paint->set_apply_css_override([this](SPCSSAttr* css) {
+            if (!_current_item || !_document) return;
+            apply_text_css(_current_item, get_text_tool(), css);
+        });
         add_header(_("Text"));
         Widget::reparent_properties(get_widget<Gtk::Grid>(builder, "text-main"), _grid);
         _section_toggle = _grid.add_section(_("Typography"));
@@ -2213,8 +2218,26 @@ private:
         update_text_properties();
     }
 
+    void update_paint(SPObject* object) override {
+        if (!_paint) return;
+
+        _paint->update_visibility(object);
+
+        auto items = get_query_items();
+        if (items.empty()) {
+            _paint->update_from_object(object);
+            return;
+        }
+
+        SPStyle query_style(_document);
+        sp_desktop_query_style_from_list(items, &query_style, QUERY_STYLE_PROPERTY_FILL);
+        sp_desktop_query_style_from_list(items, &query_style, QUERY_STYLE_PROPERTY_STROKE);
+        _paint->update_from_style(object, &query_style);
+    }
+
     void subselection_changed(const std::vector<SPItem*>& items) override {
         update_text_properties();
+        update_paint(_current_object);
     }
 
     using CssPtr = std::unique_ptr<SPCSSAttr, Util::Deleter<sp_repr_css_attr_unref>>;
