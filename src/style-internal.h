@@ -1103,7 +1103,7 @@ public:
     const Glib::ustring get_value() const override;
     void clear() override {
         SPIBase::clear();
-        underline = false, overline = false, line_through = false, blink = false;
+        underline = false, overline = false, line_through = false, blink = false, spelling_error = false;
     }
 
     void cascade( const SPIBase* const parent ) override;
@@ -1119,6 +1119,7 @@ public:
     bool overline : 1;
     bool line_through : 1;
     bool blink : 1;    // "Conforming user agents are not required to support this value." yay!
+    bool spelling_error : 1;
 };
 
 // CSS3 2.2
