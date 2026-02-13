@@ -1706,12 +1706,17 @@ public:
 
         // writing mode buttons
         _writing_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-horz-text");
-        _writing_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-vert-l2r");
-        _writing_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-vert-r2l");
+        _writing_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-vert-r2l");
+        _writing_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-vert-l2r");
 
         // direction buttons
         _direction_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-l2r");
         _direction_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-r2l");
+
+        // text orientation buttons
+        _orientation_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-auto");
+        _orientation_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-upright");
+        _orientation_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-sideways");
 
         // decoration popover: line style
         _line_style_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-line-solid");
@@ -1843,7 +1848,7 @@ public:
         for (int i = 0; i < 3; ++i) {
             _writing_buttons[i]->signal_toggled().connect([this, i] {
                 if (!can_update() || !_writing_buttons[i]->get_active()) return;
-                static const char* modes[] = {"lr-tb", "tb-rl", "tb-lr"};
+                static const char* modes[] = {"lr-tb", "tb-rl", "vertical-lr"};
                 auto css = make_css();
                 sp_repr_css_set_property(css.get(), "writing-mode", modes[i]);
                 apply_css(css.get(), "ttb:writing-mode");
@@ -1856,6 +1861,17 @@ public:
                 auto css = make_css();
                 sp_repr_css_set_property(css.get(), "direction", i == 0 ? "ltr" : "rtl");
                 apply_css(css.get(), "ttb:direction");
+            });
+        }
+
+        // text orientation
+        for (int i = 0; i < 3; ++i) {
+            _orientation_buttons[i]->signal_toggled().connect([this, i] {
+                if (!can_update() || !_orientation_buttons[i]->get_active()) return;
+                static const char* orientations[] = {"auto", "upright", "sideways"};
+                auto css = make_css();
+                sp_repr_css_set_property(css.get(), "text-orientation", orientations[i]);
+                apply_css(css.get(), "ttb:text-orientation");
             });
         }
 
@@ -1958,7 +1974,7 @@ private:
 
     std::vector<SPItem*> get_subselection() {
         if (auto tool = get_text_tool()) {
-            return tool->get_subselection(false);
+            return tool->get_subselection(true);
         }
         return {};
     }
@@ -2052,12 +2068,16 @@ private:
             _align_buttons[props.text_align.value]->set_active(true);
         }
 
-        // super/subscript
+        // super/subscript — check subselection first, then fall back to _current_item
         if (props.superscript.state != PropState::Unset) {
             _superscript_btn->set_active(props.superscript.value);
-        }
-        if (props.subscript.state != PropState::Unset) {
             _subscript_btn->set_active(props.subscript.value);
+        } else if (_current_item && _current_item->style) {
+            auto& bs = _current_item->style->baseline_shift;
+            bool is_super = bs.set && bs.type == SP_BASELINE_SHIFT_LITERAL && bs.literal == SP_CSS_BASELINE_SHIFT_SUPER;
+            bool is_sub   = bs.set && bs.type == SP_BASELINE_SHIFT_LITERAL && bs.literal == SP_CSS_BASELINE_SHIFT_SUB;
+            _superscript_btn->set_active(is_super);
+            _subscript_btn->set_active(is_sub);
         }
 
         // decorations
@@ -2071,9 +2091,20 @@ private:
             _strikethrough_btn->set_active(props.strikethrough.value);
         }
 
-        // writing mode
-        if (props.writing_mode.state == PropState::Single && props.writing_mode.value >= 0 && props.writing_mode.value < 3) {
-            _writing_buttons[props.writing_mode.value]->set_active(true);
+        // writing mode: map CSS enum to button index
+        // buttons: 0=horizontal, 1=vert-r2l, 2=vert-l2r
+        // enum: LR_TB=0, RL_TB=1, TB_RL=2, TB_LR=3
+        if (props.writing_mode.state == PropState::Single) {
+            int btn = -1;
+            switch (props.writing_mode.value) {
+                case SP_CSS_WRITING_MODE_LR_TB: // fall through
+                case SP_CSS_WRITING_MODE_RL_TB: btn = 0; break;
+                case SP_CSS_WRITING_MODE_TB_RL: btn = 1; break;
+                case SP_CSS_WRITING_MODE_TB_LR: btn = 2; break;
+            }
+            if (btn >= 0) {
+                for (int j = 0; j < 3; ++j) _writing_buttons[j]->set_active(j == btn);
+            }
         }
 
         // direction
@@ -2081,10 +2112,22 @@ private:
             _direction_buttons[props.direction.value]->set_active(true);
         }
 
+        // text orientation (only applicable to vertical text)
+        bool vertical = props.writing_mode.state == PropState::Single &&
+            (props.writing_mode.value == SP_CSS_WRITING_MODE_TB_RL ||
+             props.writing_mode.value == SP_CSS_WRITING_MODE_TB_LR);
+        for (int i = 0; i < 3; ++i) {
+            _orientation_buttons[i]->set_sensitive(vertical);
+        }
+        if (vertical && props.text_orientation.state == PropState::Single &&
+            props.text_orientation.value >= 0 && props.text_orientation.value < 3) {
+            for (int j = 0; j < 3; ++j) _orientation_buttons[j]->set_active(j == props.text_orientation.value);
+        }
+
         // decoration style
         if (props.decoration_style.state == PropState::Single &&
             props.decoration_style.value >= 0 && props.decoration_style.value < 5) {
-            _line_style_buttons[props.decoration_style.value]->set_active(true);
+            for (int j = 0; j < 5; ++j) _line_style_buttons[j]->set_active(j == props.decoration_style.value);
         }
 
         // decoration thickness (not in style system — read from raw style attribute)
@@ -2257,6 +2300,7 @@ private:
     Gtk::ToggleButton* _strikethrough_btn = nullptr;
     Gtk::ToggleButton* _writing_buttons[3] = {};
     Gtk::ToggleButton* _direction_buttons[2] = {};
+    Gtk::ToggleButton* _orientation_buttons[3] = {}; // auto, upright, sideways
     // decoration popover
     Gtk::ToggleButton* _line_style_buttons[5] = {}; // solid, double, dotted, dashed, wavy
     Gtk::CheckButton* _thickness_auto = nullptr;

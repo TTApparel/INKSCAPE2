@@ -855,20 +855,22 @@
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton" id="text-vert-l2r">
+          <object class="GtkToggleButton" id="text-vert-r2l">
+            <property name="group">text-horz-text</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
-            <property name="icon-name">frmt-text-direction-vertical-lr</property>
+            <property name="icon-name">frmt-text-direction-vertical</property>
             <style>
               <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton" id="text-vert-r2l">
+          <object class="GtkToggleButton" id="text-vert-l2r">
+            <property name="group">text-horz-text</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
-            <property name="icon-name">frmt-text-direction-vertical</property>
+            <property name="icon-name">frmt-text-direction-vertical-lr</property>
             <style>
               <class name="menu-btn-tight"></class>
             </style>
@@ -886,6 +888,7 @@
         </child>
         <child>
           <object class="GtkToggleButton" id="text-dir-upright">
+            <property name="group">text-dir-auto</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <property name="icon-name">text-orientation-upright</property>
@@ -896,6 +899,7 @@
         </child>
         <child>
           <object class="GtkToggleButton" id="text-dir-sideways">
+            <property name="group">text-dir-auto</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <property name="icon-name">text-orientation-sideways</property>
@@ -996,6 +1000,7 @@
         </child>
         <child>
           <object class="GtkToggleButton" id="text-dir-r2l">
+            <property name="group">text-dir-l2r</property>
             <property name="tooltip-text" translatable="yes">Text right-to-left (RTL)</property>
             <property name="icon-name">frmt-text-direction-r2l</property>
             <property name="hexpand">true</property>

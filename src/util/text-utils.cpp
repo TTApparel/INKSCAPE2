@@ -159,23 +159,24 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items) {
         }
 
         // --- baseline shift (superscript / subscript) ---
-        bool is_super = style->baseline_shift.set &&
-            style->baseline_shift.type == SP_BASELINE_SHIFT_LITERAL &&
-            style->baseline_shift.literal == SP_CSS_BASELINE_SHIFT_SUPER;
-        bool is_sub = style->baseline_shift.set &&
-            style->baseline_shift.type == SP_BASELINE_SHIFT_LITERAL &&
-            style->baseline_shift.literal == SP_CSS_BASELINE_SHIFT_SUB;
-        if (first) {
-            props.superscript.value = is_super;
-            props.superscript.state = PropState::Single;
-            props.subscript.value = is_sub;
-            props.subscript.state = PropState::Single;
-        } else {
-            if (props.superscript.state != PropState::Mixed && props.superscript.value != is_super) {
-                props.superscript.state = PropState::Mixed;
-            }
-            if (props.subscript.state != PropState::Mixed && props.subscript.value != is_sub) {
-                props.subscript.state = PropState::Mixed;
+        // Only report if baseline_shift is explicitly set on this element
+        if (style->baseline_shift.set) {
+            bool is_super = style->baseline_shift.type == SP_BASELINE_SHIFT_LITERAL &&
+                style->baseline_shift.literal == SP_CSS_BASELINE_SHIFT_SUPER;
+            bool is_sub = style->baseline_shift.type == SP_BASELINE_SHIFT_LITERAL &&
+                style->baseline_shift.literal == SP_CSS_BASELINE_SHIFT_SUB;
+            if (props.superscript.state == PropState::Unset) {
+                props.superscript.value = is_super;
+                props.superscript.state = PropState::Single;
+                props.subscript.value = is_sub;
+                props.subscript.state = PropState::Single;
+            } else {
+                if (props.superscript.state != PropState::Mixed && props.superscript.value != is_super) {
+                    props.superscript.state = PropState::Mixed;
+                }
+                if (props.subscript.state != PropState::Mixed && props.subscript.value != is_sub) {
+                    props.subscript.state = PropState::Mixed;
+                }
             }
         }
 
