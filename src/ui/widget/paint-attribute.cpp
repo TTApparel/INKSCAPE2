@@ -51,6 +51,7 @@ PaintAttribute::PaintAttribute(Parts add_parts, unsigned int tag) :
     _builder(create_builder("paint-attribute.ui")),
     _stroke_width(get_widget<InkSpinButton>(_builder, "stroke-width")),
     _markers(get_widget<Gtk::Box>(_builder, "stroke-markers")),
+    _markers_label(get_widget<Gtk::Label>(_builder, "markers-label")),
     _blend(get_blendmode_combo_converter(), SPAttr::INVALID, false, "BlendMode"),
     _unit_selector(get_derived_widget<UnitMenu>(_builder, "stroke-unit")),
     _dash_selector(get_derived_widget<DashSelector>(_builder, "stroke-dash-selector", true)),
@@ -611,26 +612,31 @@ void PaintAttribute::PaintStrip::set_paint(const SPIPaint& paint, double opacity
 }
 
 void PaintAttribute::insert_widgets(InkPropertyGrid& grid) {
-    _markers.append(_marker_start);
-    _markers.append(_marker_mid);
-    _markers.append(_marker_end);
+    if (_added_parts & Markers) {
+        _markers.append(_marker_start);
+        _markers.append(_marker_mid);
+        _markers.append(_marker_end);
 
-    auto set_marker = [this](int location, const char* id, const std::string& uri) {
-        if (!can_update()) return;
+        auto set_marker = [this](int location, const char* id, const std::string& uri) {
+            if (!can_update()) return;
 
-        set_item_marker(_current_item, location, id, uri);
-        DocumentUndo::maybeDone(_current_item->document, "marker-change", RC_("Undo", "Set marker"), "dialog-fill-and-stroke", _modified_tag);
-    };
+            set_item_marker(_current_item, location, id, uri);
+            DocumentUndo::maybeDone(_current_item->document, "marker-change", RC_("Undo", "Set marker"), "dialog-fill-and-stroke", _modified_tag);
+        };
 
-    for (auto combo : {&_marker_start, &_marker_mid, &_marker_end}) {
-        combo->connect_changed([=] {
-            if (!combo->in_update()) {
-                set_marker(combo->get_loc(), combo->get_id(), combo->get_active_marker_uri());
-            }
-        });
+        for (auto combo : {&_marker_start, &_marker_mid, &_marker_end}) {
+            combo->connect_changed([=] {
+                if (!combo->in_update()) {
+                    set_marker(combo->get_loc(), combo->get_id(), combo->get_active_marker_uri());
+                }
+            });
 
-        // request to edit the current marker on the canvas
-        combo->connect_edit([this,combo] { edit_marker(combo->get_loc(), _desktop); });
+            // request to edit the current marker on the canvas
+            combo->connect_edit([this,combo] { edit_marker(combo->get_loc(), _desktop); });
+        }
+    } else {
+        _markers.set_visible(false);
+        _markers_label.set_visible(false);
     }
 
     //TODO: unit-specific adj?
@@ -729,6 +735,10 @@ void PaintAttribute::insert_widgets(InkPropertyGrid& grid) {
     if (_added_parts & StrokeAttributes) {
         _stroke_widgets.add(reparent_properties(get_widget<Gtk::Grid>(_builder, "stroke-attributes"), grid));
         _stroke_widgets.add(grid.add_gap());
+        if (!(_added_parts & Markers)) {
+            _stroke_widgets.remove(&_markers);
+            _stroke_widgets.remove(&_markers_label);
+        }
     }
 
     auto set_dash = [this](bool pattern_edit) {
@@ -1008,7 +1018,9 @@ void PaintAttribute::update_from_style(SPObject* object, SPStyle* style) {
         // stroke attributes, markers, opacity, blend — read from the object
         auto& obj_style = object->style;
         update_stroke(_current_item);
-        update_markers(obj_style->marker_ptrs, object);
+        if (_added_parts & Markers) {
+            update_markers(obj_style->marker_ptrs, object);
+        }
         if (stroke_mode != PaintMode::None) {
             _stroke_options.update_widgets(*obj_style);
             show_stroke(true);

@@ -1972,7 +1972,7 @@ public:
         add_object_label();
         add_size_properties();
         _grid.add_gap();
-        add_fill_and_stroke();
+        add_fill_and_stroke(static_cast<Widget::PaintAttribute::Parts>(Widget::PaintAttribute::AllParts & ~Widget::PaintAttribute::Markers));
         _paint->set_apply_css_override([this](SPCSSAttr* css) {
             if (!_current_item || !_document) return;
             apply_text_css(_current_item, get_text_tool(), css);

@@ -75,7 +75,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkLabel">
+      <object class="GtkLabel" id="markers-label">
         <property name="label" translatable="yes">Markers</property>
         <layout>
           <property name="column">0</property>

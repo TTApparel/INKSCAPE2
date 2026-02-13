@@ -2,7 +2,13 @@
 
 #ifndef WIDGETGROUP_H
 #define WIDGETGROUP_H
+
+#include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <vector>
+
+namespace Gtk { class Widget; }
 
 namespace Inkscape::UI::Widget {
 
@@ -11,6 +17,11 @@ public:
     void add(Gtk::Widget* widget) {
         assert(widget);
         _widgets.push_back(widget);
+    }
+
+    void remove(Gtk::Widget* widget) {
+        auto it = std::find(_widgets.begin(), _widgets.end(), widget);
+        if (it != _widgets.end()) _widgets.erase(it);
     }
 
     void add(const WidgetGroup& group) {

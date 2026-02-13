@@ -43,6 +43,7 @@ public:
         StrokeAttributes = 0x04,
         Opacity = 0x08,
         BlendMode = 0x10,
+        Markers = 0x20,
         AllParts = 0xff
     };
     PaintAttribute(Parts add_parts, unsigned int tag);
@@ -115,6 +116,7 @@ private:
     PaintStrip _stroke;
     Glib::RefPtr<Gtk::Builder> _builder;
     Gtk::Box& _markers;
+    Gtk::Label& _markers_label;
     MarkerComboBox _marker_start = MarkerComboBox("marker-start", SP_MARKER_LOC_START);
     MarkerComboBox _marker_mid =   MarkerComboBox("marker-mid", SP_MARKER_LOC_MID);
     MarkerComboBox _marker_end =   MarkerComboBox("marker-end", SP_MARKER_LOC_END);
