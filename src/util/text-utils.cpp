@@ -9,6 +9,7 @@
 #include "text-utils.h"
 
 #include <cstring>
+#include "desktop-style.h"
 #include "object/sp-flowdiv.h"
 #include "object/sp-flowtext.h"
 #include "object/sp-item.h"
@@ -17,6 +18,9 @@
 #include "object/sp-tref.h"
 #include "object/sp-tspan.h"
 #include "style.h"
+#include "text-editing.h"
+#include "ui/tools/text-tool.h"
+#include "xml/repr.h"
 
 namespace Inkscape::UI {
 
@@ -215,6 +219,24 @@ int get_text_align_button_index(bool rtl, SPCSSTextAlign text_align) {
         activeButton = 3;
     }
     return activeButton;
+}
+
+void apply_text_css(SPItem* text_item, Tools::TextTool* tool, SPCSSAttr* css) {
+    if (!text_item || !css) return;
+
+    // If text tool has a subselection, apply to that range directly
+    if (tool && tool->textItem() == text_item && tool->text_sel_start != tool->text_sel_end) {
+        sp_te_apply_style(text_item, tool->text_sel_start, tool->text_sel_end, css);
+        if (auto sptext = cast<SPText>(text_item)) {
+            sptext->rebuildLayout();
+            sptext->updateRepr();
+        }
+        return;
+    }
+
+    // No subselection — apply CSS recursively to the text item
+    sp_desktop_apply_css_recursive(text_item, css, true);
+    text_item->updateRepr();
 }
 
 } // namespace

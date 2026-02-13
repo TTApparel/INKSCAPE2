@@ -13,6 +13,7 @@
 #include <glibmm/ustring.h>
 #include "style-enums.h"
 
+class SPCSSAttr;
 class SPItem;
 
 namespace Inkscape::UI {
@@ -56,6 +57,13 @@ struct TextProperties {
 // Query text properties from a list of items (tspans, flowparas, or text elements).
 // First item's values are used as baseline; subsequent items flag Mixed if different.
 TextProperties query_text_properties(const std::vector<SPItem*>& items);
+
+namespace Tools { class TextTool; }
+
+// Apply CSS to text: if text tool has a subselection, apply to that range via sp_te_apply_style;
+// otherwise apply recursively to the text item. Does NOT call DocumentUndo — caller is
+// responsible for maybeDone with a per-property undo key.
+void apply_text_css(SPItem* text_item, Tools::TextTool* tool, SPCSSAttr* css);
 
 }
 
