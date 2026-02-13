@@ -9,13 +9,16 @@
 #ifndef INKSCAPE_TEXT_UTILS_H
 #define INKSCAPE_TEXT_UTILS_H
 
+#include <optional>
 #include <vector>
 #include <glibmm/ustring.h>
 #include <pangomm.h>
 #include "style-enums.h"
 
 class SPCSSAttr;
+class SPDesktop;
 class SPItem;
+class SPText;
 
 namespace Inkscape {
 
@@ -61,11 +64,29 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items);
 
 namespace UI::Tools { class TextTool; }
 
+// Resolve start/end text-align to left/right based on text direction.
+SPCSSTextAlign text_align_to_side(SPCSSTextAlign align, SPCSSDirection direction);
+
+// Apply text alignment to an SPText item: sets text-anchor + text-align CSS,
+// adjusts the text anchor position to preserve the visual bounding box,
+// and triggers a display update. Does NOT call DocumentUndo.
+// Returns true if the text position was moved.
+bool apply_text_alignment(SPText* text, int align_mode);
+
 // Fill CSS attributes from a Pango font description: sets font-family, font-style,
 // font-weight, font-stretch, and font-variant. Mirrors FontLister::fill_css but takes
 // a FontDescription directly instead of going through FontLister.
 void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
                                      const Pango::FontDescription& desc);
+
+// Apply character rotation at the text tool's cursor/selection position.
+// Computes delta from current rotation and calls sp_te_adjust_rotation.
+// Returns true if rotation was applied. Does NOT call DocumentUndo.
+bool apply_text_char_rotation(UI::Tools::TextTool* tool, SPDesktop* desktop, double new_degrees);
+
+// Query character rotation at the text tool's cursor position.
+// Returns the rotation in degrees (-180..180), or nullopt if unavailable.
+std::optional<double> query_text_char_rotation(UI::Tools::TextTool* tool);
 
 // Apply CSS to text: if text tool has a subselection, apply to that range via sp_te_apply_style;
 // otherwise apply recursively to the text item. Does NOT call DocumentUndo — caller is

@@ -56,6 +56,7 @@
 #include "ui/widget/unit-tracker.h"
 #include "ui/widget/generic/number-combo-box.h"
 #include "util/font-collections.h"
+#include "util/text-utils.h"
 #include "widgets/style-utils.h"
 
 using Inkscape::DocumentUndo;
@@ -621,24 +622,6 @@ void TextToolbar::script_changed(int mode)
     _freeze = false;
 }
 
-// Any text alignment in, right/center/left/justify out.
-SPCSSTextAlign text_align_to_side(SPCSSTextAlign const &align, SPCSSDirection const &direction)
-{
-    auto new_align = align;
-
-    if ((align == SP_CSS_TEXT_ALIGN_START && direction == SP_CSS_DIRECTION_LTR) ||
-        (align == SP_CSS_TEXT_ALIGN_END   && direction == SP_CSS_DIRECTION_RTL)) {
-        new_align = SP_CSS_TEXT_ALIGN_LEFT;
-    }
-
-    if ((align == SP_CSS_TEXT_ALIGN_START && direction == SP_CSS_DIRECTION_RTL) ||
-        (align == SP_CSS_TEXT_ALIGN_END   && direction == SP_CSS_DIRECTION_LTR)) {
-        new_align = SP_CSS_TEXT_ALIGN_RIGHT;
-    }
-
-    return new_align;
-}
-
 void TextToolbar::align_mode_changed(int align_mode)
 {
     // quit if run by the _changed callbacks
@@ -649,131 +632,13 @@ void TextToolbar::align_mode_changed(int align_mode)
 
     Preferences::get()->setInt("/tools/text/align_mode", align_mode);
 
-    // Move the alignment point of all texts to preserve the same bbox.
     bool changed = false;
-    Selection *selection = _desktop->getSelection();
-    for (auto i : selection->items()) {
-        auto text = cast<SPText>(i);
-        // auto flowtext = cast<SPFlowtext>(i);
-        if (text) {
-
-            // Below, variable names suggest horizontal move, but we check the writing direction
-            // and move in the corresponding axis.
-            Geom::Dim2 axis;
-            unsigned writing_mode = text->style->writing_mode.value;
-            if (writing_mode == SP_CSS_WRITING_MODE_LR_TB || writing_mode == SP_CSS_WRITING_MODE_RL_TB) {
-                axis = Geom::X;
-            } else {
-                axis = Geom::Y;
-            }
-
-            // Find current text inline-size (width for horizontal text, height for vertical text.
-            Geom::OptRect bbox = text->get_frame(); // 'inline-size' or rectangle frame.
-            if (!bbox) {
-                bbox = text->geometricBounds();
-            }
-            if (!bbox) {
-                continue; // No bounding box, no joy!
-            }
-            double width = bbox->dimensions()[axis];
-
-            double move = 0;
-            auto direction = text->style->direction.value;
-
-            // Switch alignment point
-            auto old_side = text_align_to_side(text->style->text_align.value, direction);
-            switch (old_side) {
-                case SP_CSS_TEXT_ALIGN_LEFT:
-                    switch (align_mode) {
-                        case 0:
-                            break;
-                        case 1:
-                            move = width/2;
-                            break;
-                        case 2:
-                            move = width;
-                            break;
-                        case 3:
-                            break; // Justify
-                        default:
-                            std::cerr << "TextToolbar::align_mode_changed() Unexpected value (mode): " << align_mode << std::endl;
-                    }
-                    break;
-                case SP_CSS_TEXT_ALIGN_CENTER:
-                    switch (align_mode) {
-                        case 0:
-                            move = -width/2;
-                            break;
-                        case 1:
-                            break;
-                        case 2:
-                            move = width/2;
-                            break;
-                        case 3:
-                            break; // Justify
-                        default:
-                            std::cerr << "TextToolbar::align_mode_changed() Unexpected value (mode): " << align_mode << std::endl;
-                    }
-                    break;
-                case SP_CSS_TEXT_ALIGN_RIGHT:
-                    switch (align_mode) {
-                        case 0:
-                            move = -width;
-                            break;
-                        case 1:
-                            move = -width/2;
-                            break;
-                        case 2:
-                            break;
-                        case 3:
-                            break; // Justify
-                        default:
-                            std::cerr << "TextToolbar::align_mode_changed() Unexpected value (mode): " << align_mode << std::endl;
-                    }
-                    break;
-                case SP_CSS_TEXT_ALIGN_JUSTIFY:
-                    // Do nothing
-                    break;
-                default:
-                    std::cerr << "TextToolbar::align_mode_changed() Unexpected value (old_side): " << old_side << std::endl;
-            }
-
-            if (std::abs(move) > 0) {
+    for (auto item : _desktop->getSelection()->items()) {
+        if (auto text = cast<SPText>(item)) {
+            if (Inkscape::apply_text_alignment(text, align_mode)) {
                 changed = true;
             }
-
-            SPCSSAttr *css = sp_repr_css_attr_new ();
-            if ((align_mode == 0 && direction == SP_CSS_DIRECTION_LTR) ||
-                (align_mode == 2 && direction == SP_CSS_DIRECTION_RTL)) {
-                sp_repr_css_set_property (css, "text-anchor", "start");
-                sp_repr_css_set_property (css, "text-align",  "start");
-            }
-            if ((align_mode == 0 && direction == SP_CSS_DIRECTION_RTL) ||
-                (align_mode == 2 && direction == SP_CSS_DIRECTION_LTR)) {
-                sp_repr_css_set_property (css, "text-anchor", "end");
-                sp_repr_css_set_property (css, "text-align",  "end");
-            }
-            if (align_mode == 1) {
-                sp_repr_css_set_property (css, "text-anchor", "middle");
-                sp_repr_css_set_property (css, "text-align",  "center");
-            }
-            if (align_mode == 3) {
-                sp_repr_css_set_property (css, "text-anchor", "start");
-                sp_repr_css_set_property (css, "text-align",  "justify");
-            }
-            text->changeCSS(css, "style");
-            sp_repr_css_attr_unref(css);
-
-            Geom::Point XY = text->attributes.firstXY();
-            if (axis == Geom::X) {
-                XY = XY + Geom::Point (move, 0);
-            } else {
-                XY = XY + Geom::Point (0, move);
-            }
-            text->attributes.setFirstXY(XY);
-            text->updateRepr();
-            text->requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
-        } // if(text)
+        }
     }
 
     if (changed) {
@@ -1331,18 +1196,7 @@ void TextToolbar::rotation_value_changed()
 
     double new_degrees = _rotation_item.get_adjustment()->get_value();
 
-    bool modified = false;
-    if (auto tc = SP_TEXT_CONTEXT(_desktop->getTool())) {
-        unsigned char_index = -1;
-        if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-            double old_degrees = attributes->getRotate(char_index);
-            double delta_deg = new_degrees - old_degrees;
-            sp_te_adjust_rotation(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta_deg);
-            modified = true;
-        }
-    }
-
-    if (modified) {
+    if (Inkscape::apply_text_char_rotation(SP_TEXT_CONTEXT(_desktop->getTool()), _desktop, new_degrees)) {
         DocumentUndo::maybeDone(_desktop->getDocument(), "ttb:rotate", RC_("Undo", "Text: Change rotate"), INKSCAPE_ICON("draw-text"));
     }
 
@@ -1715,19 +1569,18 @@ void TextToolbar::_selectionChanged(Selection *selection) // don't bother to upd
             double dy = attributes->getDy(char_index);
             _dy_item.get_adjustment()->set_value(dy);
 
-            // Rotation
-            double rotation = attributes->getRotate(char_index);
-            /* SVG value is between 0 and 360 but we're using -180 to 180 in widget */
-            if (rotation > 180.0) {
-                rotation -= 360.0;
-            }
-            _rotation_item.get_adjustment()->set_value(rotation);
-
             if constexpr (DEBUG_TEXT) {
                 std::cout << "    GUI: Dx: " << dx << std::endl;
                 std::cout << "    GUI: Dy: " << dy << std::endl;
-                std::cout << "    GUI: Rotation: " << rotation << std::endl;
             }
+        }
+    }
+
+    // Rotation
+    if (auto rotation = Inkscape::query_text_char_rotation(SP_TEXT_CONTEXT(_desktop->getTool()))) {
+        _rotation_item.get_adjustment()->set_value(*rotation);
+        if constexpr (DEBUG_TEXT) {
+            std::cout << "    GUI: Rotation: " << *rotation << std::endl;
         }
     }
 

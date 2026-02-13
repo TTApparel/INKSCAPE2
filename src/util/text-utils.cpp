@@ -97,7 +97,7 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items) {
         }
         if (first) {
             props.line_height.value = lh;
-            props.line_height.state = style->line_height.set ? PropState::Single : PropState::Unset;
+            props.line_height.state = PropState::Single;
             props.line_height_unit.unit = lh_unit;
         } else if (props.line_height.state != PropState::Mixed && props.line_height.value != lh) {
             props.line_height.state = PropState::Mixed;
@@ -228,6 +228,106 @@ int get_text_align_button_index(bool rtl, SPCSSTextAlign text_align) {
     return activeButton;
 }
 
+SPCSSTextAlign text_align_to_side(SPCSSTextAlign align, SPCSSDirection direction) {
+    if ((align == SP_CSS_TEXT_ALIGN_START && direction == SP_CSS_DIRECTION_LTR) ||
+        (align == SP_CSS_TEXT_ALIGN_END   && direction == SP_CSS_DIRECTION_RTL)) {
+        return SP_CSS_TEXT_ALIGN_LEFT;
+    }
+    if ((align == SP_CSS_TEXT_ALIGN_START && direction == SP_CSS_DIRECTION_RTL) ||
+        (align == SP_CSS_TEXT_ALIGN_END   && direction == SP_CSS_DIRECTION_LTR)) {
+        return SP_CSS_TEXT_ALIGN_RIGHT;
+    }
+    return align;
+}
+
+bool apply_text_alignment(SPText* text, int align_mode) {
+    if (!text || align_mode < 0 || align_mode > 3) return false;
+
+    // Determine axis based on writing mode
+    Geom::Dim2 axis;
+    unsigned writing_mode = text->style->writing_mode.value;
+    if (writing_mode == SP_CSS_WRITING_MODE_LR_TB || writing_mode == SP_CSS_WRITING_MODE_RL_TB) {
+        axis = Geom::X;
+    } else {
+        axis = Geom::Y;
+    }
+
+    // Get text bounding box for position adjustment
+    Geom::OptRect bbox = text->get_frame();
+    if (!bbox) {
+        bbox = text->geometricBounds();
+    }
+    if (!bbox) return false;
+
+    double width = bbox->dimensions()[axis];
+    double move = 0;
+    auto direction = text->style->direction.value;
+
+    // Calculate position adjustment based on old alignment
+    auto old_side = text_align_to_side(text->style->text_align.value, direction);
+    switch (old_side) {
+        case SP_CSS_TEXT_ALIGN_LEFT:
+            switch (align_mode) {
+                case 1: move =  width / 2; break;
+                case 2: move =  width;     break;
+                default: break;
+            }
+            break;
+        case SP_CSS_TEXT_ALIGN_CENTER:
+            switch (align_mode) {
+                case 0: move = -width / 2; break;
+                case 2: move =  width / 2; break;
+                default: break;
+            }
+            break;
+        case SP_CSS_TEXT_ALIGN_RIGHT:
+            switch (align_mode) {
+                case 0: move = -width;     break;
+                case 1: move = -width / 2; break;
+                default: break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    // Set text-anchor and text-align CSS
+    SPCSSAttr* css = sp_repr_css_attr_new();
+    if ((align_mode == 0 && direction == SP_CSS_DIRECTION_LTR) ||
+        (align_mode == 2 && direction == SP_CSS_DIRECTION_RTL)) {
+        sp_repr_css_set_property(css, "text-anchor", "start");
+        sp_repr_css_set_property(css, "text-align",  "start");
+    }
+    if ((align_mode == 0 && direction == SP_CSS_DIRECTION_RTL) ||
+        (align_mode == 2 && direction == SP_CSS_DIRECTION_LTR)) {
+        sp_repr_css_set_property(css, "text-anchor", "end");
+        sp_repr_css_set_property(css, "text-align",  "end");
+    }
+    if (align_mode == 1) {
+        sp_repr_css_set_property(css, "text-anchor", "middle");
+        sp_repr_css_set_property(css, "text-align",  "center");
+    }
+    if (align_mode == 3) {
+        sp_repr_css_set_property(css, "text-anchor", "start");
+        sp_repr_css_set_property(css, "text-align",  "justify");
+    }
+    text->changeCSS(css, "style");
+    sp_repr_css_attr_unref(css);
+
+    // Adjust text position to preserve visual bounding box
+    Geom::Point XY = text->attributes.firstXY();
+    if (axis == Geom::X) {
+        XY += Geom::Point(move, 0);
+    } else {
+        XY += Geom::Point(0, move);
+    }
+    text->attributes.setFirstXY(XY);
+    text->updateRepr();
+    text->requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
+
+    return std::abs(move) > 0;
+}
+
 void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
                                      const Pango::FontDescription& desc) {
     if (!css) return;
@@ -310,6 +410,36 @@ void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
     } else {
         sp_repr_css_unset_property(css, "font-variation-settings");
     }
+}
+
+bool apply_text_char_rotation(UI::Tools::TextTool* tool, SPDesktop* desktop, double new_degrees) {
+    if (!tool || !tool->textItem()) return false;
+
+    unsigned char_index = -1;
+    auto attributes = text_tag_attributes_at_position(
+        tool->textItem(), std::min(tool->text_sel_start, tool->text_sel_end), &char_index);
+    if (!attributes) return false;
+
+    double old_degrees = attributes->getRotate(char_index);
+    double delta_deg = new_degrees - old_degrees;
+    sp_te_adjust_rotation(tool->textItem(), tool->text_sel_start, tool->text_sel_end, desktop, delta_deg);
+    return true;
+}
+
+std::optional<double> query_text_char_rotation(UI::Tools::TextTool* tool) {
+    if (!tool || !tool->textItem()) return std::nullopt;
+
+    unsigned char_index = -1;
+    auto attributes = text_tag_attributes_at_position(
+        tool->textItem(), std::min(tool->text_sel_start, tool->text_sel_end), &char_index);
+    if (!attributes) return std::nullopt;
+
+    double rotation = attributes->getRotate(char_index);
+    // SVG value is 0..360 but we use -180..180
+    if (rotation > 180.0) {
+        rotation -= 360.0;
+    }
+    return rotation;
 }
 
 void apply_text_css(SPItem* text_item, UI::Tools::TextTool* tool, SPCSSAttr* css) {
