@@ -624,18 +624,6 @@
       </object>
     </child>
     <child>
-      <object class="GtkMenuButton" id="text-font-size-units">
-        <property name="popover">text-font-size-unit-menu</property>
-        <property name="valign">center</property>
-        <property name="icon-name">tool-measure</property>
-        <property name="has-frame">false</property>
-        <layout>
-          <property name="column">4</property>
-          <property name="row">2</property>
-        </layout>
-      </object>
-    </child>
-    <child>
       <object class="GtkBox">
         <style>
           <class name="linked"></class>
@@ -695,27 +683,59 @@
       </object>
     </child>
     <child>
-      <object class="gtkmm__CustomObject_InkSpinButton" id="text-line-height">
-        <property name="tooltip-text" translatable="yes">Vertical space bewteen lines of text</property>
-        <property name="icon">text_line_spacing</property>
-        <property name="step-value">0.100000</property>
-        <property name="max-value">100000.000000</property>
+      <object class="GtkBox">
+        <child>
+          <object class="gtkmm__CustomObject_InkSpinButton" id="text-line-height">
+            <property name="hexpand">true</property>
+            <property name="hexpand-set">true</property>
+            <property name="tooltip-text" translatable="yes">Vertical space bewteen lines of text</property>
+            <property name="icon">text_line_spacing</property>
+            <property name="step-value">0.100000</property>
+            <property name="max-value">100000.000000</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="text-line-height-unit">
+            <property name="popover">text-line-hight-unit-menu</property>
+            <property name="valign">center</property>
+            <property name="icon-name">pan-down</property>
+          </object>
+        </child>
         <layout>
           <property name="column">2</property>
           <property name="row">3</property>
           <property name="column-span">2</property>
         </layout>
+        <style>
+          <class name="linked"></class>
+        </style>
       </object>
     </child>
     <child>
-      <object class="gtkmm__CustomObject_InkSpinButton" id="text-font-size">
-        <property name="tooltip-text" translatable="yes">Font size</property>
-        <property name="suffix" translatable="yes"> px</property>
+      <object class="GtkBox">
+        <child>
+          <object class="gtkmm__CustomObject_InkSpinButton" id="text-font-size">
+            <property name="hexpand">true</property>
+            <property name="hexpand-set">true</property>
+            <property name="tooltip-text" translatable="yes">Font size</property>
+            <property name="suffix" translatable="yes"> px</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="text-font-size-units">
+            <property name="popover">text-font-size-unit-menu</property>
+            <property name="valign">center</property>
+            <property name="icon-name">pan-down</property>
+          </object>
+        </child>
         <layout>
           <property name="column">2</property>
           <property name="row">2</property>
           <property name="column-span">2</property>
         </layout>
+        <style>
+          <class name="linked"></class>
+        </style>
       </object>
     </child>
     <child>
@@ -725,18 +745,6 @@
           <property name="column">2</property>
           <property name="row">1</property>
           <property name="column-span">2</property>
-        </layout>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuButton" id="text-line-height-unit">
-        <property name="popover">text-line-hight-unit-menu</property>
-        <property name="valign">center</property>
-        <property name="icon-name">tool-measure</property>
-        <property name="has-frame">false</property>
-        <layout>
-          <property name="column">4</property>
-          <property name="row">3</property>
         </layout>
       </object>
     </child>
