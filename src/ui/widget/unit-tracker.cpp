@@ -18,7 +18,9 @@
 
 #include <cassert>
 #include <iostream>
+#include <giomm/menuitem.h>
 #include <gtkmm/liststore.h>
+#include <gtkmm/widget.h>
 
 #include "combo-tool-item.h"
 
@@ -187,8 +189,8 @@ void UnitTracker::_setActive(gint active)
         }
         if (oldAbbr != "NotFound") {
             if (newAbbr != "NotFound") {
-                auto oldUnit = unit_table.getUnit(oldAbbr);
-                auto newUnit = unit_table.getUnit(newAbbr);
+                auto oldUnit = &_store->get_item(_active)->unit;
+                auto newUnit = &_store->get_item(active)->unit;
                 _activeUnit = newUnit;
 
                 if (!_adjList.empty()) {
@@ -209,6 +211,8 @@ void UnitTracker::_setActive(gint active)
     }
 
     _activeUnitInitialized = true;
+
+    _signal_unit_changed.emit(_activeUnit);
 }
 
 void UnitTracker::_fixupAdjustments(Unit const *oldUnit, Unit const *newUnit)
@@ -236,6 +240,37 @@ void UnitTracker::_fixupAdjustments(Unit const *oldUnit, Unit const *newUnit)
         gtk_adjustment_set_value(adj, val);
     }
     _isUpdating = false;
+}
+
+UnitTracker::PopoverUnitMenu UnitTracker::create_popover_unit_menu(Gtk::Widget& owner) {
+    auto menu = Gio::Menu::create();
+    auto action_group = Gio::SimpleActionGroup::create();
+
+    // unique action name per tracker instance
+    auto action_name = Glib::ustring::format("unit-select-", (void*)this);
+
+    for (auto i = 0; i < _store->get_n_items(); ++i) {
+        auto const &unit = _store->get_item(i)->unit;
+        auto item = Gio::MenuItem::create(unit.abbr, "");
+        item->set_action_and_target(
+            Glib::ustring("units.") + action_name,
+            Glib::Variant<Glib::ustring>::create(std::to_string(i)));
+        menu->append_item(item);
+    }
+
+    action_group->add_action_with_parameter(
+        action_name, Glib::Variant<Glib::ustring>::variant_type(),
+        [this](const Glib::VariantBase& param) {
+            auto str = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::ustring>>(param).get();
+            auto index = std::stoi(str);
+            if (index >= 0 && index < (int)_store->get_n_items()) {
+                _setActive(index);
+            }
+        });
+
+    owner.insert_action_group("units", action_group);
+
+    return {menu, action_group};
 }
 
 } // namespace Inkscape::UI::Widget

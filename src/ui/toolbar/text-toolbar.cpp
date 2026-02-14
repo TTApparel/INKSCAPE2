@@ -69,15 +69,6 @@ constexpr bool DEBUG_TEXT = false;
 namespace Inkscape::UI::Toolbar {
 namespace {
 
-bool is_relative(Unit const *unit)
-{
-    return unit->abbr == "" || unit->abbr == "em" || unit->abbr == "ex" || unit->abbr == "%";
-}
-
-bool is_relative(SPCSSUnit const unit)
-{
-    return unit == SP_CSS_UNIT_NONE || unit == SP_CSS_UNIT_EM || unit == SP_CSS_UNIT_EX || unit == SP_CSS_UNIT_PERCENT;
-}
 
 // Set property for object, but unset all descendents
 // Should probably be moved to desktop_style.cpp
@@ -501,7 +492,7 @@ void TextToolbar::fontsize_value_changed(double size)
     text_outer_set_style(css);
 
     auto const unit_lh = _tracker->getActiveUnit();
-    if (!is_relative(unit_lh) && _outer) {
+    if (!is_relative_unit(unit_lh) && _outer) {
         double lineheight = _line_height_item.get_adjustment()->get_value();
         _freeze = false;
         _line_height_item.get_adjustment()->set_value(lineheight * factor);
@@ -768,15 +759,8 @@ void TextToolbar::lineheight_value_changed()
 
     // Set css line height.
     auto css = sp_repr_css_attr_new();
-    CSSOStringStream osfs;
-    if (is_relative(unit)) {
-        osfs << _line_height_item.get_adjustment()->get_value() << unit->abbr;
-    } else {
-        // Inside SVG file, always use "px" for absolute units.
-        osfs << Quantity::convert(_line_height_item.get_adjustment()->get_value(), unit, "px") << "px";
-    }
-
-    sp_repr_css_set_property (css, "line-height", osfs.str().c_str());
+    auto lh_css = format_line_height_css(_line_height_item.get_adjustment()->get_value(), unit);
+    sp_repr_css_set_property (css, "line-height", lh_css.c_str());
 
     auto selection = _desktop->getSelection();
     auto itemlist = selection->items();
@@ -879,17 +863,13 @@ void TextToolbar::lineheight_unit_changed()
     // Get user selected unit and save as preference
     auto const unit = _tracker->getActiveUnit();
 
-    // This nonsense is to get SP_CSS_UNIT_xx value corresponding to unit.
-    SPILength temp_length;
-    CSSOStringStream temp_stream;
-    temp_stream << 1 << unit->abbr;
-    temp_length.read(temp_stream.str().c_str());
-    Preferences::get()->setInt("/tools/text/lineheight/display_unit", temp_length.unit);
-    if (old_unit == temp_length.unit) {
+    int new_css = unit_to_css_unit(unit);
+    Preferences::get()->setInt("/tools/text/lineheight/display_unit", new_css);
+    if (old_unit == new_css) {
         _freeze = false;
         return;
     } else {
-        _lineheight_unit = temp_length.unit;
+        _lineheight_unit = new_css;
     }
 
     // Read current line height value
@@ -899,7 +879,7 @@ void TextToolbar::lineheight_unit_changed()
     Selection *selection = desktop->getSelection();
     auto itemlist = selection->items();
 
-    // Convert between units
+    // Get average font size for relative ↔ absolute conversion
     double font_size = 0;
     double doc_scale = 1;
     int count = 0;
@@ -914,60 +894,13 @@ void TextToolbar::lineheight_unit_changed()
     if (count > 0) {
         font_size /= count;
     } else {
-        // ideally use default font-size.
         font_size = 20;
     }
-    if ((unit->abbr == "" || unit->abbr == "em") && (old_unit == SP_CSS_UNIT_NONE || old_unit == SP_CSS_UNIT_EM)) {
-        // Do nothing
-    } else if ((unit->abbr == "" || unit->abbr == "em") && old_unit == SP_CSS_UNIT_EX) {
-        line_height *= 0.5;
-    } else if ((unit->abbr) == "ex" && (old_unit == SP_CSS_UNIT_EM || old_unit == SP_CSS_UNIT_NONE)) {
-        line_height *= 2.0;
-    } else if ((unit->abbr == "" || unit->abbr == "em") && old_unit == SP_CSS_UNIT_PERCENT) {
-        line_height /= 100.0;
-    } else if ((unit->abbr) == "%" && (old_unit == SP_CSS_UNIT_EM || old_unit == SP_CSS_UNIT_NONE)) {
-        line_height *= 100;
-    } else if ((unit->abbr) == "ex" && old_unit == SP_CSS_UNIT_PERCENT) {
-        line_height /= 50.0;
-    } else if ((unit->abbr) == "%" && old_unit == SP_CSS_UNIT_EX) {
-        line_height *= 50;
-    } else if (is_relative(unit)) {
-        // Convert absolute to relative... for the moment use average font-size
-        if (old_unit == SP_CSS_UNIT_NONE) old_unit = SP_CSS_UNIT_EM;
-        line_height = Quantity::convert(line_height, sp_style_get_css_unit_string(old_unit), "px");
-
-        if (font_size > 0) {
-            line_height /= font_size;
-        }
-        if (unit->abbr == "%") {
-            line_height *= 100;
-        } else if (unit->abbr == "ex") {
-            line_height *= 2;
-        }
-    } else if (old_unit == SP_CSS_UNIT_NONE || old_unit == SP_CSS_UNIT_PERCENT || old_unit == SP_CSS_UNIT_EM ||
-            old_unit == SP_CSS_UNIT_EX) {
-        // Convert relative to absolute... for the moment use average font-size
-        if (old_unit == SP_CSS_UNIT_PERCENT) {
-            line_height /= 100.0;
-        } else if (old_unit == SP_CSS_UNIT_EX) {
-            line_height /= 2.0;
-        }
-        line_height *= font_size;
-        line_height = Quantity::convert(line_height, "px", unit);
-    } else {
-        // Convert between different absolute units (only used in GUI)
-        line_height = Quantity::convert(line_height, sp_style_get_css_unit_string(old_unit), unit);
-    }
+    line_height = convert_lineheight_between_units(line_height, old_unit, unit, font_size);
     // Set css line height.
     auto css = sp_repr_css_attr_new();
-    CSSOStringStream osfs;
-    // Set css line height.
-    if ( is_relative(unit) ) {
-        osfs << line_height << unit->abbr;
-    } else {
-        osfs << Quantity::convert(line_height, unit, "px") << "px";
-    }
-    sp_repr_css_set_property(css, "line-height", osfs.str().c_str());
+    auto lh_css = format_line_height_css(line_height, unit);
+    sp_repr_css_set_property(css, "line-height", lh_css.c_str());
 
     // Update GUI with line_height value.
     line_height_adj->set_value(line_height);
@@ -1069,12 +1002,7 @@ void TextToolbar::fontsize_unit_changed()
     // quit if run by the _changed callbacks
     auto const unit = _tracker_fs->getActiveUnit();
 
-    // This nonsense is to get SP_CSS_UNIT_xx value corresponding to unit.
-    SPILength temp_size;
-    CSSOStringStream temp_size_stream;
-    temp_size_stream << 1 << unit->abbr;
-    temp_size.read(temp_size_stream.str().c_str());
-    Preferences::get()->setInt("/options/font/unitType", temp_size.unit);
+    Preferences::get()->setInt("/options/font/unitType", unit_to_css_unit(unit));
 
     // refresh font size and list of font sizes after unit change
     _selectionChanged(nullptr);
@@ -1436,10 +1364,10 @@ void TextToolbar::_selectionChanged(Selection *selection) // don't bother to upd
         }
 
         // We dot want to parse values just show
-        if (!is_relative(SPCSSUnit(line_height_unit))) {
+        if (!is_relative_unit(line_height_unit)) {
             int curunit = prefs->getInt("/tools/text/lineheight/display_unit", 1);
             // For backwards comaptibility
-            if (is_relative(SPCSSUnit(curunit))) {
+            if (is_relative_unit(curunit)) {
                 prefs->setInt("/tools/text/lineheight/display_unit", 1);
                 curunit = 1;
             }

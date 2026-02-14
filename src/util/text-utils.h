@@ -10,6 +10,7 @@
 #define INKSCAPE_TEXT_UTILS_H
 
 #include <optional>
+#include <string>
 #include <vector>
 #include <glibmm/ustring.h>
 #include <pangomm.h>
@@ -20,6 +21,8 @@ class SPCSSAttr;
 class SPDesktop;
 class SPItem;
 class SPText;
+
+namespace Inkscape::Util { class Unit; }
 
 namespace Inkscape {
 
@@ -116,6 +119,24 @@ std::optional<double> query_text_char_rotation(UI::Tools::TextTool* tool);
 // otherwise apply recursively to the text item. Does NOT call DocumentUndo — caller is
 // responsible for maybeDone with a per-property undo key.
 void apply_text_css(SPItem* text_item, UI::Tools::TextTool* tool, SPCSSAttr* css);
+
+// --- Unit helpers for font-size / line-height ---
+
+// True if unit is relative (unitless/em/ex/%).
+bool is_relative_unit(Util::Unit const *unit);
+bool is_relative_unit(int css_unit);
+
+// Convert a Unit abbreviation to SP_CSS_UNIT_xx.
+int unit_to_css_unit(Util::Unit const *unit);
+
+// Convert a line-height value between old and new units.
+// avg_font_size is needed for relative ↔ absolute conversion (in px).
+double convert_lineheight_between_units(double value, int old_css_unit,
+                                        Util::Unit const *new_unit, double avg_font_size);
+
+// Format a line-height value + unit as a CSS string suitable for sp_repr_css_set_property.
+// Relative units emit "value + abbr"; absolute units convert to px.
+std::string format_line_height_css(double value, Util::Unit const *unit);
 
 }
 

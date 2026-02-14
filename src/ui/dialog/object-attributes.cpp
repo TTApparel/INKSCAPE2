@@ -32,6 +32,7 @@
 #include <gtkmm/grid.h>
 #include <gtkmm/label.h>
 #include <gtkmm/menubutton.h>
+#include <gtkmm/popovermenu.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/separator.h>
 #include <gtkmm/spinbutton.h>
@@ -95,6 +96,7 @@
 #include "ui/widget/ink-property-grid.h"
 #include "ui/widget/object-composite-settings.h"
 #include "ui/widget/paint-attribute.h"
+#include "ui/widget/unit-tracker.h"
 #include "util/delete-with.h"
 #include "util/object-modified-tags.h"
 #include "util/text-utils.h"
@@ -110,7 +112,7 @@ using Parts = Widget::PaintAttribute::Parts;
 const auto TAG = get_next_object_modified_tag();
 constexpr int MARGIN = 4;
 // Some panels are not ready and kept behind this flag
-constexpr bool INCLUDE_EXPERIMENTAL_PANELS = true;
+constexpr bool INCLUDE_EXPERIMENTAL_PANELS = false;
 
 namespace {
 
@@ -1697,8 +1699,78 @@ public:
         _thickness_custom(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-length")),
         _line_thickness(get_widget<Widget::InkSpinButton>(builder, "text-line-thickness")),
         _decor_color_default(get_widget<Gtk::CheckButton>(builder, "text-decor-color-default")),
-        _decor_color_custom(get_widget<Gtk::CheckButton>(builder, "text-decor-color-custom"))
+        _decor_color_custom(get_widget<Gtk::CheckButton>(builder, "text-decor-color-custom")),
+        _tracker_fs(std::make_unique<Widget::UnitTracker>(Util::UNIT_TYPE_LINEAR)),
+        _tracker_lh(std::make_unique<Widget::UnitTracker>(Util::UNIT_TYPE_LINEAR))
     {
+        // --- unit tracker setup ---
+        auto const &unit_table = Util::UnitTable::get();
+
+        // Font-size tracker: default to pt
+        _tracker_fs->setActiveUnit(unit_table.getUnit("pt"));
+
+        // Line-height tracker: add special units (same as text toolbar)
+        auto lines = Util::Unit::create("lines");
+        _tracker_lh->prependUnit(lines.get());
+        _tracker_lh->addUnit(unit_table.unit("%"));
+        _tracker_lh->addUnit(unit_table.unit("em"));
+        _tracker_lh->addUnit(unit_table.unit("ex"));
+        _tracker_lh->setActiveUnit(lines.get());
+
+        // Wire popover menus from glade to unit trackers
+        auto& fs_menu_btn = get_widget<Gtk::MenuButton>(builder, "text-font-size-units");
+        auto& lh_menu_btn = get_widget<Gtk::MenuButton>(builder, "text-line-height-unit");
+        auto& fs_popover = get_widget<Gtk::PopoverMenu>(builder, "text-font-size-unit-menu");
+        auto& lh_popover = get_widget<Gtk::PopoverMenu>(builder, "text-line-hight-unit-menu");
+
+        auto fs_unit_menu = _tracker_fs->create_popover_unit_menu(fs_menu_btn);
+        fs_popover.set_menu_model(fs_unit_menu.menu);
+
+        auto lh_unit_menu = _tracker_lh->create_popover_unit_menu(lh_menu_btn);
+        lh_popover.set_menu_model(lh_unit_menu.menu);
+
+        // Update spinbutton suffix when unit changes
+        _tracker_fs->signal_unit_changed().connect([this](Util::Unit const *unit) {
+            if (unit) _font_size.set_suffix(" " + unit->abbr);
+        });
+        _tracker_lh->signal_unit_changed().connect([this](Util::Unit const *unit) {
+            if (unit) _line_height.set_suffix(unit->abbr.empty() ? "" : " " + unit->abbr);
+        });
+
+        // Set initial suffixes
+        if (auto u = _tracker_fs->getActiveUnit()) _font_size.set_suffix(" " + u->abbr);
+        if (auto u = _tracker_lh->getActiveUnit()) _line_height.set_suffix(u->abbr.empty() ? "" : " " + u->abbr);
+
+        // Font-size unit change: convert displayed value and save preference
+        _tracker_fs->signal_unit_changed().connect([this](Util::Unit const *unit) {
+            if (!unit) return;
+            Preferences::get()->setInt("/options/font/unitType", unit_to_css_unit(unit));
+            update_text_properties();
+        });
+
+        // Line-height unit change: convert value between old/new units
+        _tracker_lh->signal_unit_changed().connect([this](Util::Unit const *unit) {
+            if (!unit || !can_update()) return;
+
+            int new_css = unit_to_css_unit(unit);
+            if (_lineheight_unit == new_css) return;
+
+            // Get average font size for relative ↔ absolute conversion
+            double font_size = 0;
+            int count = 0;
+            for (auto item : get_query_items()) {
+                if (item && item->style) { font_size += item->style->font_size.computed; ++count; }
+            }
+            font_size = count > 0 ? font_size / count : 20;
+
+            double lh = convert_lineheight_between_units(_line_height.get_value(), _lineheight_unit, unit, font_size);
+            _lineheight_unit = new_css;
+            _line_height.set_step(unit->abbr == "%" ? 1.0 : 0.1);
+
+            auto scoped(_update.block());
+            _line_height.set_value(lh);
+        });
+
         // alignment buttons
         _align_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-align-left");
         _align_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-align-center");
@@ -1784,16 +1856,18 @@ public:
 
         _font_size.signal_value_changed().connect([this](double value) {
             if (!can_update()) return;
+            auto unit = _tracker_fs->getActiveUnit();
+            double px_value = Util::Quantity::convert(value, unit, "px");
             auto css = make_css();
-            sp_repr_css_set_property_double(css.get(), "font-size", value);
+            sp_repr_css_set_property_double(css.get(), "font-size", px_value);
             apply_css(css.get(), "ttb:size");
         });
 
         _line_height.signal_value_changed().connect([this](double value) {
             if (!can_update()) return;
             auto css = make_css();
-            // TODO: handle line-height units properly
-            sp_repr_css_set_property_double(css.get(), "line-height", value);
+            auto lh_str = format_line_height_css(value, _tracker_lh->getActiveUnit());
+            sp_repr_css_set_property(css.get(), "line-height", lh_str.c_str());
             apply_css(css.get(), "ttb:line-height");
         });
 
@@ -2054,20 +2128,55 @@ private:
         auto props = query_text_properties(items);
         static const Glib::ustring mixed_text = "…";
 
-        // font size (stored in px)
+        // font size (stored in px, convert to display unit)
         if (props.font_size.state == PropState::Mixed) {
-            _font_size.set_value(props.font_size.value);
+            auto unit = _tracker_fs->getActiveUnit();
+            double display_val = Util::Quantity::convert(props.font_size.value, "px", unit);
+            _font_size.set_value(display_val);
             _font_size.set_placeholder(mixed_text);
         } else if (props.font_size.state == PropState::Single) {
-            _font_size.set_value(props.font_size.value);
+            auto unit = _tracker_fs->getActiveUnit();
+            double display_val = Util::Quantity::convert(props.font_size.value, "px", unit);
+            _font_size.set_value(display_val);
         }
 
-        // line height
-        if (props.line_height.state == PropState::Mixed) {
-            _line_height.set_value(props.line_height.value);
-            _line_height.set_placeholder(mixed_text);
-        } else if (props.line_height.state == PropState::Single) {
-            _line_height.set_value(props.line_height.value);
+        // line height — set tracker unit and convert value for display
+        {
+            int lh_unit = props.line_height_unit.unit;
+            double height = props.line_height.value;
+
+            // For absolute units stored in px, convert to display unit
+            if (!is_relative_unit(lh_unit)) {
+                // Use current display unit preference for absolute line-height
+                auto cur_unit = _tracker_lh->getActiveUnit();
+                if (cur_unit && !is_relative_unit(cur_unit)) {
+                    height = Util::Quantity::convert(height, "px", cur_unit);
+                }
+            }
+
+            // Set the tracker's active unit based on the style's unit
+            if (lh_unit == SP_CSS_UNIT_NONE) {
+                _tracker_lh->setActiveUnitByAbbr("lines");
+            } else {
+                _tracker_lh->setActiveUnitByAbbr(sp_style_get_css_unit_string(lh_unit));
+            }
+
+            // Update step increments based on unit
+            if (lh_unit == SP_CSS_UNIT_PERCENT) {
+                _line_height.set_step(1.0);
+            } else {
+                _line_height.set_step(0.1);
+            }
+
+            // Save unit for conversion on unit change
+            _lineheight_unit = lh_unit;
+
+            if (props.line_height.state == PropState::Mixed) {
+                _line_height.set_value(height);
+                _line_height.set_placeholder(mixed_text);
+            } else if (props.line_height.state == PropState::Single) {
+                _line_height.set_value(height);
+            }
         }
 
         // letter spacing
@@ -2425,6 +2534,9 @@ private:
     std::vector<Glib::ustring> _family_names;
     std::vector<Glib::ustring> _style_names;
     int _selected_family_index = -1;
+    int _lineheight_unit = SP_CSS_UNIT_NONE;
+    std::unique_ptr<Widget::UnitTracker> _tracker_fs;
+    std::unique_ptr<Widget::UnitTracker> _tracker_lh;
     sigc::scoped_connection _font_stream;
 };
 
@@ -3181,12 +3293,8 @@ std::unique_ptr<details::AttributesPanel> ObjectAttributes::create_panel(int key
         case tag_of<SPPolygon>:  return std::make_unique<PolygonPanel>(_builder);
         case tag_of<SPGroup>:    return std::make_unique<GroupPanel>(_builder);
         case tag_of<SPUse>:      return std::make_unique<ClonePanel>(_builder);
+        case tag_of<SPText>:     return std::make_unique<TextPanel>(_builder); //todo: tref, tspan, textpath, flowtext?
     }
-
-    //TODO: those panels are not ready yet
-if constexpr (INCLUDE_EXPERIMENTAL_PANELS) {
-        if (key == tag_of<SPText>) return std::make_unique<TextPanel>(_builder); //todo: tref, tspan, textpath, flowtext?
-}
 
     return {};
 }

@@ -11,6 +11,8 @@
 #include <cstring>
 #include <glibmm/regex.h>
 #include "desktop-style.h"
+#include "svg/css-ostringstream.h"
+#include "util/units.h"
 #include "font-discovery.h"
 #include "object/sp-flowdiv.h"
 #include "object/sp-flowtext.h"
@@ -578,6 +580,80 @@ void apply_text_css(SPItem* text_item, UI::Tools::TextTool* tool, SPCSSAttr* css
     // No subselection — apply CSS recursively to the text item
     sp_desktop_apply_css_recursive(text_item, css, true);
     text_item->updateRepr();
+}
+
+// --- Unit helpers for font-size / line-height ---
+
+bool is_relative_unit(Util::Unit const *unit) {
+    return unit->abbr == "" || unit->abbr == "lines" || unit->abbr == "em" || unit->abbr == "ex" || unit->abbr == "%";
+}
+
+bool is_relative_unit(int css_unit) {
+    return css_unit == SP_CSS_UNIT_NONE || css_unit == SP_CSS_UNIT_EM ||
+           css_unit == SP_CSS_UNIT_EX   || css_unit == SP_CSS_UNIT_PERCENT;
+}
+
+int unit_to_css_unit(Util::Unit const *unit) {
+    if (unit->abbr == "" || unit->abbr == "lines") return SP_CSS_UNIT_NONE;
+    SPILength temp;
+    CSSOStringStream s;
+    s << 1 << unit->abbr;
+    temp.read(s.str().c_str());
+    return temp.unit;
+}
+
+double convert_lineheight_between_units(double value, int old_unit,
+                                        Util::Unit const *new_unit, double avg_font_size)
+{
+    auto const &abbr = new_unit->abbr;
+
+    bool const new_is_lines = (abbr == "" || abbr == "lines" || abbr == "em");
+
+    if (new_is_lines && (old_unit == SP_CSS_UNIT_NONE || old_unit == SP_CSS_UNIT_EM)) {
+        // no conversion needed
+    } else if (new_is_lines && old_unit == SP_CSS_UNIT_EX) {
+        value *= 0.5;
+    } else if (abbr == "ex" && (old_unit == SP_CSS_UNIT_EM || old_unit == SP_CSS_UNIT_NONE)) {
+        value *= 2.0;
+    } else if (new_is_lines && old_unit == SP_CSS_UNIT_PERCENT) {
+        value /= 100.0;
+    } else if (abbr == "%" && (old_unit == SP_CSS_UNIT_EM || old_unit == SP_CSS_UNIT_NONE)) {
+        value *= 100;
+    } else if (abbr == "ex" && old_unit == SP_CSS_UNIT_PERCENT) {
+        value /= 50.0;
+    } else if (abbr == "%" && old_unit == SP_CSS_UNIT_EX) {
+        value *= 50;
+    } else if (is_relative_unit(new_unit)) {
+        // absolute → relative
+        int ou = old_unit;
+        if (ou == SP_CSS_UNIT_NONE) ou = SP_CSS_UNIT_EM;
+        value = Util::Quantity::convert(value, sp_style_get_css_unit_string(ou), "px");
+        if (avg_font_size > 0) value /= avg_font_size;
+        if (abbr == "%") value *= 100;
+        else if (abbr == "ex") value *= 2;
+    } else if (is_relative_unit(old_unit)) {
+        // relative → absolute
+        if (old_unit == SP_CSS_UNIT_PERCENT) value /= 100.0;
+        else if (old_unit == SP_CSS_UNIT_EX) value /= 2.0;
+        value *= avg_font_size;
+        value = Util::Quantity::convert(value, "px", new_unit);
+    } else {
+        // absolute → absolute
+        value = Util::Quantity::convert(value, sp_style_get_css_unit_string(old_unit), new_unit);
+    }
+    return value;
+}
+
+std::string format_line_height_css(double value, Util::Unit const *unit) {
+    CSSOStringStream osfs;
+    if (unit->abbr == "" || unit->abbr == "lines") {
+        osfs << value;
+    } else if (is_relative_unit(unit)) {
+        osfs << value << unit->abbr;
+    } else {
+        osfs << Util::Quantity::convert(value, unit, "px") << "px";
+    }
+    return osfs.str();
 }
 
 } // namespace

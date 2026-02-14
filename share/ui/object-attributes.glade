@@ -718,7 +718,6 @@
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <property name="tooltip-text" translatable="yes">Font size</property>
-            <property name="suffix" translatable="yes"> px</property>
           </object>
         </child>
         <child>
