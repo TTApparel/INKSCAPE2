@@ -50,7 +50,7 @@
 #include "util/units.h"
 
 using Inkscape::DocumentUndo;
-
+constexpr auto NON_BREAKING_SPACE = "\u00A0";
 namespace Inkscape::UI::Tools {
 
 TextTool::TextTool(SPDesktop *desktop)
@@ -703,7 +703,8 @@ bool TextTool::root_handler(CanvasEvent const &event)
                                     _setupText();
                                     nascent_object = false; // we don't need it anymore, having created a real <text>
                                 }
-                                text_sel_start = text_sel_end = sp_te_replace(text, text_sel_start, text_sel_end, "\302\240");
+                                text_sel_start = text_sel_end =
+                                    sp_te_replace(text, text_sel_start, text_sel_end, NON_BREAKING_SPACE);
                                 _updateCursor();
                                 _updateTextSelection();
                                 _desktop->messageStack()->flash(NORMAL_MESSAGE, _("No-break space"));
