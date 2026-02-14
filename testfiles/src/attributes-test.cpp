@@ -325,6 +325,7 @@ std::vector<AttributeInfo> getKnownAttrs()
         AttributeInfo("text-decoration-line", true),
         AttributeInfo("text-decoration-stroke", true),
         AttributeInfo("text-decoration-style", true),
+        AttributeInfo("text-decoration-thickness", true),
         AttributeInfo("text-indent", true),
         AttributeInfo("text-orientation", true),
         AttributeInfo("text-rendering", true),

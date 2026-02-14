@@ -1706,8 +1706,11 @@ public:
         // --- unit tracker setup ---
         auto const &unit_table = Util::UnitTable::get();
 
-        // Font-size tracker: default to pt
-        _tracker_fs->setActiveUnit(unit_table.getUnit("pt"));
+        // Font-size tracker: restore saved unit (default to pt)
+        {
+            int fs_css = Preferences::get()->getInt("/options/font/unitType", SP_CSS_UNIT_PT);
+            _tracker_fs->setActiveUnitByAbbr(sp_style_get_css_unit_string(fs_css));
+        }
 
         // Line-height tracker: add special units (same as text toolbar)
         auto lines = Util::Unit::create("lines");
@@ -1744,6 +1747,7 @@ public:
         // Font-size unit change: convert displayed value and save preference
         _tracker_fs->signal_unit_changed().connect([this](Util::Unit const *unit) {
             if (!unit) return;
+
             Preferences::get()->setInt("/options/font/unitType", unit_to_css_unit(unit));
             update_text_properties();
         });
@@ -1838,6 +1842,7 @@ public:
 
         _font_styles.signal_value_changed().connect([this](Glib::ustring style_name) {
             if (!can_update()) return;
+
             if (auto font = find_font_by_style(style_name)) {
                 auto desc = get_font_description(font->ff, font->face);
                 auto css = make_css();
@@ -1856,6 +1861,7 @@ public:
 
         _font_size.signal_value_changed().connect([this](double value) {
             if (!can_update()) return;
+
             auto unit = _tracker_fs->getActiveUnit();
             double px_value = Util::Quantity::convert(value, unit, "px");
             auto css = make_css();
@@ -1865,6 +1871,7 @@ public:
 
         _line_height.signal_value_changed().connect([this](double value) {
             if (!can_update()) return;
+
             auto css = make_css();
             auto lh_str = format_line_height_css(value, _tracker_lh->getActiveUnit());
             sp_repr_css_set_property(css.get(), "line-height", lh_str.c_str());
@@ -1873,6 +1880,7 @@ public:
 
         _letter_spacing.signal_value_changed().connect([this](double value) {
             if (!can_update()) return;
+
             auto css = make_css();
             sp_repr_css_set_property_double(css.get(), "letter-spacing", value);
             apply_css(css.get(), "ttb:letter-spacing");
@@ -1880,6 +1888,7 @@ public:
 
         _word_spacing.signal_value_changed().connect([this](double value) {
             if (!can_update()) return;
+
             auto css = make_css();
             sp_repr_css_set_property_double(css.get(), "word-spacing", value);
             apply_css(css.get(), "ttb:word-spacing");
@@ -1887,6 +1896,7 @@ public:
 
         _kern_horz.signal_value_changed().connect([this](double new_dx) {
             if (!can_update()) return;
+
             if (apply_text_dx(get_text_tool(), _desktop, new_dx)) {
                 DocumentUndo::maybeDone(_document, "ttb:dx", RC_("Undo", "Text: Change horizontal kerning"), INKSCAPE_ICON("draw-text"));
             }
@@ -1894,6 +1904,7 @@ public:
 
         _kern_vert.signal_value_changed().connect([this](double new_dy) {
             if (!can_update()) return;
+
             if (apply_text_dy(get_text_tool(), _desktop, new_dy)) {
                 DocumentUndo::maybeDone(_document, "ttb:dy", RC_("Undo", "Text: Change vertical kerning"), INKSCAPE_ICON("draw-text"));
             }
@@ -1901,6 +1912,7 @@ public:
 
         _char_rotation.signal_value_changed().connect([this](double new_degrees) {
             if (!can_update()) return;
+
             if (apply_text_char_rotation(get_text_tool(), _desktop, new_degrees)) {
                 DocumentUndo::maybeDone(_document, "ttb:rotate", RC_("Undo", "Text: Rotate characters"), INKSCAPE_ICON("draw-text"));
             }
