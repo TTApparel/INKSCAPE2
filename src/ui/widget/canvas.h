@@ -211,6 +211,9 @@ private:
     bool     _all_enter_events;  ///< Keep all enter events. Only set true in connector-tool.cpp.
     bool     _is_dragging;       ///< Used in selection-chemistry to block undo/redo.
     int      _state;             ///< Last known modifier state (SHIFT, CTRL, etc.).
+    sigc::scoped_connection _button_release_watchdog;
+    int _button_down = 0;
+    Geom::Point _pointer_position;
 
     Inkscape::CanvasItem *_current_canvas_item;     ///< Item containing cursor, nullptr if none.
     Inkscape::CanvasItem *_current_canvas_item_new; ///< Item to become _current_item, nullptr if none.

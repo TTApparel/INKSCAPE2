@@ -26,6 +26,7 @@
 #include <gtkmm/eventcontrollerscroll.h>
 #include <gdkmm/frameclock.h>
 #include <gdkmm/glcontext.h>
+#include <gdkmm/seat.h>
 #include <gtkmm/applicationwindow.h>
 #include <gtkmm/gestureclick.h>
 
@@ -979,6 +980,30 @@ Gtk::EventSequenceState Canvas::on_button_pressed(Gtk::GestureClick const &contr
     d->last_mouse = Geom::Point(x, y);
     d->unreleased_presses |= 1 << controller.get_current_button();
 
+#ifdef __APPLE__
+    _pointer_position = Geom::Point(x, y);
+    _button_down = controller.get_current_button();
+    _button_release_watchdog = Glib::signal_timeout().connect([this, &controller] {
+        auto pointer = Gdk::Display::get_default()-> get_default_seat()-> get_pointer();
+        double x, y;
+        Gdk::ModifierType mask;
+        dynamic_cast<Gtk::Native&>(*get_root()).get_surface()->get_device_position(pointer, x, y, mask);
+        auto buttons = Gdk::ModifierType::BUTTON1_MASK | Gdk::ModifierType::BUTTON2_MASK | Gdk::ModifierType::BUTTON3_MASK;
+        if ((mask & buttons) == Gdk::ModifierType::NO_MODIFIER_MASK) {
+            // lost release event
+            auto event = ButtonReleaseEvent();
+            event.modifiers = int(mask);
+            event.device = controller.get_current_event_device();
+            event.pos = _pointer_position;
+            event.button = _button_down;
+            event.time = controller.get_current_event_time();
+            d->process_event(event);
+            return false;
+        }
+        return true;
+    }, 100);
+#endif
+
     grab_focus();
 
     if (controller.get_current_button() == 3) {
@@ -1021,6 +1046,8 @@ Gtk::EventSequenceState Canvas::on_button_pressed(Gtk::GestureClick const &contr
 Gtk::EventSequenceState Canvas::on_button_released(Gtk::GestureClick const &controller, int /*n_press*/, double x,
                                                    double y, int button)
 {
+    _button_release_watchdog.disconnect();
+
     _state = (int)controller.get_current_event_state();
     d->last_mouse = Geom::Point(x, y);
     d->unreleased_presses &= ~(1 << button);
@@ -1168,6 +1195,7 @@ void Canvas::on_key_released(Gtk::EventControllerKey const &controller,
 
 void Canvas::on_motion(Gtk::EventControllerMotion const &controller, double x, double y)
 {
+    _pointer_position = Geom::Point(x, y);
     auto const mouse = Geom::Point{x, y};
     if (mouse == d->last_mouse) {
         return; // Scrolling produces spurious motion events; discard them.
