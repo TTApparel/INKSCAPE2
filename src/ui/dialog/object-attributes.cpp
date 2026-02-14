@@ -2064,7 +2064,8 @@ public:
         _section_widgets = Widget::reparent_properties(get_widget<Gtk::Grid>(builder, "text-secondary"), _grid);
         _grid.add_section_divider();
         add_filters(false);
-        add_lpes();
+        // TODO: make text work with LPEs: it needs to be converted first (otherwise Inkscape will crash)
+        // add_lpes();
         add_name_properties();
         add_interactivity_properties();
 
