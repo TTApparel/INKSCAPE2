@@ -1691,7 +1691,7 @@ public:
         _kern_horz(get_widget<Widget::InkSpinButton>(builder, "text-kern-horz")),
         _kern_vert(get_widget<Widget::InkSpinButton>(builder, "text-kern-vert")),
         _char_rotation(get_widget<Widget::InkSpinButton>(builder, "text-char-rotation")),
-        _decoration_color(get_derived_widget<Widget::ColorPicker>(builder, "text-decor-color", _("Text decoration"))),
+        _decoration_color(get_derived_widget<Widget::ColorPicker>(builder, "text-decor-color", _("Text decoration"), false)),
         _thickness_auto(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-auto")),
         _thickness_font(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-font")),
         _thickness_custom(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-length")),
@@ -1924,6 +1924,10 @@ public:
         _thickness_custom.signal_toggled().connect([this] {
             if (!can_update() || !_thickness_custom.get_active()) return;
             _line_thickness.set_sensitive(true);
+
+            auto css = make_css();
+            sp_repr_css_set_property_double(css.get(), "text-decoration-thickness", _line_thickness.get_value());
+            apply_css(css.get(), "ttb:text-decoration-thickness");
         });
         _line_thickness.signal_value_changed().connect([this](double value) {
             if (!can_update()) return;
@@ -1949,6 +1953,8 @@ public:
         _decor_color_default.signal_toggled().connect([this] {
             if (!can_update() || !_decor_color_default.get_active()) return;
 
+            // let's apply default color by removing text-decoration-color property;
+            // this is the same as setting it to "currentColor"
             auto css = make_css();
             sp_repr_css_unset_property(css.get(), "text-decoration-color");
             apply_css(css.get(), "ttb:text-decoration-color");
@@ -2176,31 +2182,34 @@ private:
             for (int j = 0; j < 5; ++j) _line_style_buttons[j]->set_active(j == props.decoration_style.value);
         }
 
-        // decoration thickness (not in style system — read from raw style attribute)
-        if (_current_item) {
-            SPCSSAttr* item_css = sp_repr_css_attr(_current_item->getRepr(), "style");
-            auto thickness = sp_repr_css_property(item_css, "text-decoration-thickness", "auto");
-            if (!strcmp(thickness, "from-font")) {
+        // decoration thickness
+        {
+            auto& th = props.decoration_thickness;
+            if (th.from_font) {
                 _thickness_font.set_active(true);
                 _line_thickness.set_sensitive(false);
-            } else if (!strcmp(thickness, "auto")) {
-                _thickness_auto.set_active(true);
-                _line_thickness.set_sensitive(false);
-            } else {
+            } else if (!th.auto_val && th.state == PropState::Single) {
                 _thickness_custom.set_active(true);
                 _line_thickness.set_sensitive(true);
-                _line_thickness.set_value(std::atof(thickness));
+                _line_thickness.set_value(th.value);
+            } else {
+                _thickness_auto.set_active(true);
+                _line_thickness.set_sensitive(false);
             }
-            sp_repr_css_attr_unref(item_css);
         }
 
         // decoration color
+        _decoration_color.setColor(props.decoration_color.color.value_or(Colors::Color(0)));
         if (props.decoration_color.state == PropState::Single) {
             _decor_color_custom.set_active(true);
-            _decoration_color.setColor(props.decoration_color.color.value_or(Colors::Color(0)));
-        } else {
-            //TODO: mixed state for color button?
-            // _decor_color_default.set_active(true);
+        }
+        else if (props.decoration_color.state == PropState::Unset) {
+            _decor_color_default.set_active(true);
+        }
+        else {
+            // mixed state for color button?
+            _decor_color_default.set_active(false);
+            _decor_color_custom.set_active(false);
         }
 
         // Dx, Dy, rotation (not CSS attributes — read from text tag attributes)

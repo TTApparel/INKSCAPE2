@@ -231,16 +231,47 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items) {
             props.decoration_style.state = PropState::Mixed;
         }
 
-        // --- decoration color ---
-        std::optional<Colors::Color> dc;
-        if (style->text_decoration_color.set && !style->text_decoration_color.inherit) {
-            dc = style->text_decoration_color.getColor();
+        // --- decoration color (not inherited — check parent if unset) ---
+        {
+            auto const *dc_ptr = &style->text_decoration_color;
+            if (!dc_ptr->set && item->parent && item->parent->style) {
+                dc_ptr = &item->parent->style->text_decoration_color;
+            }
+            bool dc_is_set = dc_ptr->set && !dc_ptr->inherit;
+            auto dc = dc_is_set ? std::optional<Colors::Color>(dc_ptr->getColor()) : std::nullopt;
+            if (first) {
+                props.decoration_color.color = dc;
+                props.decoration_color.state = dc_is_set ? PropState::Single : PropState::Unset;
+            } else if (props.decoration_color.state != PropState::Mixed) {
+                if (dc_is_set != (props.decoration_color.state == PropState::Single) ||
+                    props.decoration_color.color != dc) {
+                    props.decoration_color.state = PropState::Mixed;
+                }
+            }
         }
-        if (first) {
-            props.decoration_color.color = dc;
-            props.decoration_color.state = PropState::Single;
-        } else if (props.decoration_color.state != PropState::Mixed && props.decoration_color.color != dc) {
-            props.decoration_color.state = PropState::Mixed;
+
+        // --- decoration thickness (not inherited — check parent if unset) ---
+        {
+            auto* tdt_ptr = &style->text_decoration_thickness;
+            if (!tdt_ptr->set && item->parent && item->parent->style) {
+                tdt_ptr = &item->parent->style->text_decoration_thickness;
+            }
+            auto& tdt = *tdt_ptr;
+            double tv = tdt.computed;
+            bool ta = tdt.auto_val;
+            bool tf = tdt.from_font;
+            if (first) {
+                props.decoration_thickness.value = tv;
+                props.decoration_thickness.auto_val = ta;
+                props.decoration_thickness.from_font = tf;
+                props.decoration_thickness.state = tdt.set ? PropState::Single : PropState::Unset;
+            } else if (props.decoration_thickness.state != PropState::Mixed) {
+                if (props.decoration_thickness.auto_val != ta ||
+                    props.decoration_thickness.from_font != tf ||
+                    (!ta && !tf && props.decoration_thickness.value != tv)) {
+                    props.decoration_thickness.state = PropState::Mixed;
+                }
+            }
         }
 
         first = false;

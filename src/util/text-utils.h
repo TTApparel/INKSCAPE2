@@ -61,6 +61,7 @@ struct TextProperties {
     struct { bool value = false; PropState state = PropState::Unset; } decoration_syntax_error;
     struct { int value = 0; PropState state = PropState::Unset; } decoration_style; // 0=solid,1=double,2=dotted,3=dashed,4=wavy
     struct { std::optional<Colors::Color> color; PropState state = PropState::Unset; } decoration_color;
+    struct { double value = 0; bool auto_val = true; bool from_font = false; PropState state = PropState::Unset; } decoration_thickness;
 };
 
 // Query text properties from a list of items (tspans, flowparas, or text elements).
