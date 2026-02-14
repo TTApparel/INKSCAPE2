@@ -1159,6 +1159,42 @@ public:
 };
 
 
+/// Text decoration thickness type internal to SPStyle.
+// CSS: text-decoration-thickness: auto | from-font | <length> | <percentage>
+// Not inherited.
+class SPITextDecorationThickness : public SPILength
+{
+public:
+    SPITextDecorationThickness()
+        : SPILength(0)
+    {
+        auto_val = true;
+        from_font = false;
+    }
+
+    ~SPITextDecorationThickness() override = default;
+
+    void read(gchar const *str) override;
+    const Glib::ustring get_value() const override;
+    void clear() override {
+        SPILength::clear();
+        auto_val = true;
+        from_font = false;
+    }
+
+    // Not inherited
+    void cascade(const SPIBase* const parent) override {};
+    void merge(const SPIBase* const parent) override {};
+
+    SPITextDecorationThickness& operator=(const SPITextDecorationThickness& rhs) = default;
+
+    bool equals(const SPIBase& rhs) const override;
+
+public:
+    bool auto_val : 1;
+    bool from_font : 1;
+};
+
 
 // This class reads in both CSS2 and CSS3 'text-decoration' property. It passes the line, style,
 // and color parts to the appropriate CSS3 long-hand classes for reading and storing values.  When

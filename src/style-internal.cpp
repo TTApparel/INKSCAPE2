@@ -3168,6 +3168,49 @@ SPITextDecorationStyle::equals(const SPIBase& rhs) const {
 // FIXME
 
 
+// SPITextDecorationThickness -------------------------------------------
+
+void SPITextDecorationThickness::read(gchar const *str) {
+
+    if (!str) return;
+
+    if (!strcmp(str, "auto")) {
+        set = true;
+        inherit = false;
+        auto_val = true;
+        from_font = false;
+    } else if (!strcmp(str, "from-font")) {
+        set = true;
+        inherit = false;
+        auto_val = false;
+        from_font = true;
+    } else {
+        SPILength::read(str);
+        if (set) {
+            auto_val = false;
+            from_font = false;
+        }
+    }
+}
+
+const Glib::ustring SPITextDecorationThickness::get_value() const {
+    if (inherit) return Glib::ustring("inherit");
+    if (auto_val) return Glib::ustring("auto");
+    if (from_font) return Glib::ustring("from-font");
+    return SPILength::get_value();
+}
+
+bool SPITextDecorationThickness::equals(const SPIBase& rhs) const {
+    if (const SPITextDecorationThickness* r = dynamic_cast<const SPITextDecorationThickness*>(&rhs)) {
+        if (auto_val && r->auto_val) return true;
+        if (from_font && r->from_font) return true;
+        if (auto_val != r->auto_val || from_font != r->from_font) return false;
+        return SPILength::equals(rhs);
+    } else {
+        return false;
+    }
+}
+
 
 // SPITextDecoration ----------------------------------------------------
 

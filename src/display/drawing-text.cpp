@@ -358,8 +358,17 @@ void DrawingText::decorateItem(DrawingContext &dc, double phase_length, bool und
     double tsp_asc_adj                  = _nrstyle.data.ascender                        / _nrstyle.data.font_size;
     double tsp_size_adj                 = (_nrstyle.data.ascender + _nrstyle.data.descender) / _nrstyle.data.font_size;
 
-    double final_underline_thickness    = CLAMP(_nrstyle.data.underline_thickness,    tsp_size_adj/30.0, tsp_size_adj/10.0);
-    double final_line_through_thickness = CLAMP(_nrstyle.data.line_through_thickness, tsp_size_adj/30.0, tsp_size_adj/10.0);
+    double final_underline_thickness;
+    double final_line_through_thickness;
+    if (_nrstyle.data.text_decoration_thickness > 0) {
+        // Explicit CSS text-decoration-thickness (from-font or length/percentage)
+        final_underline_thickness    = _nrstyle.data.text_decoration_thickness / _nrstyle.data.font_size;
+        final_line_through_thickness = final_underline_thickness;
+    } else {
+        // Auto: use font metrics with CLAMP
+        final_underline_thickness    = CLAMP(_nrstyle.data.underline_thickness,    tsp_size_adj/30.0, tsp_size_adj/10.0);
+        final_line_through_thickness = CLAMP(_nrstyle.data.line_through_thickness, tsp_size_adj/30.0, tsp_size_adj/10.0);
+    }
 
     double xphase = phase_length/ _nrstyle.data.font_size; // used to figure out phase of patterns
 

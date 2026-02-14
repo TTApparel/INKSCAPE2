@@ -84,6 +84,7 @@ NRStyleData::NRStyleData()
     , text_decoration_fill()
     , text_decoration_stroke()
     , text_decoration_stroke_width(0.0)
+    , text_decoration_thickness(0.0)
     , phase_length(0.0)
     , tspan_line_start(false)
     , tspan_line_end(false)
@@ -293,6 +294,22 @@ NRStyleData::NRStyleData(SPStyle const *style, SPStyle const *context_style)
         line_through_thickness = style->text_decoration_data.line_through_thickness;
         line_through_position  = style->text_decoration_data.line_through_position;
         font_size              = style->font_size.computed;
+
+        // CSS text-decoration-thickness override
+        auto& tdt = style->text_decoration_thickness;
+        if (tdt.set && !tdt.auto_val) {
+            if (tdt.from_font) {
+                // Use raw font metric (bypass CLAMP in renderer)
+                text_decoration_thickness = underline_thickness;
+            } else {
+                // Explicit length or percentage (percentage resolved against font-size)
+                double val = tdt.computed;
+                if (tdt.unit == SP_CSS_UNIT_PERCENT) {
+                    val = tdt.value * font_size;
+                }
+                text_decoration_thickness = val;
+            }
+        }
     }
 
     text_direction = style->direction.computed;

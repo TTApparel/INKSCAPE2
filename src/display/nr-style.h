@@ -114,6 +114,7 @@ struct NRStyleData
     Paint text_decoration_fill;
     Paint text_decoration_stroke;
     float text_decoration_stroke_width;
+    float text_decoration_thickness;  // 0 = auto (use font metrics + CLAMP), >0 = explicit override
 
     // These are the same as in style.h
     float phase_length;
