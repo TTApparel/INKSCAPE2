@@ -43,6 +43,8 @@ static SPObject *generate_linked_fill(SPShape *source)
     effectRepr->setAttribute("autoreverse", "false");
     effectRepr->setAttribute("close", "false");
     effectRepr->setAttribute("join", "false");
+    effectRepr->setAttribute("is_visible", "true");
+    effectRepr->setAttribute("lpeversion","1.2");
     effectRepr->setAttribute("linkedpaths", effectTarget);
     defs->appendChild(effectRepr);
     Inkscape::GC::release(effectRepr);

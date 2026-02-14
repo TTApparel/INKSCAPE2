@@ -44,6 +44,13 @@ LPEFillBetweenMany::LPEFillBetweenMany(LivePathEffectObject *lpeobject)
     registerParameter(&autoreverse);
     previous_method = FLM_END;
     linked_paths.setUpdating(true);
+    auto repr = getLPEObj()->getRepr();
+    if (!repr->attribute("is_visible")) {
+        repr->setAttribute("is_visible", "true");
+    }
+    if (!repr->attribute("lpeversion")) {
+        repr->setAttribute("lpeversion","1");
+    }
 }
 
 LPEFillBetweenMany::~LPEFillBetweenMany() = default;
