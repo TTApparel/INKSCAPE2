@@ -627,7 +627,7 @@ void PathManipulator::deleteNodes(NodeDeleteMode delete_mode)
     for (SubpathList::iterator i = _subpaths.begin(); i != _subpaths.end();) {
         SubpathPtr sp = *i;
 
-        // If there are less than 2 unselected nodes in an open subpath or no unselected nodes
+        // If there are less than 2 unselected nodes in an open subpath with several conditions or no unselected nodes
         // in a closed one, delete entire subpath.
         unsigned num_unselected = 0, num_selected = 0;
         for (auto & j : *sp) {
@@ -638,9 +638,28 @@ void PathManipulator::deleteNodes(NodeDeleteMode delete_mode)
             ++i;
             continue;
         }
-        if (sp->closed() ? (num_unselected < 1) : (num_unselected < 2)) {
-            _subpaths.erase(i++);
-            continue;
+        if (num_unselected < 2){  
+            // Case 1: all nodes selected
+            bool delete_figure = num_unselected < 1 ||
+            // Case 2: an open subpath with only one node is forbidden 
+                                !sp->closed() || 
+            // Case 3: delete mode preference is set to "straight lines"
+                                delete_mode == NodeDeleteMode::line_segment;  
+            // Case 4: delete mode preference is set to "preserve curves only" (default) and the last node has no handles 
+            // (one node with handles is allowed)
+            if (!delete_figure && num_unselected == 1 && delete_mode == NodeDeleteMode::automatic){
+                for (auto & j : *sp) {
+                    if (!j.selected()){
+                        delete_figure = delete_figure || j.isDegenerate();  
+                        break;
+                    }
+                }
+            }
+
+            if (delete_figure){
+                _subpaths.erase(i++);
+                continue;
+            }
         }
 
         // In closed paths, start from an unselected node - otherwise we might start in the middle
