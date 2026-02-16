@@ -332,6 +332,8 @@ void FontVariations::build_ui(const std::map<Glib::ustring, OTVarAxis>& ot_axes)
         axis->get_editbox()->get_adjustment()->signal_value_changed().connect(
             [this](){ if (!_update.pending()) {_signal_changed.emit();} }
         );
+        // apply remembered scale visibility
+        axis->get_scale()->set_visible(_scales_visible);
     }
 }
 
@@ -424,6 +426,15 @@ int FontVariations::measure_height(int axis_count) {
     measure(Gtk::Orientation::VERTICAL, 9999, min, nat, b1, b2);
     build_ui({});
     return nat;
+}
+
+void FontVariations::set_scales_visible(bool visible) {
+    if (_scales_visible == visible) return;
+
+    _scales_visible = visible;
+    for (auto axis : _axes) {
+        axis->get_scale()->set_visible(visible);
+    }
 }
 
 }
