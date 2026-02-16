@@ -16,11 +16,13 @@
 #ifndef INKSCAPE_UI_DIALOG_FILL_AND_STROKE_H
 #define INKSCAPE_UI_DIALOG_FILL_AND_STROKE_H
 
+#include <gtkmm/menubutton.h>
 #include <gtkmm/notebook.h>
 
 #include "ui/dialog/dialog-base.h"
 #include "ui/widget/object-composite-settings.h"
 #include "ui/widget/style-subject.h"
+#include "ui/widget/paint-switch.h"
 
 namespace Gtk {
 class Box;
@@ -29,7 +31,6 @@ class Box;
 namespace Inkscape::UI {
 
 namespace Widget {
-class FillNStroke;
 class NotebookPage;
 class StrokeStyle;
 } // namespace Widget
@@ -57,10 +58,11 @@ protected:
 
     UI::Widget::StyleSubject::Selection _subject;
     UI::Widget::ObjectCompositeSettings _composite_settings;
-
+    Gtk::MenuButton _recolor_btn;
     Gtk::Box &_createPageTabLabel(const Glib::ustring &label,
                                   const char *label_image);
 
+    void _setupRecolorBtn();
     void _layoutPageFill();
     void _layoutPageStrokePaint();
     void _layoutPageStrokeStyle();
@@ -70,13 +72,16 @@ protected:
 private:
     void selectionChanged (Selection *selection                ) final;
     void selectionModified(Selection *selection, unsigned flags) final;
+    void _ConnectPaintSignals(UI::Widget::PaintSwitch *paint_switch, bool is_fill);
+    void _updateFromSelection();
     int npage = 0;
     bool page_changed = false;
     bool changed_fill = true;
     bool changed_stroke = true;
     bool changed_stroke_style = true;
-    UI::Widget::FillNStroke *fillWdgt        = nullptr;
-    UI::Widget::FillNStroke *strokeWdgt      = nullptr;
+    bool _ignore_updates = false;
+    std::unique_ptr<UI::Widget::PaintSwitch> _fill_switch;
+    std::unique_ptr<UI::Widget::PaintSwitch> _stroke_switch;
     UI::Widget::StrokeStyle *strokeStyleWdgt = nullptr;
 
     sigc::scoped_connection _switch_page_conn;

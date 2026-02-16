@@ -152,7 +152,7 @@ void store_color_type(Space::Type type) {
 
 class PaintSwitchImpl : public PaintSwitch {
 public:
-    PaintSwitchImpl(bool support_no_paint, bool support_fill_rule);
+    PaintSwitchImpl(bool support_no_paint, bool support_fill_rule, bool compact_mode);
 
     void set_desktop(SPDesktop* desktop) override {
         _desktop = desktop;
@@ -164,6 +164,13 @@ public:
         _swatch.set_document(document);
         _pattern.set_document(document);
     }
+    void show_placeholder(const Glib::ustring& text, bool reset_toggles) override {
+        _placeholder.set_text(text);
+        _stack.set_visible_child(_placeholder);
+        _mode = PaintMode::None;
+        _mode_group.set_active(reset_toggles);
+    }
+
     // called from the outside to update UI
     void set_mode(PaintMode mode) override;
     // internal handler for buttons switching paint mode
@@ -278,6 +285,11 @@ public:
     std::map<PaintMode, Gtk::Widget*> _pages;
     std::map<PaintMode, Gtk::ToggleButton*> _mode_buttons;
     std::map<ColorPickerPanel::PlateType, Gtk::ToggleButton*> _plate_buttons;
+
+    // compact plate buttons
+    std::unique_ptr<UI::Widget::PopoverMenu> _menu_popover;
+    Gtk::MenuButton& _menu_btn;
+    bool _use_compact_mode = false;
     PaintMode _mode = PaintMode::None;
     SPDocument* _document = nullptr;
     Gtk::Stack& _stack;
@@ -293,13 +305,22 @@ public:
     Gtk::ToggleButton _mode_group;
     WidgetGroup _plate_type;
     SPDesktop* _desktop = nullptr;
+    Gtk::Label _placeholder;
 };
 
-PaintSwitchImpl::PaintSwitchImpl(bool support_no_paint, bool support_fill_rule) :
+PaintSwitchImpl::PaintSwitchImpl(bool support_no_paint, bool support_fill_rule, bool compact_mode) :
     _builder(create_builder("paint-switch.ui")),
+    _use_compact_mode(compact_mode),
     _stack(get_widget<Gtk::Stack>(_builder, "stack")),
     _inherited(get_derived_widget<PaintInherited>(_builder, "inherited")),
-    _fill_rule_btn(get_widget<Gtk::Button>(_builder, "btn-fill-rule")) {
+    _fill_rule_btn(get_widget<Gtk::Button>(_builder, "btn-fill-rule")),
+    _menu_btn(get_widget<Gtk::MenuButton>(_builder, "btn-menu")),
+    _menu_popover(std::make_unique<UI::Widget::PopoverMenu>(Gtk::PositionType::BOTTOM)) {
+
+    _placeholder.set_halign(Gtk::Align::CENTER);
+    _placeholder.set_valign(Gtk::Align::CENTER);
+    _placeholder.get_style_context()->add_class("dim-label");
+    _stack.add(_placeholder, "placeholder");
 
     if (!support_fill_rule) {
         _fill_rule_btn.hide();
@@ -326,15 +347,53 @@ PaintSwitchImpl::PaintSwitchImpl(bool support_no_paint, bool support_fill_rule) 
         _mode_buttons[i.mode] = btn;
     }
 
-    // buttons altering color picker: rect preview, color wheel, sliders only
-    auto& pickers = get_widget<Gtk::Box>(_builder, "pickers");
-    auto toggle = dynamic_cast<Gtk::ToggleButton*>(pickers.get_first_child());
-    for (auto type: {ColorPickerPanel::PlateType::Rect, ColorPickerPanel::PlateType::Circle, ColorPickerPanel::PlateType::None}) {
-        auto name = type;
-        toggle->signal_toggled().connect([this, name] { set_plate_type(name); });
-        _plate_type.add(toggle);
-        _plate_buttons[type] = toggle;
-        toggle = dynamic_cast<Gtk::ToggleButton*>(toggle->get_next_sibling());
+    if (_use_compact_mode) {
+        get_widget<Gtk::Widget>(_builder, "pickers").hide();
+        _menu_btn.show();
+        _menu_btn.set_popover(*_menu_popover);
+    } else {
+        _menu_btn.hide();
+        get_widget<Gtk::Widget>(_builder, "pickers").show();
+    }
+
+    static auto const pickers = std::to_array({
+        std::tuple{ 
+            ColorPickerPanel::PlateType::Rect,   
+            "btn-rect", "color-picker-rect", _("Color Map"), _("Show color map")
+        },
+        std::tuple{ 
+            ColorPickerPanel::PlateType::Circle, 
+            "btn-circle", "color-picker-circle", _("Color Wheel"), _("Show color wheel")
+        },
+        std::tuple{
+            ColorPickerPanel::PlateType::None,   
+            "btn-input", "color-picker-input", _("Only Sliders"), _("Show color sliders only") 
+        }
+    });
+    for (const auto& [type, button_id, icon, label, tooltip] : pickers) {
+        auto& plate_btn = get_widget<Gtk::ToggleButton>(_builder, button_id);
+        _plate_buttons[type] = &plate_btn;
+        _plate_type.add(&plate_btn);
+
+        if (_use_compact_mode) {
+            auto menu_item = Gtk::make_managed<UI::Widget::PopoverMenuItem>(label, false, icon);
+            menu_item->set_tooltip_text(tooltip);
+            
+            menu_item->signal_activate().connect([this, type, icon] {
+                if (!_update.pending()) {
+                    set_plate_type(type);
+                    _menu_btn.set_icon_name(icon);
+                }
+            });
+            _menu_popover->append(*menu_item);
+
+        } else {
+            plate_btn.signal_toggled().connect([this, type, &plate_btn] {
+                if (plate_btn.get_active() && !_update.pending()) {
+                    set_plate_type(type);
+                }
+            });
+        }
     }
 
     _flat_color.get_picker().get_color_space_changed().connect([](auto type) {
@@ -472,6 +531,23 @@ void PaintSwitchImpl::_set_mode(PaintMode mode) {
             has_color_picker = true;
             if (auto btn = _plate_buttons[*type]) {
                 btn->set_active();
+                if (_use_compact_mode) {
+                    Glib::ustring icon_name;
+                    switch(*type) {
+                        case ColorPickerPanel::PlateType::Rect:
+                            icon_name = "color-picker-rect";
+                            break;
+                        case ColorPickerPanel::PlateType::Circle:
+                            icon_name = "color-picker-circle";
+                            break;
+                        case ColorPickerPanel::PlateType::None:
+                            icon_name = "color-picker-input";
+                            break;
+                    }
+                    if (!icon_name.empty()) {
+                        _menu_btn.set_icon_name(icon_name);
+                    }
+                }
             }
         }
     }
@@ -480,6 +556,9 @@ void PaintSwitchImpl::_set_mode(PaintMode mode) {
     }
     // color picker available?
     _plate_type.set_sensitive(has_color_picker);
+    if (_use_compact_mode) {
+        _menu_btn.set_sensitive(has_color_picker);
+    }
 }
 
 void PaintSwitchImpl::set_plate_type(ColorPickerPanel::PlateType type) {
@@ -561,8 +640,8 @@ void PaintSwitchImpl::set_fill_rule(FillRule fill_rule) {
     _fill_rule_btn.set_icon_name(fill_rule == FillRule::NonZero ? "fill-rule-nonzero" : "fill-rule-even-odd");
 }
 
-std::unique_ptr<PaintSwitch> PaintSwitch::create(bool support_no_paint, bool support_fill_rule) {
-    return std::make_unique<PaintSwitchImpl>(support_no_paint, support_fill_rule);
+std::unique_ptr<PaintSwitch> PaintSwitch::create(bool support_no_paint, bool support_fill_rule, bool compact_mode) {
+    return std::make_unique<PaintSwitchImpl>(support_no_paint, support_fill_rule, compact_mode);
 }
 
 } // namespace
