@@ -16,6 +16,8 @@
 #include <glibmm/i18n.h>
 
 #include "actions-helper.h"
+#include "desktop.h"
+#include "ui/widget/desktop-widget.h"
 #include "document.h"
 #include "document-undo.h"
 #include "inkscape.h"             // Inkscape::Application
@@ -31,6 +33,9 @@ file_open(const Glib::VariantBase& value, InkscapeApplication *app)
 
     Glib::RefPtr<Gio::File> file = Gio::File::create_for_path(s.get());
     if (!file->query_exists()) {
+        SPDesktop* _desktop = SP_ACTIVE_DESKTOP;
+        SPDesktopWidget* _widget = _desktop->getDesktopWidget();
+        _widget->showNotice((_("File %s does not exist."), s.get().raw()), 5000);
         show_output(Glib::ustring("file_open: file '") + s.get().raw() + "' does not exist.");
         return;
     }
