@@ -7,6 +7,10 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"  // only include where actually required!
+#endif
+
 #include "extension/effect.h"
 #include "extension/system.h"
 
@@ -17,7 +21,11 @@ namespace Inkscape {
 namespace Extension {
 namespace Internal {
 namespace Bitmap {
-	
+
+#ifdef WITH_IMAGE_MAGICK
+using Magick::Quantum;
+#endif
+
 void
 LevelChannel::applyEffect(Magick::Image* image) {
 	Magick::ChannelType channel = Magick::UndefinedChannel;
@@ -29,9 +37,15 @@ LevelChannel::applyEffect(Magick::Image* image) {
 	else if (!strcmp(_channelName, "Yellow Channel"))	channel = Magick::YellowChannel;
 	else if (!strcmp(_channelName, "Black Channel"))	channel = Magick::BlackChannel;
 	else if (!strcmp(_channelName, "Opacity Channel"))	channel = Magick::OpacityChannel;
+#ifdef WITH_GRAPHICS_MAGICK
 	else if (!strcmp(_channelName, "Matte Channel"))	channel = Magick::MatteChannel;
 	Magick::Quantum black_point = Magick::Color::scaleDoubleToQuantum(_black_point / 100.0);
 	Magick::Quantum white_point = Magick::Color::scaleDoubleToQuantum(_white_point / 100.0);
+#else
+	else if (!strcmp(_channelName, "Matte Channel"))	channel = Magick::AlphaChannel;
+	Magick::Quantum black_point = _black_point / 100.0 * QuantumRange;
+	Magick::Quantum white_point = _white_point / 100.0 * QuantumRange;
+#endif
 	image->levelChannel(channel, black_point, white_point, _mid_point);
 }
 

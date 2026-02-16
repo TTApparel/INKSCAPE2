@@ -26,7 +26,11 @@ Crop::applyEffect(Magick::Image *image) {
     int width = image->baseColumns() - (_left + _right);
     int height = image->baseRows() - (_top + _bottom);
     if (width > 0 and height > 0) {
+#ifdef WITH_GRAPHICS_MAGICK
         image->crop(Magick::Geometry(width, height, _left, _top, false, false));
+#else
+        image->crop(Magick::Geometry(width, height, _left, _top));
+#endif
         image->page("+0+0");
     }
 }

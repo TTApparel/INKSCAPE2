@@ -435,8 +435,7 @@ if(WITH_GNU_READLINE)
 endif()
 
 if(WITH_IMAGE_MAGICK)
-    # we want "<" but pkg_check_modules only offers "<=" for some reason; let's hope nobody actually has 7.0.0
-    pkg_check_modules(MAGICK IMPORTED_TARGET ImageMagick++<=7)
+    pkg_check_modules(MAGICK IMPORTED_TARGET Magick++>=7)
     if(MAGICK_FOUND)
         set(WITH_GRAPHICS_MAGICK OFF)  # prefer ImageMagick for now and disable GraphicsMagick if found
     else()

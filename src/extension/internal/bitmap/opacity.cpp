@@ -7,6 +7,10 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"  // only include where actually required!
+#endif
+
 #include "extension/effect.h"
 #include "extension/system.h"
 
@@ -17,11 +21,20 @@ namespace Inkscape {
 namespace Extension {
 namespace Internal {
 namespace Bitmap {
-	
+
+#ifdef WITH_IMAGE_MAGICK
+using Magick::Quantum;
+#endif
+
 void
 Opacity::applyEffect(Magick::Image* image) {
+#ifdef WITH_GRAPHICS_MAGICK
 	Magick::Quantum opacity = Magick::Color::scaleDoubleToQuantum((100 - _opacity) / 100.0);
 	image->opacity(opacity);
+#else
+	const unsigned int opacity = (100 - _opacity) / 100.0 * QuantumRange;
+	image->alpha(opacity);
+#endif
 }
 
 void

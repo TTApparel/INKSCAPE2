@@ -7,6 +7,10 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"  // only include where actually required!
+#endif
+
 #include "extension/effect.h"
 #include "extension/system.h"
 
@@ -29,7 +33,11 @@ Channel::applyEffect(Magick::Image *image) {
 	else if (!strcmp(_layerName, "Yellow Channel"))		layer = Magick::YellowChannel;
 	else if (!strcmp(_layerName, "Black Channel"))		layer = Magick::BlackChannel;
 	else if (!strcmp(_layerName, "Opacity Channel"))	layer = Magick::OpacityChannel;
+#ifdef WITH_GRAPHICS_MAGICK
 	else if (!strcmp(_layerName, "Matte Channel"))		layer = Magick::MatteChannel;		
+#else
+	else if (!strcmp(_layerName, "Matte Channel"))		layer = Magick::AlphaChannel;
+#endif
 	
 	image->channel(layer);
 }
