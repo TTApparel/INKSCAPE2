@@ -197,6 +197,9 @@ void set_defocus_target(Gtk::Widget* panel, DefocusTarget* target);
 // tooltip handler is connected to show the label as the tooltip when ellipsized
 void ellipsize(Gtk::Label &label, int max_width_chars, Pango::EllipsizeMode mode);
 
+// Close parent popover by walking widget hierarchy to release input grab
+void close_parent_popover(Gtk::Widget *widget);
+
 } // namespace Inkscape::UI
 
 // Mix two RGBA colors using simple linear interpolation:

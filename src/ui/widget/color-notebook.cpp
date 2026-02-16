@@ -228,6 +228,8 @@ void ColorNotebook::_onPickerClicked(GtkWidget * /*widget*/, ColorNotebook *colo
                 // Set color to color notebook here.
                 colorbook->_colors->setAll(color);
             });
+            // Close parent popover to release input grab
+            UI::close_parent_popover(colorbook);
         }
     }
 }

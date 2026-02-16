@@ -20,6 +20,7 @@
 #include <gtkmm/cssprovider.h>
 #include <gtkmm/image.h>
 #include <gtkmm/messagedialog.h>
+#include <gtkmm/popover.h>
 #include <gtkmm/revealer.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/textbuffer.h>
@@ -625,6 +626,17 @@ Geom::Affine get_event_transform(Glib::RefPtr<Gdk::Surface const> const &event_s
     auto native = Gtk::Native::get_for_surface(event_surface);
     auto &event_widget = dynamic_cast<Gtk::Widget const &>(*native);
     return Geom::Translate{-get_surface_transform(*native)} * compute_transform(event_widget, target);
+}
+
+void close_parent_popover(Gtk::Widget *widget)
+{
+    while (widget) {
+        if (auto popover = dynamic_cast<Gtk::Popover*>(widget)) {
+            popover->popdown();
+            break;
+        }
+        widget = widget->get_parent();
+    }
 }
 
 /*

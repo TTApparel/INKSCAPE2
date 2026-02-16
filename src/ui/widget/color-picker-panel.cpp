@@ -25,6 +25,7 @@
 #include "colors/manager.h"
 #include "colors/spaces/base.h"
 #include "ui/tools/dropper-tool.h"
+#include "ui/util.h"
 
 const std::string spinner_pattern = "999.9%";
 constexpr int ROW_PLATE = 0; // color plate, if any
@@ -283,6 +284,8 @@ void ColorPickerPanelImpl::pick_color() {
         _color_picking = tool->onetimepick_signal.connect([this](auto& color) {
             _color_set->setAll(color);
         });
+        // Close parent popover to release input grab
+        UI::close_parent_popover(this);
     }
 }
 
