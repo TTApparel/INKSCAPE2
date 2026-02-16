@@ -217,7 +217,11 @@ int main(int argc, char *argv[])
 
     auto ret = InkscapeApplication().gio_app()->run(argc, argv);
 
-    Inkscape::Preferences::get()->save();
+    auto prefs = Inkscape::Preferences::get();
+    // Reset session based preferences
+    prefs->setInt("/options/displaymode", 0);
+    prefs->setInt("/options/colormode", 0);
+    prefs->save();
     Inkscape::Util::StaticsBin::get().destroy();
 
 #ifdef _WIN32
