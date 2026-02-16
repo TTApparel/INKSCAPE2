@@ -29,7 +29,7 @@ void CellRendererItemIcon::set_icon_name()
     }
 
     auto [icon_name, color_class] = get_shape_icon(shape_type, color);
-    //property_icon_name().set_value(icon_name);
+    property_icon_name().set_value(icon_name);
     _color_class = std::move(color_class);
 }
 
