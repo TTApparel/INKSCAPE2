@@ -164,11 +164,11 @@ Application::Application(bool use_gui) :
         icon_theme->set_search_path(search_paths);
 
         themecontext = new Inkscape::UI::ThemeContext();
-        themecontext->add_gtk_css(false);
+        themecontext->add_gtk_css();
         auto scale = prefs->getDoubleLimited(UI::ThemeContext::get_font_scale_pref_path(), 100, 50, 200);
         themecontext->adjustGlobalFontScale(scale / 100.0);
         themecontext->applyMonospacedFont(themecontext->getMonospacedFont());
-        Inkscape::UI::ThemeContext::initialize_source_syntax_styles();
+        UI::ThemeContext::initialize_source_syntax_styles();
 
         // register custom widget types
         Inkscape::UI::Widget::register_all();
@@ -191,11 +191,6 @@ Application::Application(bool use_gui) :
     if (use_gui)
     {
         Inkscape::UI::Tools::init_latin_keys_group();
-
-        /* update highlight colors when theme changes */
-        themecontext->getChangeThemeSignal().connect([this](){
-            themecontext->themechangecallback();
-        });
 
         /* Set animations to user-defined value */
         if (prefs->hasPref("/theme/enableAnimations")) {

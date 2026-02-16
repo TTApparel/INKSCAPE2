@@ -1292,7 +1292,7 @@ void font_lister_cell_data_func2(Gtk::CellRenderer &cell,
     bool onSystem = (*iter)[font_lister->font_list.onSystem];
     auto family_escaped = g_markup_escape_text(family.c_str(), -1);
     auto prefs = Inkscape::Preferences::get();
-    bool dark = prefs->getBool("/theme/darkTheme", false);
+    bool dark = prefs->getBool("/theme/preferDarkTheme", false);
     Glib::ustring markup;
 
     if (!onSystem) {

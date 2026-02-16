@@ -14,7 +14,9 @@
 
 #include <gtkmm/snapshot.h>
 
+#include "inkscape.h"
 #include "preferences.h"
+#include "ui/themes.h"
 
 namespace Inkscape::UI::Widget {
 
@@ -52,7 +54,7 @@ void ColorTagRenderer::snapshot_vfunc(Glib::RefPtr<Gtk::Snapshot> const &snapsho
 
     if (_property_hover.get_value()) {
         Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-        Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+        Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
         guint32 colorsetbase = prefs->getUInt("/theme/" + themeiconname + "/symbolicBaseColor", 0x2E3436ff);
         double r = ((colorsetbase >> 24) & 0xFF) / 255.0;
         double g = ((colorsetbase >> 16) & 0xFF) / 255.0;

@@ -518,7 +518,7 @@ StartScreen::refresh_theme(Glib::ustring theme_name)
 
     settings->property_gtk_theme_name() = theme_name;
     settings->property_gtk_application_prefer_dark_theme() = prefs->getBool("/theme/preferDarkTheme", true);
-    settings->property_gtk_icon_theme_name() = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+    settings->property_gtk_icon_theme_name() = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
 
     if (prefs->getBool("/theme/symbolicIcons", false)) {
         add_css_class("symbolic");
@@ -576,7 +576,6 @@ StartScreen::theme_changed()
         auto &dark_toggle = get_widget<Gtk::Switch>(build_welcome, "dark_toggle");
         bool is_dark = dark_toggle.get_active();
         prefs->setBool("/theme/preferDarkTheme", is_dark);
-        prefs->setBool("/theme/darkTheme", is_dark);
         // Symbolic icon colours
         if (get_color_value(row[cols.base]) == 0) {
             prefs->setBool("/theme/symbolicDefaultBaseColors", true);
@@ -595,7 +594,7 @@ StartScreen::theme_changed()
             prefs->setUInt(prefix + "/symbolicErrorColor", get_color_value(row[cols.error]));
         }
 
-        refresh_theme(prefs->getString("/theme/gtkTheme", prefs->getString("/theme/defaultGtkTheme", "")));
+        refresh_theme(prefs->getString("/theme/gtkTheme", INKSCAPE.themecontext->getDefaultGtkThemeName()));
     } catch(int e) {
         g_warning("Couldn't find theme value.");
     }
@@ -647,7 +646,10 @@ StartScreen::filter_themes(Gtk::ComboBox *themes)
 
     bool has_system_theme = false;
     if (theme_name != "Adwaita" || icons_name != "hicolor") {
+        // we don't have "system" themes for macOS and win32
+#if !defined(__APPLE__) && !defined(_WIN32)
         has_system_theme = true;
+#endif
         /* Enable if/when we want custom to be the default.
         if (prefs->getString("/options/boot/theme").empty()) {
             prefs->setString("/options/boot/theme", "system")
@@ -729,10 +731,9 @@ void StartScreen::refresh_dark_switch()
     auto const window = dynamic_cast<Gtk::Window *>(get_root());
     bool dark = INKSCAPE.themecontext->isCurrentThemeDark(window);
     prefs->setBool("/theme/preferDarkTheme", dark);
-    prefs->setBool("/theme/darkTheme", dark);
 
     auto themes = INKSCAPE.themecontext->get_available_themes();
-    Glib::ustring current_theme = prefs->getString("/theme/gtkTheme", prefs->getString("/theme/defaultGtkTheme", ""));
+    Glib::ustring current_theme = prefs->getString("/theme/gtkTheme", INKSCAPE.themecontext->getDefaultGtkThemeName());
 
     auto &dark_toggle = get_widget<Gtk::Switch>(build_welcome, "dark_toggle");
     dark_toggle.set_active(dark);

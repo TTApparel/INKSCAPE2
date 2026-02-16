@@ -1194,9 +1194,9 @@ void InkscapePreferences::get_highlight_colors(guint32 &colorsetbase, guint32 &c
 {
     using namespace Inkscape::IO::Resource;
     Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
     Glib::ustring prefix = "";
-    if (prefs->getBool("/theme/darkTheme", false)) {
+    if (prefs->getBool("/theme/preferDarkTheme", false)) {
         prefix = ".dark ";
     }
     auto const higlight = get_filename(ICONS, (themeiconname + "/highlights.css").c_str(), false, true);
@@ -1254,7 +1254,7 @@ void InkscapePreferences::resetIconsColors(bool themechange)
 {
     Inkscape::Preferences *prefs = Inkscape::Preferences::get();
 
-    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
 
     if (!prefs->getBool("/theme/symbolicIcons", false)) {
         _symbolic_base_colors.set_sensitive(false);
@@ -1334,7 +1334,7 @@ void InkscapePreferences::resetIconsColorsWrapper() { resetIconsColors(false); }
 void InkscapePreferences::changeIconsColors()
 {
     Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
     guint32 colorsetbase = prefs->getUInt("/theme/" + themeiconname + "/symbolicBaseColor", 0x2E3436ff);
     guint32 colorsetsuccess = prefs->getUInt("/theme/" + themeiconname + "/symbolicSuccessColor", 0x4AD589ff);
     guint32 colorsetwarning = prefs->getUInt("/theme/" + themeiconname + "/symbolicWarningColor", 0xF57900ff);
@@ -1380,7 +1380,7 @@ void InkscapePreferences::toggleSymbolic()
         }
         _symbolic_base_colors.set_sensitive(true);
         _symbolic_highlight_colors.set_sensitive(true);
-        Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+        Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
         if (prefs->getBool("/theme/symbolicDefaultColors", true) ||
             !prefs->getEntry("/theme/" + themeiconname + "/symbolicBaseColor").isValidUInt()) {
             resetIconsColors();
@@ -1400,7 +1400,7 @@ void InkscapePreferences::toggleSymbolic()
         _symbolic_highlight_colors.set_sensitive(false);
     }
     INKSCAPE.themecontext->getChangeThemeSignal().emit();
-    INKSCAPE.themecontext->add_gtk_css(true);
+    INKSCAPE.themecontext->add_gtk_css();
 }
 
 void InkscapePreferences::comboThemeChange()
@@ -1436,19 +1436,17 @@ void InkscapePreferences::themeChange(bool contrastslider)
         }
 
         Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-        Glib::ustring current_theme = prefs->getString("/theme/gtkTheme", prefs->getString("/theme/defaultGtkTheme", ""));
+        Glib::ustring current_theme = prefs->getString("/theme/gtkTheme", INKSCAPE.themecontext->getDefaultGtkThemeName());
 
         _dark_theme.get_parent()->set_visible(dark_themes[current_theme]);
 
         auto settings = Gtk::Settings::get_default();
         settings->property_gtk_theme_name() = current_theme;
 
-        auto const dark = INKSCAPE.themecontext->isCurrentThemeDark(window);
-        bool toggled = prefs->getBool("/theme/darkTheme", false) != dark;
-        prefs->setBool("/theme/darkTheme", dark);
+        bool toggled = true;
 
         INKSCAPE.themecontext->getChangeThemeSignal().emit();
-        INKSCAPE.themecontext->add_gtk_css(true, contrastslider);
+        INKSCAPE.themecontext->add_gtk_css(contrastslider);
         resetIconsColors(toggled);
     }
 }
@@ -1457,12 +1455,10 @@ void InkscapePreferences::preferDarkThemeChange()
 {
     Gtk::Window *window = SP_ACTIVE_DESKTOP->getInkscapeWindow();
     if (window) {
-        Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-        auto const dark = INKSCAPE.themecontext->isCurrentThemeDark(window);
-        bool toggled = prefs->getBool("/theme/darkTheme", false) != dark;
-        prefs->setBool("/theme/darkTheme", dark);
-        INKSCAPE.themecontext->getChangeThemeSignal().emit();
-        INKSCAPE.themecontext->add_gtk_css(true);
+        auto prefs = Inkscape::Preferences::get();
+        auto dark = prefs->getBool("/theme/preferDarkTheme", false);
+        bool toggled = true;
+        INKSCAPE.themecontext->setCurrentThemeDark(dark);
         // we avoid switched base colors
         if (!_symbolic_base_colors.get_active()) {
             prefs->setBool("/theme/symbolicDefaultBaseColors", true);
@@ -1479,7 +1475,7 @@ void InkscapePreferences::symbolicThemeCheck()
 {
     using namespace Inkscape::IO::Resource;
     Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
     bool symbolic = false;
     auto settings = Gtk::Settings::get_default();
     if (settings) {
@@ -1488,7 +1484,7 @@ void InkscapePreferences::symbolicThemeCheck()
         }
     }
     // we always show symbolic in default theme (relays in hicolor theme)
-    if (themeiconname != prefs->getString("/theme/defaultIconTheme", "")) {
+    if (themeiconname != INKSCAPE.themecontext->getDefaultIconThemeName()) {
         for (auto &&folder : get_foldernames(ICONS, { "application" })) {
             auto path = folder;
             const size_t last_slash_idx = folder.find_last_of("\\/");
@@ -1753,29 +1749,45 @@ void InkscapePreferences::initPageUI()
     // Theme
     _page_theme.add_group_header(_("Theme"));
     _dark_theme.init(_("Use dark theme"), "/theme/preferDarkTheme", false);
-    Glib::ustring current_theme = prefs->getString("/theme/gtkTheme", prefs->getString("/theme/defaultGtkTheme", ""));
-    Glib::ustring default_theme = prefs->getString("/theme/defaultGtkTheme");
+    Glib::ustring current_theme = prefs->getString("/theme/gtkTheme", INKSCAPE.themecontext->getDefaultGtkThemeName());
+    Glib::ustring default_theme = INKSCAPE.themecontext->getDefaultGtkThemeName();
     Glib::ustring theme = "";
     {
+        // get sorted and unique UI theme names
         dark_themes = INKSCAPE.themecontext->get_available_themes();
         std::vector<Glib::ustring> labels;
         std::vector<Glib::ustring> values;
         for (auto const &[theme, dark] : dark_themes) {
+#if defined(__APPLE__) || defined(_WIN32)
+            // on macOS and win32 we ship gtk binaries, and the built-in theme is "Adwaita"
+            if (theme == "Default") {
+                values.emplace_back(theme);
+                labels.emplace_back(C_("theme", "GTK Adwaita"));
+                continue;
+            }
+            // skip "Inkscape" theme; we'll inject it later
+            if (theme == "Inkscape") {
+                continue;
+            }
+#else
             if (theme == default_theme) {
                 continue;
             }
+#endif
             values.emplace_back(theme);
             labels.emplace_back(theme);
         }
-        std::sort(labels.begin(), labels.end());
-        std::sort(values.begin(), values.end());
-        labels.erase(unique(labels.begin(), labels.end()), labels.end());
-        values.erase(unique(values.begin(), values.end()), values.end());
+        // "System" theme concept works on Linux, but not on macOS/win32,
+        // where we don't have system-like themes
+#if defined(__APPLE__) || defined(_WIN32)
+        values.insert(values.begin(), "Inkscape");
+        labels.insert(labels.begin(), C_("theme", "Inkscape"));
+#else
         values.emplace_back("");
         Glib::ustring default_theme_label = _("Use system theme");
         default_theme_label += " (" + default_theme + ")";
         labels.emplace_back(default_theme_label);
-
+#endif
         _gtk_theme.init("/theme/gtkTheme", labels, values, "");
         _page_theme.add_line(false, _("Change GTK theme:"), _gtk_theme, "", "", false);
         _gtk_theme.signal_changed().connect(sigc::mem_fun(*this, &InkscapePreferences::comboThemeChange));
@@ -1808,7 +1820,6 @@ void InkscapePreferences::initPageUI()
     _contrast_theme.getSlider()->signal_value_changed().connect(sigc::mem_fun(*this, &InkscapePreferences::contrastThemeChange));
 
     _dark_theme.get_parent()->set_visible(dark_themes[current_theme]);
-
     _dark_theme.signal_toggled().connect(sigc::mem_fun(*this, &InkscapePreferences::preferDarkThemeChange));
 
     // Icons
@@ -1817,7 +1828,7 @@ void InkscapePreferences::initPageUI()
         using namespace Inkscape::IO::Resource;
         std::vector<Glib::ustring> labels;
         std::vector<Glib::ustring> values;
-        Glib::ustring default_icon_theme = prefs->getString("/theme/defaultIconTheme");
+        Glib::ustring default_icon_theme = INKSCAPE.themecontext->getDefaultIconThemeName();
         for (auto &&folder : get_foldernames(ICONS, { "application" })) {
             // from https://stackoverflow.com/questions/8520560/get-a-file-name-from-a-path#8520871
             // Maybe we can link boost path utilities
@@ -1853,7 +1864,7 @@ void InkscapePreferences::initPageUI()
                              _("Open icons folder"));
         _page_theme.add_line(true, _("User icons: "), _sys_user_icons_dir_copy, "", _("Location of the user’s icons"), true, Gtk::make_managed<Gtk::Box>());
     }
-    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+    Glib::ustring themeiconname = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
     _symbolic_icons.init(_("Use symbolic icons"), "/theme/symbolicIcons", false);
     _symbolic_icons.signal_toggled().connect(sigc::mem_fun(*this, &InkscapePreferences::toggleSymbolic));
     _page_theme.add_line(true, "", _symbolic_icons, "", "", true);

@@ -397,7 +397,7 @@ bool DialogContainer::recreate_dialogs_from_state(InkscapeWindow* inkscape_windo
 
         // Set the style and icon theme of the new menu based on the desktop
         INKSCAPE.themecontext->getChangeThemeSignal().emit();
-        INKSCAPE.themecontext->add_gtk_css(true);
+        INKSCAPE.themecontext->add_gtk_css();
         restored = true;
     }
 
@@ -733,7 +733,7 @@ void DialogContainer::load_container_state(Glib::KeyFile *keyfile, bool include_
         }
     }
     INKSCAPE.themecontext->getChangeThemeSignal().emit();
-    INKSCAPE.themecontext->add_gtk_css(true);
+    INKSCAPE.themecontext->add_gtk_css();
 }
 
 void save_wnd_position(Glib::KeyFile *keyfile, const Glib::ustring &group_name, const window_position_t *position)

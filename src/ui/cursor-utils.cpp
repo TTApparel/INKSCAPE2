@@ -19,12 +19,14 @@
 #include "display/cairo-utils.h"
 #include "document-update.h"
 #include "document.h"
+#include "inkscape.h"
 #include "helper/pixbuf-ops.h"
 #include "io/file.h"
 #include "io/resource.h"
 #include "libnrtype/font-factory.h"
 #include "object/sp-root.h"
 #include "preferences.h"
+#include "themes.h"
 #include "ui/util.h"
 #include "util/units.h"
 
@@ -76,7 +78,7 @@ CursorRenderResult render_svg_cursor(double scale, CursorInputParams const &in)
 
     // Set in preferences
     Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-    Glib::ustring theme_name = prefs->getString("/theme/iconTheme", prefs->getString("/theme/defaultIconTheme", ""));
+    Glib::ustring theme_name = prefs->getString("/theme/iconTheme", INKSCAPE.themecontext->getDefaultIconThemeName());
     if (!theme_name.empty()) {
         theme_names.push_back(std::move(theme_name));
     }

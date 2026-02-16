@@ -123,7 +123,7 @@ DialogWindow::DialogWindow(InkscapeWindow *inkscape_window, Gtk::Widget *page)
     // To get right symbolic/regular class & other theming, apply themechange after adding children
     auto const themecontext = INKSCAPE.themecontext;
     g_assert(themecontext);
-    themecontext->themechangecallback();
+    themecontext->themeChanged();
 
     // TODO: Double-check the phase. This needs to be called after default Window handlerʼs CAPTURE
     auto const key = Gtk::EventControllerKey::create();

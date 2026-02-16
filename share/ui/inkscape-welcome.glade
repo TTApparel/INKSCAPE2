@@ -138,6 +138,20 @@
     </columns>
     <data>
       <row>
+        <col id="0">inkscape</col>
+        <col id="1" translatable="yes">Inkscape</col>
+        <col id="2">Inkscape</col>
+        <col id="3">Dash</col>
+        <col id="4">#000000</col>
+        <col id="5">#ebebeb</col>
+        <col id="6">#00990a</col>
+        <col id="7">#ff1990</col>
+        <col id="8">#0099e6</col>
+        <col id="9">True</col>
+        <col id="10">True</col>
+        <col id="11">False</col>
+      </row>
+      <row>
         <col id="0">colorful</col>
         <col id="1" translatable="yes">Colorful</col>
         <col id="2">Adwaita</col>

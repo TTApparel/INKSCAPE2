@@ -469,10 +469,8 @@ void SPDesktopWidget::on_realize()
 {
     parent_type::on_realize();
 
-    auto const dark = INKSCAPE.themecontext->isCurrentThemeDark(_window);
-    Preferences::get()->setBool("/theme/darkTheme", dark);
     INKSCAPE.themecontext->getChangeThemeSignal().emit();
-    INKSCAPE.themecontext->add_gtk_css(true);
+    INKSCAPE.themecontext->add_gtk_css();
 }
 
 void SPDesktopWidget::desktopChangedDocument(SPDesktop *desktop)

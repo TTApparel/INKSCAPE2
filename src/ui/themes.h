@@ -39,13 +39,9 @@ public:
     ThemeContext();
     ~ThemeContext();
 
-    // Name of theme -> has dark theme
-    typedef std::map<Glib::ustring, bool> gtkThemeList;
-    void inkscape_fill_gtk(const gchar *path, gtkThemeList &themes);
-
     std::map<Glib::ustring, bool> get_available_themes();
-    void add_gtk_css(bool only_providers, bool cached = false);
-    void add_icon_theme();
+    void add_gtk_css(bool cached = false);
+
     Glib::ustring get_symbolic_colors();
 
     Glib::RefPtr<Gtk::CssProvider> const &getColorizeProvider     () const { return _colorizeprovider     ; }
@@ -55,7 +51,7 @@ public:
     Glib::RefPtr<Gtk::CssProvider> const &getUserProvider         () const { return _userprovider         ; }
 
     sigc::signal<void ()> getChangeThemeSignal() { return _signal_change_theme;}
-    void themechangecallback();
+    void themeChanged();
 
     /// Set application-wide font size adjustment by a factor, where 1 is 100% (no change)
     void adjustGlobalFontScale(double factor);
@@ -77,6 +73,8 @@ public:
 
     // True if current theme (applied one) is dark
     bool isCurrentThemeDark(Gtk::Window *window);
+    // Set current theme to dark (true) / light (false)
+    void setCurrentThemeDark(bool dark);
 
     // Get CSS foreground colors resulting from classes ".highlight-color-[1-8]"
     static std::vector<guint32> getHighlightColors(Gtk::Window *window);
@@ -84,6 +82,9 @@ public:
     static void initialize_source_syntax_styles();
     static void select_default_syntax_style(bool dark_theme);
 
+    // defaults
+    Glib::ustring getDefaultGtkThemeName() const { return _default_gtk_theme_name; }
+    Glib::ustring getDefaultIconThemeName() const { return _default_icon_theme_name; }
 private:
     // user change theme
     sigc::signal<void ()> _signal_change_theme;
@@ -98,6 +99,8 @@ private:
 #endif
     Glib::RefPtr<Gtk::CssProvider> _monofont_styleprovider;
     std::unique_ptr<Preferences::Observer> _spinbutton_observer;
+    Glib::ustring _default_gtk_theme_name;
+    Glib::ustring _default_icon_theme_name;
 };
 
 } // namespace Inkscape::UI

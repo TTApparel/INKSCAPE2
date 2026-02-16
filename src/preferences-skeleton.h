@@ -529,12 +529,8 @@ static char const preferences_skeleton[] =
      flattening="0" />
   <group
      id="theme"
-     defaultPreferDarkTheme="1"
-     defaultIconTheme="multicolor"
-     defaultGtkTheme="Adwaita"
      narrowSpinButton="1"
-     preferDarkTheme="1"
-     darkTheme="1"
+     preferDarkTheme="0"
      symbolicIcons="1"
      symbolicDefaultBaseColors="1"
      symbolicDefaultHighColors="0"/>
