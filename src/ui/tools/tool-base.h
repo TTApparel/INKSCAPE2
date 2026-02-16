@@ -109,6 +109,7 @@ public:
 
     std::string const &getPrefsPath() const { return _prefs_path; };
     void enableSelectionCue(bool enable = true);
+    void sp_toggle_selector(SPDesktop *dt);
 
     MessageContext *defaultMessageContext() const { return message_context.get(); }
 
@@ -126,6 +127,8 @@ private:
     void set_on_buttons(CanvasEvent const &event);
     bool are_buttons_1_and_3_on() const;
     bool are_buttons_1_and_3_on(CanvasEvent const &event);
+    bool _selector_toggled = false;
+    Glib::ustring _switch_selector_to;
 
 protected:
     Glib::RefPtr<Gdk::Cursor> _cursor;

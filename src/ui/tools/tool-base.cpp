@@ -61,10 +61,6 @@
 #include "ui/widget/events/debug.h"
 #include "ui/widget/generic/spin-button.h"
 
-// globals for temporary switching to selector by space
-static bool selector_toggled = false;
-static Glib::ustring switch_selector_to;
-
 // globals for temporary switching to dropper by 'D'
 static bool dropper_toggled = false;
 static Glib::ustring switch_dropper_to;
@@ -257,21 +253,22 @@ void ToolBase::use_cursor(Glib::RefPtr<Gdk::Cursor> cursor)
 /**
  * Toggles current tool between active tool and selector tool.
  * Subroutine of sp_event_context_private_root_handler().
+ * Added to ToolBase to remove globals.
  */
-static void sp_toggle_selector(SPDesktop *dt) {
+void ToolBase::sp_toggle_selector(SPDesktop *dt) {
 
     if (!dt->getTool()) {
         return;
     }
 
     if (dynamic_cast<Inkscape::UI::Tools::SelectTool *>(dt->getTool())) {
-        if (selector_toggled) {
-            set_active_tool(dt, switch_selector_to);
-            selector_toggled = false;
+        if (_selector_toggled) {
+            set_active_tool(dt, _switch_selector_to);
+            _selector_toggled = false;
         }
     } else {
-        selector_toggled = TRUE;
-        switch_selector_to = get_active_tool(dt);
+        _selector_toggled = TRUE;
+        _switch_selector_to = get_active_tool(dt);
         set_active_tool(dt, "Select");
     }
 }
