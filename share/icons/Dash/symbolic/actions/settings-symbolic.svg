@@ -1,54 +1,184 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    width="16"
    height="16"
    viewBox="0 0 16 16"
+   fill="none"
    version="1.1"
-   class="svg689"
-   inkscape:version="1.3-dev (826c594e95, 2022-08-09, custom)"
-   sodipodi:docname="settings-symbolic.svg"
+   id="svg291"
+   sodipodi:docname="Dash-Inkscape-Icons20.svg"
+   inkscape:export-batch-name=""
+   inkscape:export-batch-path="/Users/hperticarati/Desktop"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
+  <style
+     id="style219">.Inter { font-family: 'Inter', sans-serif; }
+.bbox { fill: none; fill-opacity: 0; opacity: 0; stroke: none; }
+.error {  }
+.success { fill: url(#linearGradient953); }
+.warning { 
+}
+</style>
   <sodipodi:namedview
-     class="namedview691"
+     id="namedview291"
      pagecolor="#ffffff"
      bordercolor="#000000"
      borderopacity="0.25"
-     inkscape:pageshadow="2"
+     inkscape:showpageshadow="false"
      inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:blackoutopacity="0.0"
-     inkscape:document-units="px"
-     showgrclass="false"
-     borderlayer="false"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="22.627417"
-     inkscape:cx="8.131728"
-     inkscape:cy="8.131728"
-     inkscape:window-width="1446"
-     inkscape:window-height="1916"
-     inkscape:window-x="0"
-     inkscape:window-y="38"
+     inkscape:pagecheckerboard="false"
+     inkscape:deskcolor="#000000"
+     showgrid="true"
+     inkscape:zoom="0.61898961"
+     inkscape:cx="3929.7913"
+     inkscape:cy="1629.2681"
+     inkscape:window-width="1512"
+     inkscape:window-height="922"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1"
-     inkscape:showpageshadow="2">
+     inkscape:current-layer="Misc"
+     labelstyle="below"
+     showguides="true"
+     inkscape:clip-to-page="false">
     <inkscape:grid
        type="xygrid"
-       class="grid1" />
+       id="grid302"
+       units="px"
+       originx="-2984"
+       originy="-559.99"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#919191"
+       empopacity="0.10196078"
+       color="#919191"
+       opacity="0.05"
+       empspacing="4"
+       enabled="true"
+       visible="true" />
+    <inkscape:grid
+       type="xygrid"
+       id="grid389"
+       units="px"
+       originx="-2983.5"
+       originy="-559.49"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#c0c0c0"
+       empopacity="0.17012266"
+       color="#0099e5"
+       opacity="0.00499998"
+       empspacing="0"
+       enabled="true"
+       visible="false"
+       dotted="true"
+       snapvisiblegridlinesonly="false" />
   </sodipodi:namedview>
   <defs
-     class="defs686" />
+     id="defs291">
+    <linearGradient
+       id="swatch313"
+       inkscape:swatch="solid"
+       inkscape:label="dark-grey"
+       gradientTransform="translate(-1345.3414,267.61969)">
+      <stop
+         style="stop-color:#353841;stop-opacity:1;"
+         offset="0"
+         id="stop313" />
+    </linearGradient>
+    <linearGradient
+       id="swatch387"
+       inkscape:swatch="solid"
+       inkscape:label="white"
+       gradientTransform="matrix(3.6318083e-4,0,0,92.977831,-744.06869,-281603.51)">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop387" />
+    </linearGradient>
+    <linearGradient
+       id="swatch5"
+       inkscape:swatch="solid"
+       inkscape:label="success"
+       gradientTransform="translate(5123.2617,290.90662)">
+      <stop
+         style="stop-color:#04c8a5;stop-opacity:1;"
+         offset="0"
+         id="stop5" />
+    </linearGradient>
+    <linearGradient
+       id="swatch6"
+       inkscape:swatch="solid"
+       inkscape:label="warning"
+       gradientTransform="matrix(1.0159363,0,0,1,6053.6576,656.85076)">
+      <stop
+         style="stop-color:#0a8bff;stop-opacity:1;"
+         offset="0"
+         id="stop6" />
+    </linearGradient>
+    <linearGradient
+       id="swatch7"
+       inkscape:swatch="solid"
+       inkscape:label="error"
+       gradientTransform="matrix(1.4285714,0,0,1.4285697,8870.7616,-1476.4493)">
+      <stop
+         style="stop-color:#f73664;stop-opacity:1;"
+         offset="0"
+         id="stop7" />
+    </linearGradient>
+    <linearGradient
+       id="swatch127"
+       inkscape:swatch="solid"
+       inkscape:label="black"
+       gradientTransform="matrix(4.9776188e-5,0,0,0.12491002,1534.8223,183451.02)">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop128" />
+    </linearGradient>
+  </defs>
   <g
-     inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     class="layer1">
-    <path
-       class="rect1"
-       style="font-variation-settings:'opsz' 130, 'wdth' 70, 'wght' 641;fill:#000000;stroke:none;stroke-width:1;stroke-miterlimit:10"
-       d="M 9.5 1 C 8.2964 1 7.2842221 1.8627005 7.0507812 3 L 1 3 L 1 4 L 7.0507812 4 C 7.2842221 5.1372995 8.2964 6 9.5 6 C 10.7036 6 11.715778 5.1372995 11.949219 4 L 16 4 L 16 3 L 11.949219 3 C 11.715778 1.8627005 10.7036 1 9.5 1 z M 9.5 2 C 10.334348 2 11 2.6656519 11 3.5 C 11 4.3343481 10.334348 5 9.5 5 C 8.6656519 5 8 4.3343481 8 3.5 C 8 2.6656519 8.6656519 2 9.5 2 z M 4.5 6 C 3.2970618 6 2.2849496 6.863628 2.0507812 8 L 1 8 L 1 9 L 2.0507812 9 L 2.0507812 9.0019531 C 2.2849496 10.138325 3.2970618 11 4.5 11 C 5.7029382 11 6.7150504 10.136372 6.9492188 9 L 16 9 L 16 8 L 6.9492188 8 L 6.9492188 7.9980469 C 6.7150504 6.8616749 5.7029382 6 4.5 6 z M 4.5 7 C 5.3343481 7 6 7.6656519 6 8.5 C 6 9.3343481 5.3343481 10 4.5 10 C 3.6656519 10 3 9.3343481 3 8.5 C 3 7.6656519 3.6656519 7 4.5 7 z M 11.5 11 C 10.297062 11 9.2849496 11.863628 9.0507812 13 L 1 13 L 1 14 L 9.0507812 14 L 9.0507812 14.001953 C 9.2849496 15.138325 10.297062 16 11.5 16 C 12.702938 16 13.71505 15.136372 13.949219 14 L 16 14 L 16 13 L 13.949219 13 L 13.949219 12.998047 C 13.71505 11.861675 12.702938 11 11.5 11 z M 11.5 12 C 12.334348 12 13 12.665652 13 13.5 C 13 14.334348 12.334348 15 11.5 15 C 10.665652 15 10 14.334348 10 13.5 C 10 12.665652 10.665652 12 11.5 12 z " />
+     id="Misc"
+     inkscape:label="Icons - Misc"
+     inkscape:highlight-color="#309184"
+     style="display:inline"
+     transform="translate(-2984,-559.99)">
+    <g
+       id="g101"
+       transform="translate(1935,-4243.01)"
+       inkscape:label="settings-symbolic"
+       style="display:inline">
+      <rect
+         style="display:inline"
+         id="rect3"
+         width="16"
+         height="16"
+         x="4052"
+         y="452"
+         inkscape:label="bbox"
+         inkscape:tile-x0="3512"
+         inkscape:tile-y0="308"
+         transform="translate(-3003,4351)"
+         class="bbox " />
+      <path
+         d="m 5.5,10 c 0.65293,0 1.20703,0.4177 1.41309,1 H 15 v 1 H 6.91309 C 6.70703,12.5823 6.15293,13 5.5,13 4.67157,13 4,12.3284 4,11.5 4,10.6716 4.67157,10 5.5,10 Z M 3,12 H 1 V 11 H 3 Z M 5.5,11 C 5.22386,11 5,11.2239 5,11.5 5,11.7761 5.22386,12 5.5,12 5.77614,12 6,11.7761 6,11.5 6,11.2239 5.77614,11 5.5,11 Z m 7,-5 c 0.6529,0 1.207,0.41766 1.4131,1 H 15 V 8 H 13.9131 C 13.707,8.58234 13.1529,9 12.5,9 11.6716,9 11,8.32843 11,7.5 11,6.67157 11.6716,6 12.5,6 Z M 10,8 H 1 V 7 h 9 z M 12.5,7 C 12.2239,7 12,7.22386 12,7.5 12,7.77614 12.2239,8 12.5,8 12.7761,8 13,7.77614 13,7.5 13,7.22386 12.7761,7 12.5,7 Z M 5.5,2 C 6.15293,2 6.70703,2.41766 6.91309,3 H 15 V 4 H 6.91309 C 6.70703,4.58234 6.15293,5 5.5,5 4.67157,5 4,4.32843 4,3.5 4,2.67157 4.67157,2 5.5,2 Z M 3,4 H 1 V 3 H 3 Z M 5.5,3 C 5.22386,3 5,3.22386 5,3.5 5,3.77614 5.22386,4 5.5,4 5.77614,4 6,3.77614 6,3.5 6,3.22386 5.77614,3 5.5,3 Z"
+         fill="black"
+         id="path1-9"
+         style="display:inline;fill:#000000;fill-opacity:1;stroke:none"
+         transform="translate(1049,4803.01)" />
+    </g>
   </g>
+  <style
+     id="style219-9">
+.bbox { 
+    fill:none;
+    fill-opacity:0;
+    opacity:0;
+    stroke:none;
+}
+.error { fill: url(#linearGradient885); }
+.success { fill: url(#linearGradient953); }
+.warning { fill: url(#linearGradient3); }
+</style>
 </svg>

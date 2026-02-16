@@ -113,7 +113,7 @@
             </child>
             <child>
               <object class="GtkButton" id="turnBtn">
-                <property name="icon-name">object-rotate-right</property>
+                <property name="icon-name">property-rotate-right</property>
                 <property name="valign">center</property>
                 <property name="halign">end</property>
                 <property name="focusable">True</property>
@@ -149,7 +149,7 @@
               <object class="GtkButton" id="reverseBtn">
                 <property name="visible">true</property>
                 <property name="halign">end</property>
-                <property name="icon-name">object-flip-horizontal</property>
+                <property name="icon-name">property-flip-horizontal</property>
                 <property name="valign">center</property>
                 <property name="focus-on-click">False</property>
                 <property name="receives-default">True</property>

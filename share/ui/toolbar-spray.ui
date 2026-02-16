@@ -58,7 +58,7 @@
             <property name="focus-on-click">False</property>
             <property name="tooltip-text" translatable="yes">Spray copies of the initial selection</property>
             <property name="has-frame">False</property>
-            <property name="icon-name">spray-mode-copy</property>
+            <property name="icon-name">edit-duplicate</property>
           </object>
         </child>
         <child>
@@ -69,7 +69,7 @@
             <property name="tooltip-text" translatable="yes">Spray clones of the initial selection</property>
             <property name="has-frame">False</property>
             <property name="group">mode_buttons_group</property>
-            <property name="icon-name">spray-mode-clone</property>
+            <property name="icon-name">edit-clone</property>
           </object>
         </child>
         <child>
@@ -80,7 +80,7 @@
             <property name="tooltip-text" translatable="yes">Spray objects in a single path</property>
             <property name="has-frame">False</property>
             <property name="group">mode_buttons_group</property>
-            <property name="icon-name">spray-mode-union</property>
+            <property name="icon-name">edit-duplicate-merge</property>
           </object>
         </child>
         <child>
@@ -91,7 +91,7 @@
             <property name="tooltip-text" translatable="yes">Delete sprayed items from selection</property>
             <property name="has-frame">False</property>
             <property name="group">mode_buttons_group</property>
-            <property name="icon-name">draw-eraser</property>
+            <property name="icon-name">draw-eraser-delete-objects</property>
           </object>
         </child>
       </object>
@@ -283,9 +283,9 @@
         <property name="focusable">True</property>
         <property name="focus-on-click">False</property>
         <property name="receives-default">True</property>
-        <property name="tooltip-text" translatable="yes">Apply over no transparent areas</property>
+        <property name="tooltip-text" translatable="yes">Apply over visible areas</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">object-visible</property>
+        <property name="icon-name">spray-over-visible</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -299,7 +299,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Apply over transparent areas</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">object-hidden</property>
+        <property name="icon-name">spray-over-transparent</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -313,7 +313,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">No overlap between colors</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">symbol-bigger</property>
+        <property name="icon-name">distribute-unclump-colors</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -327,7 +327,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Prevent overlapping objects</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">distribute-randomize</property>
+        <property name="icon-name">distribute-unclump</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -369,7 +369,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Pick color from the drawing. You can use clonetiler trace dialog for advanced effects. In clone mode original fill or stroke colors must be unset.</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">color-picker</property>
+        <property name="icon-name">color-picker-shape-below</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -383,7 +383,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Apply picked color to fill</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">paint-solid</property>
+        <property name="icon-name">object-fill</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -397,7 +397,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Apply picked color to stroke</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">no-marker</property>
+        <property name="icon-name">object-stroke</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -411,7 +411,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Inverted pick value, retaining color in advanced trace mode</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">object-tweak-shrink</property>
+        <property name="icon-name">color-invert</property>
         <style>
             <class name="priority1"/>
         </style>
@@ -425,7 +425,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Pick from center instead of average area.</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">snap-bounding-box-center</property>
+        <property name="icon-name">target-center</property>
         <style>
             <class name="priority1"/>
         </style>

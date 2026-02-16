@@ -107,7 +107,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Reverse the direction of the gradient</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">object-flip-horizontal</property>
+        <property name="icon-name">property-flip-horizontal</property>
       </object>
     </child>
     <child>

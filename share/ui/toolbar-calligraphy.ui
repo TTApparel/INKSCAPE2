@@ -65,7 +65,7 @@
         <property name="has-frame">False</property>
         <child>
           <object class="GtkImage" id="image1">
-            <property name="icon-name">document-properties</property>
+            <property name="icon-name">settings</property>
           </object>
         </child>
       </object>

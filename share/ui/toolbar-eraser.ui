@@ -46,7 +46,7 @@
             <property name="focus-on-click">False</property>
             <property name="tooltip-text" translatable="yes">Delete objects touched by eraser</property>
             <property name="has-frame">False</property>
-            <property name="icon-name">draw-eraser-delete-objects</property>
+            <property name="icon-name">edit-delete</property>
           </object>
         </child>
         <child>
@@ -68,7 +68,7 @@
             <property name="tooltip-text" translatable="yes">Clip from objects</property>
             <property name="has-frame">False</property>
             <property name="group">mode_buttons_group</property>
-            <property name="icon-name">path-intersection</property>
+            <property name="icon-name">path-clip-edit</property>
           </object>
         </child>
       </object>
@@ -213,7 +213,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Break apart cut items</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">distribute-randomize</property>
+        <property name="icon-name">path-flatten</property>
         <style>
             <class name="priority1"/>
         </style>

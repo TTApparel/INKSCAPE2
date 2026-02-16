@@ -112,7 +112,7 @@
         <property name="popover">opacity_popover</property>
         <child>
           <object class="GtkImage">
-            <property name="icon-name">object-visible</property>
+            <property name="icon-name">transparency</property>
           </object>
         </child>
       </object>

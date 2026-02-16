@@ -94,7 +94,7 @@
             <property name="tooltip-text" translatable="yes">Duplicate objects, with Shift delete</property>
             <property name="has-frame">False</property>
             <property name="group">mode_move_btn</property>
-            <property name="icon-name">object-tweak-duplicate</property>
+            <property name="icon-name">edit-duplicate</property>
           </object>
         </child>
         <child>

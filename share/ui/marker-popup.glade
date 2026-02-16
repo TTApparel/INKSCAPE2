@@ -285,7 +285,7 @@
                 <property name="halign">center</property>
                 <property name="valign">center</property>
                 <property name="has-frame">false</property>
-                <property name="icon-name">object-flip-horizontal-symbolic</property>
+                <property name="icon-name">property-flip-horizontal-symbolic</property>
                 <property name="receives-default">True</property>
                 <property name="tooltip-text" translatable="yes">Flip marker horizontally</property>
                 <property name="margin-start">0</property>

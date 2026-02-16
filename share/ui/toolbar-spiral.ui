@@ -98,7 +98,7 @@
         <property name="has-frame">False</property>
         <child>
           <object class="GtkImage" id="image2">
-            <property name="icon-name">edit-clear</property>
+            <property name="icon-name">reset-settings</property>
           </object>
         </child>
       </object>

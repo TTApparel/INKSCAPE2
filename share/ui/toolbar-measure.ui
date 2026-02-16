@@ -121,7 +121,7 @@
         <property name="has-frame">False</property>
         <child>
           <object class="GtkImage" id="image1">
-            <property name="icon-name">snap-bounding-box-center</property>
+            <property name="icon-name">measure-selected</property>
           </object>
         </child>
       </object>
@@ -136,7 +136,7 @@
         <property name="has-frame">False</property>
         <child>
           <object class="GtkImage" id="image2">
-            <property name="icon-name">draw-geometry-line-segment</property>
+            <property name="icon-name">measure-ignore-first-last</property>
           </object>
         </child>
       </object>
@@ -151,7 +151,7 @@
         <property name="has-frame">False</property>
         <child>
           <object class="GtkImage" id="image3">
-            <property name="icon-name">distribute-randomize</property>
+            <property name="icon-name">measure-between-items</property>
           </object>
         </child>
       </object>
@@ -166,7 +166,7 @@
         <property name="has-frame">False</property>
         <child>
           <object class="GtkImage" id="image4">
-            <property name="icon-name">object-hidden</property>
+            <property name="icon-name">measure-hidden-intersection</property>
           </object>
         </child>
       </object>
@@ -221,7 +221,7 @@
         </style>
         <child>
           <object class="GtkImage" id="image7">
-            <property name="icon-name">selection-make-bitmap-copy</property>
+            <property name="icon-name">measure-to-phantom</property>
           </object>
         </child>
       </object>
@@ -240,7 +240,7 @@
         </style>
         <child>
           <object class="GtkImage" id="image8">
-            <property name="icon-name">guides</property>
+            <property name="icon-name">measure-to-guides</property>
           </object>
         </child>
       </object>
@@ -258,7 +258,7 @@
         </style>
         <child>
           <object class="GtkImage" id="image9">
-            <property name="icon-name">path-reverse</property>
+            <property name="icon-name">measure-to-object</property>
           </object>
         </child>
       </object>
@@ -276,7 +276,7 @@
         </style>
         <child>
           <object class="GtkImage" id="image10">
-            <property name="icon-name">tool-pointer</property>
+            <property name="icon-name">measure-mark</property>
           </object>
         </child>
       </object>

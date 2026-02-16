@@ -30,13 +30,13 @@
      inkscape:pagecheckerboard="false"
      inkscape:deskcolor="#000000"
      showgrid="true"
-     inkscape:zoom="1.6716801"
-     inkscape:cx="5758.2789"
-     inkscape:cy="306.5778"
+     inkscape:zoom="1.9104743"
+     inkscape:cx="3849.0442"
+     inkscape:cy="1697.2225"
      inkscape:window-width="1512"
-     inkscape:window-height="916"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="layer2"
+     inkscape:window-height="882"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Misc"
      labelstyle="below"
      showguides="true"
      inkscape:clip-to-page="false">
@@ -323,45 +323,45 @@
         <rect
            style="opacity:0.8;fill:#000000;fill-opacity:1;stroke:none;stroke-width:6.58545e-10"
            id="rect91"
-           width="11.999938"
-           height="0.5"
-           x="511.00199"
+           width="14.000594"
+           height="1"
+           x="510.00149"
            y="2605" />
         <rect
            style="opacity:0.5;fill:#000000;fill-opacity:1;stroke:none;stroke-width:6.58545e-10"
            id="rect92"
-           width="12.000508"
-           height="0.5001"
-           x="511.00142"
-           y="2604.4999" />
+           width="14.000594"
+           height="1"
+           x="510.00149"
+           y="2604" />
         <rect
-           style="opacity:0.3;fill:#000000;fill-opacity:1;stroke:none;stroke-width:6.58544e-10"
+           style="opacity:0.3;fill:#000000;fill-opacity:1;stroke:none;stroke-width:6.58545e-10"
            id="rect93"
-           width="12.000508"
-           height="0.5035"
-           x="511.00142"
-           y="2603.9999" />
+           width="14.000594"
+           height="1"
+           x="510.00149"
+           y="2603" />
         <rect
            style="opacity:0.2;fill:#000000;fill-opacity:1;stroke:none;stroke-width:6.58545e-10"
            id="rect100"
-           width="12.000508"
-           height="0.5"
-           x="511.00142"
-           y="2603.4999" />
+           width="14.000594"
+           height="1"
+           x="510.00149"
+           y="2602" />
         <rect
            style="opacity:0.1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:6.58545e-10"
            id="rect101"
            width="14.000594"
-           height="0.5"
-           x="510.00138"
-           y="2602.9999" />
+           height="1"
+           x="510.00149"
+           y="2601" />
         <rect
            style="opacity:0.05;fill:#000000;fill-opacity:1;stroke:none;stroke-width:6.58545e-10"
            id="rect102"
            width="14.000594"
-           height="0.5"
+           height="1"
            x="510.00149"
-           y="2602.5" />
+           y="2600" />
       </g>
       <path
          style="baseline-shift:baseline;display:inline;overflow:visible;opacity:0.5;vector-effect:none;fill:#bfbfbf;fill-opacity:1;stroke:none;stroke-width:1.00002;filter:url(#filter1);enable-background:accumulate;stop-opacity:1"

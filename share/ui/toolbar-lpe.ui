@@ -176,7 +176,7 @@
         <property name="receives-default">True</property>
         <property name="tooltip-text" translatable="yes">Open LPE dialog (to adapt parameters numerically)</property>
         <property name="has-frame">False</property>
-        <property name="icon-name">dialog-geometry</property>
+        <property name="icon-name">dialog-path-effects</property>
         <style>
           <class name="priority1"></class>
         </style>

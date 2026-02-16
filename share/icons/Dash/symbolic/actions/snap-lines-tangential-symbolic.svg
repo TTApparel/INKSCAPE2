@@ -6,7 +6,7 @@
    fill="none"
    version="1.1"
    id="svg291"
-   sodipodi:docname="Dash-Inkscape-Icons16-mikesbuild.svg"
+   sodipodi:docname="Dash-Inkscape-Icons18.svg"
    inkscape:export-batch-name=""
    inkscape:export-batch-path="/Users/hperticarati/Desktop"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -31,13 +31,13 @@
      inkscape:pagecheckerboard="false"
      inkscape:deskcolor="#000000"
      showgrid="true"
-     inkscape:zoom="16.845081"
-     inkscape:cx="2578.0819"
-     inkscape:cy="2119.2833"
+     inkscape:zoom="2.3574226"
+     inkscape:cx="4028.3401"
+     inkscape:cy="560.99403"
      inkscape:window-width="1512"
      inkscape:window-height="916"
      inkscape:window-maximized="1"
-     inkscape:current-layer="Dialos"
+     inkscape:current-layer="g36"
      labelstyle="below"
      showguides="true"
      inkscape:clip-to-page="false">
@@ -139,7 +139,7 @@
     <linearGradient
        inkscape:collect="always"
        xlink:href="#swatch7"
-       id="linearGradient19"
+       id="linearGradient22"
        gradientUnits="userSpaceOnUse"
        x1="545"
        y1="4379"
@@ -175,18 +175,18 @@
          opacity="0.7"
          d="m 986,4372.97 c 3.33,0 6.029,2.7 6.029,6.03 0,3.33 -2.699,6.03 -6.029,6.03 -2.33,0 -4.349,-1.32 -5.353,-3.26 0.333,-0.14 0.633,-0.33 0.893,-0.57 0.811,1.64 2.503,2.77 4.46,2.77 2.745,0 4.971,-2.22 4.971,-4.97 0,-2.75 -2.226,-4.97 -4.971,-4.97 -1.957,0 -3.649,1.13 -4.46,2.77 -0.26,-0.24 -0.56,-0.44 -0.893,-0.57 1.005,-1.94 3.024,-3.26 5.353,-3.26 z"
          fill="black"
-         style="opacity:0.5" />
+         style="opacity:0.5;stroke:none" />
       <path
          id="error_27"
          d="m 979.502,4377.5 c 0.828,0 1.5,0.67 1.5,1.5 0,0.83 -0.672,1.5 -1.5,1.5 -0.828,0 -1.5,-0.67 -1.5,-1.5 0,-0.83 0.672,-1.5 1.5,-1.5 z"
          class="error"
          sodipodi:nodetypes="sssss"
-         style="fill:url(#linearGradient19)" />
+         style="fill:url(#linearGradient22)" />
       <path
          id="path260"
          d="m 980,4386 h -1 v -4 h 1 z m 0,-10 h -1 v -4 h 1 z"
          sodipodi:nodetypes="cccccccccc"
-         style="opacity:0.5;fill:black;fill-opacity:1" />
+         style="opacity:0.5;fill:black;fill-opacity:1;stroke:none" />
     </g>
   </g>
   <style

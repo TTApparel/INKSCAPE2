@@ -126,7 +126,7 @@
                 <property name="receives-default">True</property>
                 <property name="tooltip-text" translatable="yes">Select this on canvas (if applicable) or in the XML dialog (e.g. a pattern in the 'defs' section)</property>
                 <property name="has-frame">False</property>
-                <property name="icon-name">object-select</property>
+                <property name="icon-name">object-pick</property>
             </object>
             </child>
             <child>

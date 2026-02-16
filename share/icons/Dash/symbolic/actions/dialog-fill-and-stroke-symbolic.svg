@@ -1,19 +1,249 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="dialog-fill-and-stroke">
-<g id=".style-fill+stroke">
-<g id="Group 286" opacity="0.9">
-<path id="rectangle" opacity="0.25" d="M4 9.25L9.25 4L11.5 4L4 11.5L4 9.25Z" fill="black"/>
-<path id="rectangle_2" opacity="0.15" d="M4 7L7 4L9.25 4L4 9.25L4 7Z" fill="black"/>
-<path id="rectangle_3" opacity="0.35" d="M4 11.5L11.5 4L13.75 4L4 13.75L4 11.5Z" fill="black"/>
-<path id="rectangle_4" opacity="0.45" d="M4 13.75L13.75 4L16 4L4 16L4 13.75Z" fill="black"/>
-<path id="rectangle_5" opacity="0.55" d="M4 16L16 4L16 6.25L6.25 16L4 16Z" fill="black"/>
-<path id="rectangle_6" opacity="0.65" d="M6.25 16L16 6.25L16 8.5L8.5 16L6.25 16Z" fill="black"/>
-<path id="rectangle_7" opacity="0.75" d="M8.5 16L16 8.5L16 10.75L10.75 16L8.5 16Z" fill="black"/>
-<path id="rectangle_8" opacity="0.85" d="M10.75 16L16 10.75L16 13L13 16L10.75 16Z" fill="black"/>
-<path id="rectangle_9" opacity="0.9" d="M13 16L16 13L16 16L13 16Z" fill="black"/>
-<path id="rectangle_10" opacity="0.1" d="M7 4L4 7L4 4L7 4Z" fill="black"/>
-</g>
-<path id="Union" d="M3 16H1V11H3V16ZM3 9H1V5H3V9ZM2 0.5C2.82843 0.5 3.5 1.17157 3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5ZM9 3H5V1H9V3ZM16 3H11V1H16V3Z" fill="black"/>
-</g>
-</g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   viewBox="0 0 16 16"
+   fill="none"
+   version="1.1"
+   id="svg291"
+   sodipodi:docname="Dash-Inkscape-Icons18.svg"
+   inkscape:export-batch-name=""
+   inkscape:export-batch-path="/Users/hperticarati/Desktop"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <style
+     id="style219">.Inter { font-family: 'Inter', sans-serif; }
+.bbox { fill: none; fill-opacity: 0; opacity: 0; stroke: none; }
+.error {  }
+.success { fill: url(#linearGradient953); }
+.warning { 
+}
+</style>
+  <sodipodi:namedview
+     id="namedview291"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="false"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="false"
+     inkscape:deskcolor="#000000"
+     showgrid="true"
+     inkscape:zoom="16.721163"
+     inkscape:cx="612.36769"
+     inkscape:cy="2003.6286"
+     inkscape:window-width="1512"
+     inkscape:window-height="916"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Tools"
+     labelstyle="below"
+     showguides="true"
+     inkscape:clip-to-page="false">
+    <inkscape:grid
+       type="xygrid"
+       id="grid302"
+       units="px"
+       originx="-1108"
+       originy="-632"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#919191"
+       empopacity="0.10196078"
+       color="#919191"
+       opacity="0.05"
+       empspacing="4"
+       enabled="true"
+       visible="true" />
+    <inkscape:grid
+       type="xygrid"
+       id="grid389"
+       units="px"
+       originx="-1107.5"
+       originy="-631.5"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#c0c0c0"
+       empopacity="0.17012266"
+       color="#0099e5"
+       opacity="0.00499998"
+       empspacing="0"
+       enabled="true"
+       visible="false"
+       dotted="true"
+       snapvisiblegridlinesonly="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs291">
+    <linearGradient
+       id="swatch313"
+       inkscape:swatch="solid"
+       inkscape:label="dark-grey"
+       gradientTransform="translate(-1345.3414,267.61969)">
+      <stop
+         style="stop-color:#353841;stop-opacity:1;"
+         offset="0"
+         id="stop313" />
+    </linearGradient>
+    <linearGradient
+       id="swatch387"
+       inkscape:swatch="solid"
+       inkscape:label="white"
+       gradientTransform="matrix(0.05072317,0,0,2.5471577,996.10785,1139.3075)">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop387" />
+    </linearGradient>
+    <linearGradient
+       id="swatch5"
+       inkscape:swatch="solid"
+       inkscape:label="success"
+       gradientTransform="translate(5123.2617,290.90662)">
+      <stop
+         style="stop-color:#04c8a5;stop-opacity:1;"
+         offset="0"
+         id="stop5" />
+    </linearGradient>
+    <linearGradient
+       id="swatch6"
+       inkscape:swatch="solid"
+       inkscape:label="warning"
+       gradientTransform="translate(5106,656.85076)">
+      <stop
+         style="stop-color:#0a8bff;stop-opacity:1;"
+         offset="0"
+         id="stop6" />
+    </linearGradient>
+    <linearGradient
+       id="swatch7"
+       inkscape:swatch="solid"
+       inkscape:label="error"
+       gradientTransform="matrix(1.4285714,0,0,1.4285697,8870.7616,-1476.4493)">
+      <stop
+         style="stop-color:#f73664;stop-opacity:1;"
+         offset="0"
+         id="stop7" />
+    </linearGradient>
+    <linearGradient
+       id="swatch127"
+       inkscape:swatch="solid"
+       inkscape:label="black"
+       gradientTransform="matrix(-0.00606572,0,0,-0.20474879,635.66097,-28167.189)">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop128" />
+    </linearGradient>
+  </defs>
+  <g
+     inkscape:groupmode="layer"
+     id="Dialos"
+     inkscape:label="Icons - Dialogs"
+     inkscape:highlight-color="#309184"
+     style="display:inline"
+     transform="translate(-1108,-632)">
+    <g
+       id="dialog-fill-and-stroke"
+       transform="translate(679,-1831)"
+       style="display:inline"
+       inkscape:label="dialog-fill-and-stroke-symbolic">
+      <rect
+         style="display:inline"
+         id="rect5489"
+         width="16"
+         height="16"
+         x="1856"
+         y="632"
+         inkscape:label="bbox"
+         inkscape:tile-x0="1856"
+         inkscape:tile-y0="308"
+         transform="translate(-1427,1831)"
+         class="bbox " />
+      <g
+         id="286"
+         opacity="0.9"
+         transform="matrix(0.91666667,0,0,0.91666667,36.083333,205.58333)"
+         style="stroke-width:1.09091">
+        <path
+           id="rectangle_2"
+           opacity="0.25"
+           d="m 433,2472.25 5.25,-5.25 h 2.25 l -7.5,7.5 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_3"
+           opacity="0.15"
+           d="m 433,2470 3,-3 h 2.25 l -5.25,5.25 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_4"
+           opacity="0.35"
+           d="m 433,2474.5 7.5,-7.5 h 2.25 l -9.75,9.75 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_5"
+           opacity="0.45"
+           d="m 433,2476.75 9.75,-9.75 H 445 l -12,12 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_6"
+           opacity="0.55"
+           d="m 433,2479 12,-12 v 2.25 l -9.75,9.75 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_7"
+           opacity="0.65"
+           d="m 435.25,2479 9.75,-9.75 v 2.25 l -7.5,7.5 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_8"
+           opacity="0.75"
+           d="m 437.5,2479 7.5,-7.5 v 2.25 l -5.25,5.25 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_9"
+           opacity="0.85"
+           d="m 439.75,2479 5.25,-5.25 v 2.25 l -3,3 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_10"
+           opacity="0.9"
+           d="m 442,2479 3,-3 v 3 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+        <path
+           id="rectangle_11"
+           opacity="0.1"
+           d="m 436,2467 -3,3 v -3 z"
+           fill="black"
+           style="stroke-width:1.09091" />
+      </g>
+      <path
+         id="Union_28"
+         d="m 432,2478 h -2 v -4 h 2 z m 0,-6 h -2 v -4 h 2 z m -1,-8.5 c 0.828,0 1.5,0.67 1.5,1.5 0,0.83 -0.672,1.5 -1.5,1.5 -0.828,0 -1.5,-0.67 -1.5,-1.5 0,-0.83 0.672,-1.5 1.5,-1.5 z m 7,2.5 h -4 v -2 h 4 z m 6,0 h -4 v -2 h 4 z"
+         fill="black"
+         sodipodi:nodetypes="ccccccccccssssscccccccccc" />
+    </g>
+  </g>
+  <style
+     id="style219-9">
+.bbox { 
+    fill:none;
+    fill-opacity:0;
+    opacity:0;
+    stroke:none;
+}
+.error { fill: url(#linearGradient885); }
+.success { fill: url(#linearGradient953); }
+.warning { fill: url(#linearGradient3); }
+</style>
 </svg>

@@ -110,7 +110,7 @@
         </style>
         <child>
           <object class="GtkImage" id="image1">
-            <property name="icon-name">edit-clear</property>
+            <property name="icon-name">reset-settings</property>
           </object>
         </child>
       </object>
