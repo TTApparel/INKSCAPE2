@@ -187,7 +187,7 @@ GradientVectorSelector::rebuild_gui_full()
     } else {
         for (auto gr:gl) {
             unsigned long hhssll = sp_gradient_to_hhssll(gr);
-            GdkPixbuf *pixb = sp_gradient_to_pixbuf (gr, _pix_width, _pix_height);
+            auto pixb = sp_gradient_to_pixbuf(gr, _pix_width, _pix_height);
             Glib::ustring label = gr_prepare_label(gr);
 
             Gtk::TreeModel::Row row = *(_store->append());
@@ -195,7 +195,7 @@ GradientVectorSelector::rebuild_gui_full()
             row[_columns->color] = hhssll;
             row[_columns->refcount] = usageCount[gr];
             row[_columns->data] = gr;
-            row[_columns->pixbuf] = Glib::wrap(pixb);
+            row[_columns->pixbuf] = std::move(pixb);
         }
     }
 

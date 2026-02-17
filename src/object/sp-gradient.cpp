@@ -28,7 +28,6 @@
 #include "sp-gradient.h"
 
 #include <cstring>
-#include <string>
 
 #include <2geom/transforms.h>
 
@@ -50,11 +49,14 @@
 #include "sp-mesh-patch.h"
 #include "sp-stop.h"
 
+#include "colors/linear-gradient-average.h"
 #include "display/cairo-utils.h"
 
 #include "svg/svg.h"
 #include "svg/css-ostringstream.h"
 #include "xml/href-attribute-helper.h"
+
+using namespace Inkscape::Colors;
 
 bool SPGradient::hasStops() const
 {
@@ -1181,36 +1183,56 @@ sp_gradient_pattern_common_setup(cairo_pattern_t *cp,
     ink_cairo_pattern_set_matrix(cp, gs2user.inverse());
 }
 
-cairo_pattern_t *
-SPGradient::create_preview_pattern(double width)
+/// Iterate over the stops of the preview linear gradient.
+void SPGradient::forEachPreviewPatternStop(std::function<void (double, Color const &)> const &callback)
 {
-    cairo_pattern_t *pat = nullptr;
-
     if (!is<SPMeshGradient>(this)) {
         ensureVector();
 
-        pat = cairo_pattern_create_linear(0, 0, width, 0);
-
-        for (auto & stop : vector.stops) {
-            if (stop.color.has_value()) {
-                ink_cairo_pattern_add_color_stop(pat, stop.offset, *stop.color);
+        for (auto const &stop : vector.stops) {
+            if (stop.color) {
+                callback(stop.offset, *stop.color);
             }
         }
-    } else if (unsigned const num_columns = array.patch_columns()) {
+    } else if (int const num_columns = array.patch_columns()) {
         // For the moment, use the top row of nodes for preview.
-        double offset = 1.0/double(num_columns);
+        double offset = 1.0 / num_columns;
 
-        pat = cairo_pattern_create_linear(0, 0, width, 0);
-
-        for (unsigned i = 0; i < num_columns + 1; ++i) {
-            SPMeshNode* node = array.node( 0, i*3 );
-            if (node->color.has_value()) {
-                ink_cairo_pattern_add_color_stop(pat, i * offset, *node->color);
+        for (int i = 0; i <= num_columns; ++i) {
+            auto node = array.node(0, i * 3);
+            if (node->color) {
+                callback(i * offset, *node->color);
             }
         }
     }
+}
 
-    return pat;
+/// Returns the average colour of the preview linear gradient.
+Color SPGradient::getPreviewAverageColor()
+{
+    LinearGradientAverager grad;
+
+    forEachPreviewPatternStop([&] (double offset, Color const &col) {
+        grad.addStop(offset, col);
+    });
+
+    try {
+        return grad.finish();
+    } catch (std::logic_error const &) {
+        return Color{0x0};
+    }
+}
+
+/// Deprecated, use GtkSnapshot.
+cairo_pattern_t *SPGradient::create_preview_pattern(double width)
+{
+    auto result = cairo_pattern_create_linear(0, 0, width, 0);
+
+    forEachPreviewPatternStop([&] (double offset, Color const &col) {
+        ink_cairo_pattern_add_color_stop(result, offset, col);
+    });
+
+    return result;
 }
 
 bool SPGradient::isSolid() const

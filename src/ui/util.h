@@ -210,6 +210,8 @@ Gdk::RGBA change_alpha(const Gdk::RGBA& color, double new_alpha);
 /// This uses the perceived brightness formula given at: https://www.w3.org/TR/AERT/#color-contrast
 double get_luminance(const Gdk::RGBA &color);
 
+GdkRGBA get_color(Gtk::Widget const &widget);
+
 // Get CSS color for a Widget, based on its current state & a given CSS class.
 // N.B.!! Big GTK devs donʼt think changing classes should work ‘within a frame’
 // …but it does… & GTK3 GtkCalendar does that – so keep doing it, till we canʼt!
@@ -233,16 +235,6 @@ Cairo::Matrix geom_to_cairo(const Geom::Affine &affine);
 Geom::IntPoint dimensions(const Cairo::RefPtr<Cairo::ImageSurface> &surface);
 Geom::IntPoint dimensions(const Gdk::Rectangle &allocation);
 
-template <typename T>
-inline Gdk::Graphene::Rect geom_to_gtk(Geom::GenericRect<T> const &rect) {
-    return Gdk::Graphene::Rect(rect.left(), rect.top(), rect.width(), rect.height());
-}
-inline Gdk::Graphene::Point geom_to_gtk(Geom::IntPoint const &point) {
-    return Gdk::Graphene::Point(point.x(), point.y());
-}
-inline Gdk::Graphene::Point geom_to_gtk(Geom::Point const &point) {
-    return Gdk::Graphene::Point(point.x(), point.y());
-}
 Geom::Affine gtk_to_2geom(graphene_matrix_t const &mat);
 
 // create a gradient with multiple steps to approximate profile described by given cubic spline

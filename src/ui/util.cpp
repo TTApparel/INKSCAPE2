@@ -301,6 +301,13 @@ double get_luminance(Gdk::RGBA const &rgba)
          + 0.114 * rgba.get_blue ();
 }
 
+GdkRGBA get_color(Gtk::Widget const &widget)
+{
+    GdkRGBA result;
+    gtk_widget_get_color(const_cast<GtkWidget *>(widget.gobj()), &result);
+    return result;
+}
+
 Gdk::RGBA get_color_with_class(Gtk::Widget &widget,
                                Glib::ustring const &css_class)
 {

@@ -26,9 +26,10 @@ class Pixbuf;
 
 namespace Inkscape::UI::Widget {
 
-class GradientImage : public Gtk::DrawingArea {
+class GradientImage : public Gtk::DrawingArea
+{
 public:
-    GradientImage(SPGradient *gradient);
+    explicit GradientImage(SPGradient *gradient);
     void set_gradient(SPGradient *gr);
 
 private:
@@ -37,16 +38,11 @@ private:
     sigc::scoped_connection _modified_connection;
 
     void draw_func(Cairo::RefPtr<Cairo::Context> const &cr, int width, int height);
-    void gradient_release (SPObject const *obj);
-    void gradient_modified(SPObject const *obj, guint flags);
 };
 
 } // namespace Inkscape::UI::Widget
 
-void                       sp_gradient_draw         (SPGradient *gr, int width, int height,
-                                                     cairo_t *ct);
-GdkPixbuf                 *sp_gradient_to_pixbuf    (SPGradient *gr, int width, int height);
-Glib::RefPtr<Gdk::Pixbuf>  sp_gradient_to_pixbuf_ref(SPGradient *gr, int width, int height);
+Glib::RefPtr<Gdk::Pixbuf> sp_gradient_to_pixbuf(SPGradient *gr, int width, int height);
 Cairo::RefPtr<Cairo::ImageSurface> sp_gradient_to_surface(SPGradient* gr, int width, int height);
 Cairo::RefPtr<Cairo::ImageSurface> sp_gradstop_to_surface(SPStop *stop, int width, int height);
 

@@ -15,11 +15,11 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
-#include <2geom/affine.h>
-#include <cstddef>
-#include <glibmm/ustring.h>
-#include <sigc++/connection.h>
+#include <functional>
 #include <vector>
+#include <sigc++/connection.h>
+#include <glibmm/ustring.h>
+#include <2geom/affine.h>
 
 #include "sp-paint-server.h"
 #include "sp-gradient-spread.h"
@@ -202,6 +202,8 @@ public:
     void repr_write_vector();
     void repr_clear_vector();
 
+    void forEachPreviewPatternStop(std::function<void (double offset, Inkscape::Colors::Color const &col)> const &callback);
+    Inkscape::Colors::Color getPreviewAverageColor();
     cairo_pattern_t *create_preview_pattern(double width);
 
     /** Transforms to/from gradient position space in given environment */

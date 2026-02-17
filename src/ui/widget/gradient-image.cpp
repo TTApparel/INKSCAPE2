@@ -19,6 +19,25 @@
 #include "object/sp-gradient.h"
 #include "object/sp-stop.h"
 
+static void sp_gradient_draw(SPGradient *gr, int width, int height, cairo_t *ct)
+{
+    if (!gr) {
+        return;
+    }
+
+    auto check = ink_cairo_pattern_create_checkerboard();
+    cairo_set_source(ct, check->cobj());
+    cairo_paint(ct);
+
+    auto p = gr->create_preview_pattern(width);
+    if (!p) {
+        return;
+    }
+    cairo_set_source(ct, p);
+    cairo_paint(ct);
+    cairo_pattern_destroy(p);
+}
+
 namespace Inkscape::UI::Widget {
 
 GradientImage::GradientImage(SPGradient *gradient)
@@ -28,17 +47,16 @@ GradientImage::GradientImage(SPGradient *gradient)
     set_gradient(gradient);
 }
 
-void GradientImage::draw_func(Cairo::RefPtr<Cairo::Context> const &cr,
-                              int const width, int const height)
+void GradientImage::draw_func(Cairo::RefPtr<Cairo::Context> const &cr, int width, int height)
 {
-    auto ct = cr->cobj();
-    sp_gradient_draw(_gradient, width, height, ct);
+    sp_gradient_draw(_gradient, width, height, cr->cobj());
 }
 
-void
-GradientImage::set_gradient(SPGradient *gradient)
+void GradientImage::set_gradient(SPGradient *gradient)
 {
-    if (_gradient == gradient) return;
+    if (_gradient == gradient) {
+        return;
+    }
 
     if (_gradient) {
         _release_connection.disconnect();
@@ -48,48 +66,20 @@ GradientImage::set_gradient(SPGradient *gradient)
     _gradient = gradient;
 
     if (gradient) {
-        _release_connection = gradient->connectRelease(sigc::mem_fun(*this, &GradientImage::gradient_release));
-        _modified_connection = gradient->connectModified(sigc::mem_fun(*this, &GradientImage::gradient_modified));
+        _release_connection = gradient->connectRelease([this] (auto) {
+            set_gradient(nullptr);
+        });
+        _modified_connection = gradient->connectModified([this] (auto, auto) {
+            queue_draw();
+        });
     }
 
-    queue_draw();
-}
-
-void
-GradientImage::gradient_release(SPObject const * /*object*/)
-{
-    set_gradient(nullptr);
-}
-
-void
-GradientImage::gradient_modified(SPObject const * /*object*/, guint /*flags*/)
-{
     queue_draw();
 }
 
 } // namespace Inkscape::UI::Widget
 
-void
-sp_gradient_draw(SPGradient * const gr, int const width, int const height,
-                 cairo_t * const ct)
-{
-    auto check = ink_cairo_pattern_create_checkerboard();
-    cairo_set_source(ct, check->cobj());
-    cairo_paint(ct);
-
-    if (gr) {
-        cairo_pattern_t *p = gr->create_preview_pattern(width);
-        if (!p) {
-            return;
-        }
-        cairo_set_source(ct, p);
-        cairo_paint(ct);
-        cairo_pattern_destroy(p);
-    }
-}
-
-GdkPixbuf *
-sp_gradient_to_pixbuf (SPGradient *gr, int width, int height)
+Glib::RefPtr<Gdk::Pixbuf> sp_gradient_to_pixbuf(SPGradient *gr, int width, int height)
 {
     cairo_surface_t *s = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cairo_t *ct = cairo_create(s);
@@ -98,14 +88,7 @@ sp_gradient_to_pixbuf (SPGradient *gr, int width, int height)
     cairo_surface_flush(s);
 
     // no need to free s - the call below takes ownership
-    GdkPixbuf *pixbuf = ink_pixbuf_create_from_cairo_surface(s);
-    return pixbuf;
-}
-
-Glib::RefPtr<Gdk::Pixbuf>
-sp_gradient_to_pixbuf_ref (SPGradient *gr, int width, int height)
-{
-    return Glib::wrap(sp_gradient_to_pixbuf(gr, width, height));
+    return Glib::wrap(ink_pixbuf_create_from_cairo_surface(s));
 }
 
 Cairo::RefPtr<Cairo::ImageSurface> sp_gradient_to_surface(SPGradient* gr, int width, int height) {

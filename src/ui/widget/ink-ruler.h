@@ -5,15 +5,17 @@
  * Copyright (C) 2019 Tavmjong Bah
  *
  * The contents of this file may be used under the GNU General Public License Version 2 or later.
- *
  */
 
 #ifndef INKSCAPE_UI_WIDGET_RULER_H
 #define INKSCAPE_UI_WIDGET_RULER_H
 
+#include <gtkmm/gesture.h>
+#include <gtkmm/widget.h>
+
 #include "preferences.h"
 #include "ui/widget-vfuncs-class-init.h"
-#include "util/delete-with.h"
+#include "ui/snapshot-utils.h"
 
 namespace Cairo { class Context; }
 
@@ -27,14 +29,12 @@ namespace Inkscape::Util { class Unit; }
 
 namespace Inkscape::UI::Widget {
 
-using RenderNodePtr = std::unique_ptr<GskRenderNode, Util::Deleter<gsk_render_node_unref>>;
-
 class Ruler
     : public WidgetVfuncsClassInit
     , public Gtk::Widget
 {
 public:
-    Ruler(Gtk::Orientation orientation);
+    explicit Ruler(Gtk::Orientation orientation);
     ~Ruler() override;
 
     void set_unit(Inkscape::Util::Unit const *unit);
@@ -79,14 +79,14 @@ private:
     Glib::RefPtr<Gtk::EventControllerMotion> _track_widget_controller;
 
     // Cached style properties
-    Gdk::RGBA _foreground;
-    Gdk::RGBA _major;
-    Gdk::RGBA _minor;
+    GdkRGBA _foreground;
+    GdkRGBA _major;
+    GdkRGBA _minor;
     int _font_size{};
-    Gdk::RGBA _page_fill;
-    Gdk::RGBA _select_fill;
-    Gdk::RGBA _select_stroke;
-    Gdk::RGBA _select_bgnd;
+    GdkRGBA _page_fill;
+    GdkRGBA _select_fill;
+    GdkRGBA _select_stroke;
+    GdkRGBA _select_bgnd;
 
     // Cached render nodes.
     RenderNodePtr _scale_tile_node;

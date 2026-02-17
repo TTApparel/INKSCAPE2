@@ -19,6 +19,7 @@ target_sources(inkscape_base PRIVATE
 	shape-editor-knotholders.cpp
 	simple-pref-pusher.cpp
 	shortcuts.cpp
+	snapshot-utils.cpp
 	svg-renderer.cpp
 	syntax.cpp
 	themes.cpp
@@ -339,6 +340,7 @@ target_sources(inkscape_base PRIVATE
 	shape-editor-knotholders.h
 	simple-pref-pusher.h
 	shortcuts.h
+	snapshot-utils.h
 	svg-renderer.h
 	syntax.h
 	themes.h

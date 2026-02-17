@@ -14,10 +14,12 @@
 #include <gtkmm/binlayout.h>
 #include <gtkmm/dragsource.h>
 #include <gtkmm/eventcontrollermotion.h>
+#include <gtkmm/iconpaintable.h>
 #include <gtkmm/gestureclick.h>
 #include <gtkmm/popovermenu.h>
+#include <gtkmm/snapshot.h>
 
-#include "colors/dragndrop.h"
+#include "colors/spaces/base.h"
 #include "desktop-style.h"
 #include "document.h"
 #include "document-undo.h"
@@ -25,32 +27,42 @@
 #include "preferences.h"
 #include "selection.h"
 #include "actions/actions-tools.h"
-#include "display/cairo-utils.h"
 #include "io/resource.h"
+#include "style.h"
 #include "ui/containerize.h"
 #include "ui/controller.h"
 #include "ui/dialog/dialog-base.h"
 #include "ui/dialog/dialog-container.h"
 #include "ui/icon-names.h"
+#include "ui/snapshot-utils.h"
+#include "ui/util.h"
 #include "util/value-utils.h"
 #include "util/variant-visitor.h"
+#include "colors/xml-color.h"
 
 namespace Inkscape::UI::Dialog {
 namespace {
 
 /// Get the "remove-color" image.
-Glib::RefPtr<Gdk::Pixbuf> get_removecolor()
-{
-    // Load the pixbuf only once
-    static const auto remove_color = [] {
-        auto path = IO::Resource::get_path(IO::Resource::SYSTEM, IO::Resource::UIS, "resources", "remove-color.png");
-        auto pixbuf = Gdk::Pixbuf::create_from_file(path.pointer());
-        if (!pixbuf) {
-            std::cerr << "Null pixbuf for " << Glib::filename_to_utf8(path.pointer()) << std::endl;
+Glib::RefPtr<Gtk::IconPaintable> get_removecolor(int size)
+{   
+    static Glib::RefPtr<Gtk::IconPaintable> cached_icon;
+    static int cached_size = 0;
+
+    if (size > cached_size) {
+        size *= 2; // step up 2x to avoid repeated redraws
+        auto path = IO::Resource::get_path(IO::Resource::SYSTEM, IO::Resource::UIS, "resources", "remove-color.svg");
+        auto icon = Gtk::IconPaintable::create(Gio::File::create_for_path(path.pointer()), size);
+        if (icon) {
+            cached_icon = std::move(icon);
+            cached_size = size;
+        } else {
+            std::cerr << "Null icon for " << Glib::filename_to_utf8(path.pointer()) << std::endl;
         }
-        return pixbuf;
-    }();
-    return remove_color;
+
+    }
+
+    return cached_icon;
 }
 
 } // namespace
@@ -88,7 +100,6 @@ ColorItem::ColorItem(SPGradient *gradient, DialogBase *dialog)
 
     gradient->connectModified(sigc::track_object([this] (SPObject *obj, unsigned flags) {
         if (flags & SP_OBJECT_STYLE_MODIFIED_FLAG) {
-            cache_dirty = true;
             queue_draw();
         }
         description = obj->defaultLabel();
@@ -130,8 +141,6 @@ void ColorItem::common_setup()
     set_name("ColorItem");
     set_tooltip_text(description + (tooltip.empty() ? tooltip : "\n" + tooltip));
 
-    set_draw_func(sigc::mem_fun(*this, &ColorItem::draw_func));
-
     auto const drag = Gtk::DragSource::create();
     drag->set_button(1); // left
     drag->set_actions(Gdk::DragAction::MOVE | Gdk::DragAction::COPY);
@@ -157,114 +166,101 @@ void ColorItem::set_pinned_pref(const std::string &path)
     pinned_pref = path + "/pinned/" + color_id;
 }
 
-void ColorItem::draw_color(Cairo::RefPtr<Cairo::Context> const &cr, int w, int h) const
+void ColorItem::draw_color(Glib::RefPtr<Gtk::Snapshot> const &snapshot, int w, int h) const
 {
     std::visit(VariantVisitor{
     [&] (Undefined) {
         // there's no color to paint; indicate clearly that there is nothing to select:
-        auto y = h / 2 + 0.5;
+        auto y = h / 2;
         auto width = w / 4;
-        auto x = (w - width) / 2 - 0.5;
-        cr->move_to(x, y);
-        cr->line_to(x + width, y);
-        auto const fg = get_color();
-        cr->set_source_rgba(fg.get_red(), fg.get_green(), fg.get_blue(), 0.5);
-        cr->set_line_width(1);
-        cr->stroke();
+        auto x = (w - width) / 2;
+        auto fg = ::get_color(*this);
+        fg.alpha = 0.5;
+        gtk_snapshot_append_color(snapshot->gobj(), &fg, pass_in(Geom::IntRect::from_xywh(x, y, width, 1)));
     },
     [&] (PaintNone) {
-        if (auto const pixbuf = get_removecolor()) {
-            const auto device_scale = get_scale_factor();
-            cr->save();
-            cr->scale((double)w / pixbuf->get_width() / device_scale, (double)h / pixbuf->get_height() / device_scale);
-            Gdk::Cairo::set_source_pixbuf(cr, pixbuf, 0, 0);
-            cr->paint();
-            cr->restore();
+        if (auto const icon = get_removecolor(w * get_scale_factor())) {
+            icon->snapshot(snapshot, w, h);
         }
     },
-    [&] (Colors::Color const &color) {
-        ink_cairo_set_source_color(cr->cobj(), color);
-        cr->paint();
+    [&] (Colors::Color const &data) {
+        auto const col = to_gtk(data);
         // there's no way to query background color to check if a color item stands out,
         // so we apply faint outline to let users make out color shapes blending with a background
-        auto const fg = get_color();
-        cr->rectangle(0.5, 0.5, w - 1, h - 1);
-        cr->set_source_rgba(fg.get_red(), fg.get_green(), fg.get_blue(), 0.07);
-        cr->set_line_width(1);
-        cr->stroke();
+        auto const fg = ::get_color(*this);
+        constexpr float blend = 0.07;
+        auto const blended = GdkRGBA(
+            fg.red   * blend + col.red   * (1 - blend),
+            fg.green * blend + col.green * (1 - blend),
+            fg.blue  * blend + col.blue  * (1 - blend),
+            1
+        );
+        gtk_snapshot_append_color(snapshot->gobj(), &blended, pass_in(Geom::IntRect::from_xywh(0, 0, w, h)));
+        gtk_snapshot_append_color(snapshot->gobj(), &col, pass_in(Geom::IntRect::from_xywh(1, 1, w - 2, h - 2)));
     },
-    [&] (GradientData graddata) {
+    [&] (GradientData data) {
         // Gradient pointer may be null if the gradient was destroyed.
-        auto grad = graddata.gradient;
-        if (!grad) return;
+        auto grad = data.gradient;
+        if (!grad) {
+            return;
+        }
 
-        auto pat_checkerboard = ink_cairo_pattern_create_checkerboard();
-        auto pat_gradient     = Cairo::RefPtr<Cairo::Pattern>(new Cairo::Pattern(grad->create_preview_pattern(w), true));
+        auto checkerboard = create_checkerboard_node(Geom::IntRect::from_xywh(0, 0, w, h));
+        gtk_snapshot_append_node(snapshot->gobj(), checkerboard.get());
 
-        cr->set_source(pat_checkerboard);
-        cr->paint();
-        cr->set_source(pat_gradient);
-        cr->paint();
+        auto const stops = createPreviewStops(grad);
+        gtk_snapshot_append_linear_gradient(
+            snapshot->gobj(),
+            pass_in(Geom::IntRect::from_xywh(0, 0, w, h)),
+            pass_in(Geom::IntPoint{}),
+            pass_in(Geom::IntPoint{w, 0}),
+            stops.data(),
+            stops.size()
+        );
     }}, data);
 }
 
-void ColorItem::draw_func(Cairo::RefPtr<Cairo::Context> const &cr, int const w, int const h)
+void ColorItem::snapshot_vfunc(Glib::RefPtr<Gtk::Snapshot> const &snapshot)
 {
-    // Only using caching for none and gradients. None is included because the image is huge.
-    bool const use_cache = std::holds_alternative<PaintNone>(data) || std::holds_alternative<GradientData>(data);
+    int w = get_width();
+    int h = get_height();
 
-    if (use_cache) {
-        auto scale = get_scale_factor();
-        // Ensure cache exists and has correct size.
-        if (!cache || cache->get_width() != w * scale || cache->get_height() != h * scale) {
-            cache = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, w * scale, h * scale);
-            cairo_surface_set_device_scale(cache->cobj(), scale, scale);
-            cache_dirty = true;
-        }
-        // Ensure cache contents is up-to-date.
-        if (cache_dirty) {
-            draw_color(Cairo::Context::create(cache), w * scale, h * scale);
-            cache_dirty = false;
-        }
-        // Paint from cache.
-        cr->set_source(cache, 0, 0);
-        cr->paint();
-    } else {
-        // Paint directly.
-        draw_color(cr, w, h);
-    }
+    draw_color(snapshot, w, h);
 
     // Draw fill/stroke indicators.
     if (is_fill || is_stroke) {
         double const lightness = Colors::get_perceptual_lightness(getColor());
-        auto [gray, alpha] = Colors::get_contrasting_color(lightness);
-        cr->set_source_rgba(gray, gray, gray, alpha);
+        auto [grey, alpha] = Colors::get_contrasting_color(lightness);
+        auto col = GdkRGBA(grey, grey, grey, alpha);
 
         // Scale so that the square -1...1 is the biggest possible square centred in the widget.
         auto minwh = std::min(w, h);
-        cr->translate((w - minwh) / 2.0, (h - minwh) / 2.0);
-        cr->scale(minwh / 2.0, minwh / 2.0);
-        cr->translate(1.0, 1.0);
+        snapshot->save();
+        gtk_snapshot_translate(snapshot->gobj(), pass_in(Geom::Point(w - minwh, h - minwh) / 2));
+        snapshot->scale(minwh / 2.0, minwh / 2.0);
+        gtk_snapshot_translate(snapshot->gobj(), pass_in(Geom::IntPoint(1, 1)));
 
         if (is_fill) {
-            cr->arc(0.0, 0.0, 0.35, 0.0, 2 * M_PI);
-            cr->fill();
+            static auto const path = [] {
+                auto builder = gsk_path_builder_new();
+                gsk_path_builder_add_circle(builder, pass_in(Geom::Point{}), 0.35);
+                return gsk_path_builder_free_to_path(builder);
+            }();
+            gtk_snapshot_append_fill(snapshot->gobj(), path, GSK_FILL_RULE_EVEN_ODD, &col);
         }
 
         if (is_stroke) {
-            cr->set_fill_rule(Cairo::Context::FillRule::EVEN_ODD);
-            cr->arc(0.0, 0.0, 0.65, 0.0, 2 * M_PI);
-            cr->arc(0.0, 0.0, 0.5, 0.0, 2 * M_PI);
-            cr->fill();
+            static auto const path = [] {
+                auto builder = gsk_path_builder_new();
+                gsk_path_builder_add_circle(builder, pass_in(Geom::Point{}), 0.65);
+                gsk_path_builder_add_circle(builder, pass_in(Geom::Point{}), 0.5);
+                return gsk_path_builder_free_to_path(builder);
+            }();
+            gtk_snapshot_append_fill(snapshot->gobj(), path, GSK_FILL_RULE_EVEN_ODD, &col);
         }
+
+        snapshot->restore();
     }
-}
-
-void ColorItem::size_allocate_vfunc(int width, int height, int baseline)
-{
-    Gtk::DrawingArea::size_allocate_vfunc(width, height, baseline);
-
-    cache_dirty = true;
 }
 
 void ColorItem::on_motion_enter()
@@ -358,7 +354,7 @@ void ColorItem::on_rightclick()
     auto const menu = Gio::Menu::create();
 
     // TRANSLATORS: An item in context menu on a colour in the swatches
-    menu->append(_("Set Fill"  ), "color-item.set-fill"  );
+    menu->append(_("Set Fill"), "color-item.set-fill");
     menu->append(_("Set Stroke"), "color-item.set-stroke");
 
     auto section = menu;
@@ -367,7 +363,7 @@ void ColorItem::on_rightclick()
         section = Gio::Menu::create();
         menu->append_section(section);
         section->append(_("Delete" ), "color-item.delete");
-        section->append(_("Edit..."), "color-item.edit"  );
+        section->append(_("Edit..."), "color-item.edit");
         section = Gio::Menu::create();
         menu->append_section(section);
     }
@@ -501,11 +497,9 @@ void ColorItem::on_drag_begin(Gtk::DragSource &source)
     constexpr int w = 32;
     constexpr int h = 24;
 
-    auto surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, w, h);
-    draw_color(Cairo::Context::create(surface), w, h);
-    auto const pixbuf = Gdk::Pixbuf::create(surface, 0, 0, w, h);
-    auto const texture = Gdk::Texture::create_for_pixbuf(pixbuf);
-    source.set_icon(texture, 0, 0);
+    auto snapshot = Gtk::Snapshot::create();
+    draw_color(snapshot, w, h);
+    source.set_icon(snapshot->to_paintable(), 0, 0);
 }
 
 void ColorItem::set_fill(bool b)
@@ -549,13 +543,10 @@ Colors::Color ColorItem::getColor() const
     },
     [] (GradientData graddata) {
         auto grad = graddata.gradient;
-        assert(grad);
-        auto pat = Cairo::RefPtr<Cairo::Pattern>(new Cairo::Pattern(grad->create_preview_pattern(1), true));
-        auto img = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, 1, 1);
-        auto cr = Cairo::Context::create(img);
-        cr->set_source(pat);
-        cr->paint();
-        auto color = ink_cairo_surface_average_color(img->cobj());
+        if (!grad) {
+            return Color{0x0};
+        }
+        auto color = grad->getPreviewAverageColor();
         color.setName(grad->getId());
         return color;
     }}, data);
@@ -564,7 +555,6 @@ Colors::Color ColorItem::getColor() const
 bool ColorItem::is_paint_none() const {
     return std::holds_alternative<PaintNone>(data);
 }
-
 
 } // namespace Inkscape::UI::Dialog
 

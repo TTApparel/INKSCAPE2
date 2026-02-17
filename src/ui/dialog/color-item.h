@@ -10,20 +10,11 @@
 #ifndef INKSCAPE_UI_DIALOG_COLOR_ITEM_H
 #define INKSCAPE_UI_DIALOG_COLOR_ITEM_H
 
-#include <gtkmm/drawingarea.h>
-#include <gtkmm/gesture.h> // Gtk::EventSequenceState
 #include <variant>
+#include <gtkmm/drawingarea.h>
+#include <gtkmm/gesture.h>
 
 #include "colors/color.h"
-
-namespace Cairo {
-class Context;
-class ImageSurface;
-} // namespace Cairo
-
-namespace Gdk {
-class Drag;
-} // namespace Gdk
 
 namespace Gtk {
 class DragSource;
@@ -42,15 +33,24 @@ class DialogBase;
  *
  * Note: This widget must be outlived by its parent dialog, passed in the constructor.
  */
-class ColorItem : public Gtk::DrawingArea
+class ColorItem : public Gtk::Widget
 {
 public:
-    // No fill option
-    ColorItem(DialogBase*);
+    /// No fill option
+    explicit ColorItem(DialogBase *);
+
     /// Create a static color
-    ColorItem(Colors::Color, DialogBase*);
+    ColorItem(Colors::Color, DialogBase *);
+
+    /**
+     * Create a dynamically-updating color from a gradient, to which it remains linked.
+     * If the gradient is destroyed, the widget will go into an inactive state.
+     */
+    ColorItem(SPGradient *, DialogBase *);
+
     /// Add new group or filler element.
-    ColorItem(Glib::ustring name);
+    explicit ColorItem(Glib::ustring name);
+
     ~ColorItem() override;
 
     // Returns true if this is group heading rather than a color
@@ -59,12 +59,6 @@ public:
     bool is_filler() const;
     // Is paint "None"?
     bool is_paint_none() const;
-
-    /**
-     * Create a dynamically-updating color from a gradient, to which it remains linked.
-     * If the gradient is destroyed, the widget will go into an inactive state.
-     */
-    ColorItem(SPGradient*, DialogBase*);
 
     /// Update the fill indicator, showing this widget is the fill of the current selection.
     void set_fill(bool);
@@ -82,8 +76,7 @@ public:
     sigc::signal<void ()>& signal_pinned() { return _signal_pinned; };
 
 private:
-    void draw_func(Cairo::RefPtr<Cairo::Context> const&, int width, int height);
-    void size_allocate_vfunc(int width, int height, int baseline) override;
+    void snapshot_vfunc(Glib::RefPtr<Gtk::Snapshot> const &snapshot) override;
 
     Glib::RefPtr<Gdk::ContentProvider> on_drag_prepare();
     void on_drag_begin(Gtk::DragSource &source);
@@ -111,8 +104,8 @@ private:
     void action_toggle_pin();
     void action_convert(Glib::ustring const &name);
 
-    // Draw the color only (i.e. no indicators) to a Cairo context. Used for drawing both the widget and the drag/drop icon.
-    void draw_color(Cairo::RefPtr<Cairo::Context> const &cr, int w, int h) const;
+    // Draw the color only (i.e. no indicators). Used for drawing both the widget and the drag/drop icon.
+    void draw_color(Glib::RefPtr<Gtk::Snapshot> const &snapshot, int w, int h) const;
 
     // Return the color (or average if a gradient), for choosing the color of the fill/stroke indicators.
     Colors::Color getColor() const;
@@ -138,10 +131,6 @@ private:
     // Whether this color is in use as the fill or stroke of the current selection.
     bool is_fill = false;
     bool is_stroke = false;
-
-    // A cache of the widget contents, if necessary.
-    Cairo::RefPtr<Cairo::ImageSurface> cache;
-    bool cache_dirty = true;
 
     bool was_grad_pinned = false;
 
