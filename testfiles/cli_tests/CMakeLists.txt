@@ -740,6 +740,13 @@ add_cli_test(query-y       PARAMETERS --query-id=rect2 --query-y      INPUT_FILE
 add_cli_test(query-width   PARAMETERS --query-id=rect2 --query-width  INPUT_FILENAME rects.svg PASS_FOR_OUTPUT 80)
 add_cli_test(query-height  PARAMETERS --query-id=rect2 --query-height INPUT_FILENAME rects.svg PASS_FOR_OUTPUT 70)
 
+# Issue #6037: Nested SVG x/y attributes
+string(CONCAT issue_6037_expected "svg1,90,190,181,182\n"
+                                  "c3,90,190,20,20\n"
+                                  "svg2,231,332,40,40\n"
+                                  "c4,231,332,40,40")
+add_cli_test(issue-6037-nested-svg PARAMETERS --query-all INPUT_FILENAME nested_svg.svg PASS_FOR_OUTPUT ${issue_6037_expected})
+
 # --vacuum-defs
 
 # --select=OBJECT-ID[,OBJECT-ID]*

@@ -1,0 +1,6 @@
+<svg id="svg1" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+  <circle id="c3" cx="100" cy="200" r="10" />
+  <svg id="svg2" viewBox="0 0 1000 1000" x="250" y="350">
+    <circle id="c4" cx="1" cy="2" r="20" />
+  </svg>
+</svg>

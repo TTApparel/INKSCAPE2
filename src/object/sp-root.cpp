@@ -380,6 +380,23 @@ void SPRoot::print(SPPrintContext *ctx)
     ctx->release();
 }
 
+Geom::OptRect SPRoot::bbox(Geom::Affine const &transform, SPItem::BBoxType bboxtype) const
+{
+    // Get the bounding box from the parent class (SPGroup)
+    Geom::OptRect bbox = SPGroup::bbox(transform, bboxtype);
+    
+    // For nested SVG elements (non-root), account for x and y attributes
+    // The root SVG element has its x and y unset in setRootDimensions()
+    if (parent && bbox) {
+        // Apply translation for x and y attributes
+        Geom::Affine translation = Geom::Translate(this->x.computed, this->y.computed);
+        *bbox *= translation;
+    }
+    
+    return bbox;
+}
+
+
 const char *SPRoot::typeName() const {
     return "image";
 }
