@@ -69,7 +69,7 @@ public:
     /**
      * Update GUI.
      */
-    void update(const Glib::ustring& font_spec);
+    void update(const Glib::ustring& font_spec, const SPIFontVariationSettings* variations = nullptr);
 
 #if false
     /**
@@ -101,11 +101,18 @@ public:
 
     // construct temp UI with N axes and report its height
     int measure_height(int axis_count);
+    // measure current height
+    int measure_height();
 
     // hide/show Gtk::Scale widgets in all axes
     void set_scales_visible(bool visible);
 
 private:
+    /**
+     * Internal method to update axes UI.
+     */
+    void update_axes(const std::map<Glib::ustring, OTVarAxis>& axes);
+
     void build_ui(const std::map<Glib::ustring, OTVarAxis>& axes);
 
     std::vector<FontVariationAxis*> _axes;
@@ -114,7 +121,7 @@ private:
     sigc::signal<void ()> _signal_changed;
     std::map<Glib::ustring, OTVarAxis> _open_type_axes;
     OperationBlocker _update;
-    bool _scales_visible = false; // remember scale visibility state
+    bool _scales_visible = true; // remember scale visibility state
 };
 
 

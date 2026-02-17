@@ -932,15 +932,10 @@ void FontLister::fill_css(SPCSSAttr *css, Glib::ustring fontspec)
     std::pair<Glib::ustring, Glib::ustring> ui = ui_from_fontspec(fontspec);
     Glib::ustring family = ui.first;
 
-    // -inkscape-font-specification is FontLister-specific (single-quoted fontspec)
-    Glib::ustring fontspec_quoted(fontspec);
-    css_quote(fontspec_quoted);
-    sp_repr_css_set_property(css, "-inkscape-font-specification", fontspec_quoted.c_str());
-
     // Delegate font-family, font-weight, font-style, font-stretch, font-variant,
     // and font-variation-settings to the shared utility function.
     Pango::FontDescription desc(fontspec);
-    Inkscape::fill_css_from_font_description(css, family, desc);
+    Inkscape::fill_css_from_font_description(css, family, desc, fontspec);
 }
 
 Glib::ustring FontLister::fontspec_from_style(SPStyle *style) const

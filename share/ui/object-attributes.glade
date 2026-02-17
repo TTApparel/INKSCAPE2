@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <placeholder width="248" height="78"></placeholder>
+  <placeholder width="101" height="161"></placeholder>
   <requires lib="gtk" version="4.0"></requires>
   <object class="GtkGrid" id="ellipse-main">
     <property name="row-spacing">4</property>
@@ -677,7 +677,7 @@
         </child>
         <layout>
           <property name="column">2</property>
-          <property name="row">4</property>
+          <property name="row">5</property>
           <property name="column-span">2</property>
         </layout>
       </object>
@@ -701,14 +701,14 @@
             <property name="icon-name">tool-measure</property>
           </object>
         </child>
-        <layout>
-          <property name="column">2</property>
-          <property name="row">3</property>
-          <property name="column-span">2</property>
-        </layout>
         <style>
           <class name="linked"></class>
         </style>
+        <layout>
+          <property name="column">2</property>
+          <property name="row">4</property>
+          <property name="column-span">2</property>
+        </layout>
       </object>
     </child>
     <child>
@@ -727,14 +727,14 @@
             <property name="icon-name">tool-measure</property>
           </object>
         </child>
-        <layout>
-          <property name="column">2</property>
-          <property name="row">2</property>
-          <property name="column-span">2</property>
-        </layout>
         <style>
           <class name="linked"></class>
         </style>
+        <layout>
+          <property name="column">2</property>
+          <property name="row">3</property>
+          <property name="column-span">2</property>
+        </layout>
       </object>
     </child>
     <child>
@@ -761,7 +761,7 @@
         <property name="label" translatable="yes">Size</property>
         <layout>
           <property name="column">0</property>
-          <property name="row">2</property>
+          <property name="row">3</property>
         </layout>
       </object>
     </child>
@@ -770,7 +770,7 @@
         <property name="label" translatable="yes">Leading</property>
         <layout>
           <property name="column">0</property>
-          <property name="row">3</property>
+          <property name="row">4</property>
         </layout>
       </object>
     </child>
@@ -779,8 +779,23 @@
         <property name="label" translatable="yes">Alignment</property>
         <layout>
           <property name="column">0</property>
-          <property name="row">4</property>
+          <property name="row">5</property>
         </layout>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow" id="text-var-axis">
+        <property name="propagate-natural-height">true</property>
+        <property name="overlay-scrolling">false</property>
+        <property name="hscrollbar-policy">never</property>
+        <layout>
+          <property name="column">2</property>
+          <property name="row">2</property>
+          <property name="column-span">2</property>
+        </layout>
+        <style>
+          <class name="small-window"></class>
+        </style>
       </object>
     </child>
   </object>

@@ -97,6 +97,8 @@
 #include "ui/widget/object-composite-settings.h"
 #include "ui/widget/paint-attribute.h"
 #include "ui/widget/unit-tracker.h"
+#include "ui/widget/font-variations.h"
+#include "util/font-discovery.h"
 #include "util/delete-with.h"
 #include "util/object-modified-tags.h"
 #include "util/text-utils.h"
@@ -1700,6 +1702,7 @@ public:
         _line_thickness(get_widget<Widget::InkSpinButton>(builder, "text-line-thickness")),
         _decor_color_default(get_widget<Gtk::CheckButton>(builder, "text-decor-color-default")),
         _decor_color_custom(get_widget<Gtk::CheckButton>(builder, "text-decor-color-custom")),
+        _var_axes(get_widget<Gtk::ScrolledWindow>(builder, "text-var-axis")),
         _tracker_fs(std::make_unique<Widget::UnitTracker>(Util::UNIT_TYPE_LINEAR)),
         _tracker_lh(std::make_unique<Widget::UnitTracker>(Util::UNIT_TYPE_LINEAR))
     {
@@ -1823,39 +1826,43 @@ public:
         _font_family.signal_value_changed().connect([this](Glib::ustring family_name) {
             if (!can_update()) return;
             // populate styles for the selected family
-            int data_idx = find_family_data_index(family_name);
+            int data_idx = _font_family.get_selected();
             if (data_idx >= 0) {
-                populate_styles(data_idx);
-                // apply full font description using the family's regular face
-                auto& regular = get_family_font(_font_families[data_idx]);
-                auto desc = get_font_description(regular.ff, regular.face);
-                auto css = make_css();
-                fill_css_from_font_description(css.get(), family_name, desc);
-                apply_css(css.get(), "ttb:font-family");
+                // set up variable font axes
+                if (data_idx < (int)_font_families.size() && !_font_families[data_idx].empty()) {
+                    auto& regular = get_family_font(_font_families[data_idx]);
+                    update_font_variants(&regular);
+
+                    apply_font_style(&regular);
+                }
+                else {
+                    update_font_variants(nullptr);
+                }
             } else {
                 // unknown family — just set font-family
-                auto css = make_css();
-                sp_repr_css_set_property(css.get(), "font-family", family_name.c_str());
-                apply_css(css.get(), "ttb:font-family");
+                apply_font_style(nullptr, family_name);
             }
         });
 
         _font_styles.signal_value_changed().connect([this](Glib::ustring style_name) {
-            if (!can_update()) return;
+            if (auto font = get_selected_font()) {
+                // update variants from font style first
+                update_font_variants(font);
+                // apply changes
+                apply_font_style(font);
+            }
+        });
 
-            if (auto font = find_font_by_style(style_name)) {
-                auto desc = get_font_description(font->ff, font->face);
-                auto css = make_css();
-                fill_css_from_font_description(css.get(), font->ff->get_name(), desc);
-                apply_css(css.get(), "ttb:font-style");
-            } else {
-                // Generic family — apply style/weight directly
-                auto css = make_css();
-                bool bold = style_name.find("Bold") != Glib::ustring::npos;
-                bool italic = style_name.find("Italic") != Glib::ustring::npos;
-                sp_repr_css_set_property(css.get(), "font-weight", bold ? "bold" : "normal");
-                sp_repr_css_set_property(css.get(), "font-style", italic ? "italic" : "normal");
-                apply_css(css.get(), "ttb:font-style");
+        _font_variations.set_scales_visible(false);
+        _font_variations.set_hexpand();
+        _var_axes.set_child(_font_variations);
+        static auto four = _font_variations.measure_height(4);
+        static auto five = _font_variations.measure_height(5);
+        // fractional size to expose fifth axis and let users know there's more content there
+        _var_axes.set_max_content_height((four + five) / 2);
+        _font_variations.connectChanged([this]() {
+            if (auto font = get_selected_font()) {
+                apply_font_style(font);
             }
         });
 
@@ -2072,6 +2079,9 @@ public:
         });
         add_header(_("Text"));
         Widget::reparent_properties(get_widget<Gtk::Grid>(builder, "text-main"), _grid);
+        // remove extra margins added by "reparenting"
+        _var_axes.set_margin_top(0);
+        _var_axes.set_margin_bottom(0);
         _section_toggle = _grid.add_section(_("Typography"));
         _section_widgets = Widget::reparent_properties(get_widget<Gtk::Grid>(builder, "text-secondary"), _grid);
         _grid.add_section_divider();
@@ -2213,10 +2223,8 @@ private:
             _font_family.set_selected(-1);
         } else if (props.font_family.state == PropState::Single) {
             int idx = find_family_index(props.font_family.family);
-            if (idx >= 0) {
-                _font_family.set_selected(idx);
-                populate_styles(find_family_data_index(props.font_family.family));
-            }
+            _font_family.set_selected(idx);
+            populate_styles(idx);
         }
 
         // font style
@@ -2227,6 +2235,24 @@ private:
             if (idx >= 0) {
                 _font_styles.set_selected(idx);
             }
+        }
+
+        // font variation settings
+        if (props.font_variation.state == PropState::Mixed || props.font_family.state == PropState::Mixed) {
+            // TODO: show mixed state in var axes?
+            // what if there are different axis?
+            update_font_variants(nullptr);
+        } else if (props.font_variation.state == PropState::Single) {
+            auto& fontspec = props.font_family.family;
+            if (props.font_variation.settings.axes.empty()) {
+                // if there are no explicit axes set, then variable font can still derive
+                // settings from the font style
+                update_font_variants(get_selected_font());
+            } else {
+                _font_variations.update(fontspec, &props.font_variation.settings);
+            }
+            _var_axes.set_visible(_font_variations.variations_present());
+            set_min_font_variants_height();
         }
 
         // alignment
@@ -2433,23 +2459,86 @@ private:
     void populate_families() {
         auto model = Gtk::StringList::create({});
         _family_names.clear();
-        // Generic CSS font family names
-        static const char* generic_families[] = {"serif", "sans-serif", "monospace", "cursive", "fantasy"};
-        for (auto name : generic_families) {
-            _family_names.push_back(name);
-            model->append(name);
-        }
+        // Generic CSS font family names; leave it to Pango in font discovery
+        // static const char* generic_families[] = {"serif", "sans-serif", "monospace", "cursive", "fantasy"};
+        // for (auto name : generic_families) {
+        //     _font_families.push_back()
+        //     _family_names.emplace_back(name);
+        //     model->append(name);
+        // }
         for (auto& family : _font_families) {
             auto& regular = get_family_font(family);
             auto name = regular.ff->get_name();
             _family_names.push_back(name);
             model->append(name);
         }
+
         _font_family.set_model(model);
     }
 
+    void apply_font_style(const FontInfo* font, Glib::ustring family_name = {}) {
+        if (!can_update()) return;
+
+        if (!family_name.empty()) {
+            auto css = make_css();
+            auto desc = Pango::FontDescription(family_name);
+            fill_css_from_font_description(css.get(), family_name, desc, {});
+            apply_css(css.get(), "ttb:font-style");
+        }
+        else if (font) {
+            auto variations = _font_variations.get_pango_string(true);
+            auto fontspec = get_inkscape_fontspec(font->ff, font->face, variations);
+            auto desc = get_font_description(font->ff, font->face);
+            desc.set_variations(variations);
+            auto css = make_css();
+            fill_css_from_font_description(css.get(), font->ff->get_name(), desc, fontspec);
+            apply_css(css.get(), "ttb:font-style");
+        }
+        else {
+            // Generic family — apply style/weight directly
+            auto css = make_css();
+            auto style_name = _font_styles.get_selected_text();
+            bool bold = style_name.find("Bold") != Glib::ustring::npos;
+            bool italic = style_name.find("Italic") != Glib::ustring::npos;
+            sp_repr_css_set_property(css.get(), "font-weight", bold ? "bold" : "normal");
+            sp_repr_css_set_property(css.get(), "font-style", italic ? "italic" : "normal");
+            sp_repr_css_unset_property(css.get(), "-inkscape-font-specification");
+            sp_repr_css_unset_property(css.get(), "font-variation-settings");
+            sp_repr_css_unset_property(css.get(), "font-stretch");
+            sp_repr_css_unset_property(css.get(), "font-variant");
+            apply_css(css.get(), "ttb:font-style");
+        }
+    }
+
+    void set_min_font_variants_height() {
+        auto height = _font_variations.measure_height();
+        auto min_height = std::min(height, _var_axes.get_max_content_height());
+        if (_var_axes.get_min_content_height() != min_height) {
+            _var_axes.set_min_content_height(min_height);
+        }
+    }
+
+    void update_font_variants(const FontInfo* font) {
+        if (!font) {
+            // remove all variable font info
+            _font_variations.update({});
+            _var_axes.set_visible(false);
+        }
+        else {
+            auto vars = font->variations;
+            if (vars.empty() && font->variable_font) {
+                vars = get_inkscape_fontspec(font->ff, font->face, font->variations);
+            }
+            _font_variations.update(vars);
+            _var_axes.set_visible(_font_variations.variations_present());
+            set_min_font_variants_height();
+        }
+    }
+
     void populate_styles(int family_data_index) {
-        _selected_family_index = family_data_index;
+        if (family_data_index == _style_index) return;
+        _style_index = family_data_index;
+
         auto model = Gtk::StringList::create({});
         _style_names.clear();
         if (family_data_index >= 0 && family_data_index < (int)_font_families.size()) {
@@ -2461,7 +2550,8 @@ private:
                     model->append(style);
                 }
             }
-        } else {
+        }
+        else {
             // Generic font family — provide default styles
             static const char* default_styles[] = {"Normal", "Italic", "Bold", "Bold Italic"};
             for (auto s : default_styles) {
@@ -2480,15 +2570,6 @@ private:
         return -1;
     }
 
-    int find_family_data_index(const Glib::ustring& name) const {
-        auto lower = name.lowercase();
-        for (int i = 0; i < (int)_font_families.size(); ++i) {
-            auto& regular = get_family_font(_font_families[i]);
-            if (regular.ff->get_name().lowercase() == lower) return i;
-        }
-        return -1;
-    }
-
     int find_style_index(const Glib::ustring& name) const {
         auto lower = name.lowercase();
         for (int i = 0; i < (int)_style_names.size(); ++i) {
@@ -2497,13 +2578,20 @@ private:
         return -1;
     }
 
+    const FontInfo* get_selected_font() const {
+        return find_font_by_style(_font_styles.get_selected_text());
+    }
+
     const FontInfo* find_font_by_style(const Glib::ustring& style_name) const {
-        if (_selected_family_index >= 0 && _selected_family_index < (int)_font_families.size()) {
-            for (auto& font : _font_families[_selected_family_index]) {
+        auto index = _font_family.get_selected();
+        if (index >= 0 && index < (int)_font_families.size()) {
+            for (auto& font : _font_families[index]) {
                 if (font.face && get_face_style(font.face->describe()) == style_name) {
                     return &font;
                 }
             }
+            // fallback
+            return &get_family_font(_font_families[index]);
         }
         return nullptr;
     }
@@ -2537,6 +2625,8 @@ private:
     Widget::InkSpinButton& _line_thickness;
     Gtk::CheckButton& _decor_color_default;
     Gtk::CheckButton& _decor_color_custom;
+    Widget::FontVariations _font_variations;
+    Gtk::ScrolledWindow& _var_axes;
     Gtk::Label& _kerning_label = get_widget<Gtk::Label>(_builder, "text-kerning-label");
     Gtk::Label& _rotation_label = get_widget<Gtk::Label>(_builder, "text-rotation-label");
     SPItem* _current_item = nullptr;
@@ -2546,7 +2636,7 @@ private:
     std::vector<std::vector<FontInfo>> _font_families;
     std::vector<Glib::ustring> _family_names;
     std::vector<Glib::ustring> _style_names;
-    int _selected_family_index = -1;
+    int _style_index = -2;
     int _lineheight_unit = SP_CSS_UNIT_NONE;
     std::unique_ptr<Widget::UnitTracker> _tracker_fs;
     std::unique_ptr<Widget::UnitTracker> _tracker_lh;

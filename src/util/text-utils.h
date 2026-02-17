@@ -16,6 +16,7 @@
 #include <pangomm.h>
 #include "colors/color.h"
 #include "style-enums.h"
+#include "style-internal.h"
 
 class SPCSSAttr;
 class SPDesktop;
@@ -49,6 +50,7 @@ struct TextProperties {
     // font identity
     struct { Glib::ustring family; PropState state = PropState::Unset; } font_family;
     struct { Glib::ustring style; PropState state = PropState::Unset; } font_style;
+    struct { SPIFontVariationSettings settings; PropState state = PropState::Unset; } font_variation;
     // enums
     struct { int value = -1; PropState state = PropState::Unset; } text_align;   // button index 0-3
     struct { int value = 0; PropState state = PropState::Unset; } writing_mode;
@@ -83,10 +85,10 @@ SPCSSTextAlign text_align_to_side(SPCSSTextAlign align, SPCSSDirection direction
 bool apply_text_alignment(SPText* text, int align_mode);
 
 // Fill CSS attributes from a Pango font description: sets font-family, font-style,
-// font-weight, font-stretch, and font-variant. Mirrors FontLister::fill_css but takes
-// a FontDescription directly instead of going through FontLister.
+// font-weight, font-stretch, font-variant and -inkscape-font-specification.
+// Mirrors FontLister::fill_css but takes a FontDescription directly instead of going through FontLister.
 void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
-                                     const Pango::FontDescription& desc);
+    const Pango::FontDescription& desc, const Glib::ustring& fontspec);
 
 // Apply horizontal kerning (dx) at the text tool's cursor/selection position.
 // Computes delta from current dx and calls sp_te_adjust_dx.

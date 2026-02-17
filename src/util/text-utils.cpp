@@ -83,6 +83,14 @@ TextProperties query_text_properties(const std::vector<SPItem*>& items) {
             props.font_style.state = PropState::Mixed;
         }
 
+        // --- font variation settings ---
+        if (first) {
+            props.font_variation.settings = style->font_variation_settings;
+            props.font_variation.state = PropState::Single;
+        } else if (props.font_variation.state != PropState::Mixed && !props.font_variation.settings.equals(style->font_variation_settings)) {
+            props.font_variation.state = PropState::Mixed;
+        }
+
         // --- font size ---
         double sz = style->font_size.computed;
         if (first) {
@@ -403,7 +411,7 @@ bool apply_text_alignment(SPText* text, int align_mode) {
 }
 
 void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
-                                     const Pango::FontDescription& desc) {
+                                     const Pango::FontDescription& desc, const Glib::ustring& fontspec) {
     if (!css) return;
 
     // font-family — properly quoted for CSS
@@ -483,6 +491,16 @@ void fill_css_from_font_description(SPCSSAttr* css, const Glib::ustring& family,
         sp_repr_css_set_property(css, "font-variation-settings", css_vars.c_str());
     } else {
         sp_repr_css_unset_property(css, "font-variation-settings");
+    }
+
+    if (fontspec.empty()) {
+        sp_repr_css_unset_property(css, "-inkscape-font-specification");
+    }
+    else {
+        // -inkscape-font-specification is FontLister-specific (single-quoted fontspec)
+        Glib::ustring fontspec_quoted(fontspec);
+        css_quote(fontspec_quoted);
+        sp_repr_css_set_property(css, "-inkscape-font-specification", fontspec_quoted.c_str());
     }
 }
 
