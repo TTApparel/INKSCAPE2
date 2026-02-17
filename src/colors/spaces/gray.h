@@ -20,6 +20,8 @@ class Gray : public RGB
 public:
     Gray(): RGB(Type::Gray, 1, "Gray", "Gray", "color-selector-gray") {}
 
+    bool isDirect() const override { return false; }
+
 protected:
     friend class Inkscape::Colors::Color;
 

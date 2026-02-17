@@ -28,13 +28,15 @@ public:
 
     unsigned int getComponentCount() const override { return 3; }
 
+    bool isDirect() const override { return true; }
+    std::shared_ptr<Inkscape::Colors::CMS::Profile> const getProfile() const override;
+
 protected:
     friend class Inkscape::Colors::Color;
 
     XYZ(Type type, int components, std::string name, std::string shortName, std::string icon, bool spaceIsUnbounded = false);
     XYZ(Type type, int components, std::string name, std::string shortName, std::vector<std::string> svgNames, std::string icon, bool spaceIsUnbounded = false);
 
-    std::shared_ptr<Inkscape::Colors::CMS::Profile> const getProfile() const override;
     std::string toString(std::vector<double> const &values, bool opacity = true) const override { return _toString(values, opacity, false); }
     std::string _toString(std::vector<double> const &values, bool opacity, bool d50) const;
 };
@@ -48,13 +50,16 @@ public:
 
     ~XYZ50() override = default;
 
+    bool isDirect() const override { return true; }
+    std::shared_ptr<Inkscape::Colors::CMS::Profile> const getProfile() const override;
+
 protected:
     friend class Inkscape::Colors::Color;
 
     XYZ50(Type type, int components, std::string name, std::string shortName, std::string icon, bool spaceIsUnbounded = false);
 
-    std::shared_ptr<Inkscape::Colors::CMS::Profile> const getProfile() const override;
     std::string toString(std::vector<double> const &values, bool opacity = true) const override { return _toString(values, opacity, true); }
+
 };
 
 } // namespace Inkscape::Colors::Space

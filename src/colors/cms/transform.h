@@ -26,7 +26,7 @@ class Profile;
 class Transform
 {
 public:
-    Transform(cmsHTRANSFORM handle, bool global = false)
+    explicit Transform(cmsHTRANSFORM handle, bool global = false)
         : _handle(handle)
         , _context(!global ? cmsGetTransformContextID(handle) : nullptr)
         , _format_in(cmsGetTransformInputFormat(handle))
@@ -34,16 +34,18 @@ public:
         , _channels_in(T_CHANNELS(_format_in))
         , _channels_out(T_CHANNELS(_format_out))
     {
-        assert(_handle);
+        //assert(_handle);
     }
     ~Transform()
     {
-        cmsDeleteTransform(_handle);
-        if (_context)
-            cmsDeleteContext(_context);
+        if (_handle) {
+            cmsDeleteTransform(_handle);
+        }
     }
     Transform(Transform const &) = delete;
     Transform &operator=(Transform const &) = delete;
+
+    explicit operator bool() const { return isValid(); }
 
     bool isValid() const { return _handle; }
     cmsHTRANSFORM getHandle() const { return _handle; }
@@ -52,7 +54,13 @@ protected:
     cmsHTRANSFORM _handle;
     cmsContext _context;
 
-    static int lcms_color_format(std::shared_ptr<Profile> const &profile, bool small = false, Alpha alpha = Alpha::NONE);
+    static Alpha alpha_mode(bool premultiplied, bool present)
+    {
+        return !present ? Alpha::NONE : (premultiplied ? Alpha::PREMULTIPLIED : Alpha::PRESENT);
+    }
+
+    static int lcms_color_format(std::shared_ptr<Profile> const &profile, int size = 0, bool decimal = true,
+                                 Alpha alpha = Alpha::NONE);
     static int lcms_intent(RenderingIntent intent);
     static int lcms_bpc(RenderingIntent intent);
 

@@ -9,9 +9,12 @@
  */
 
 #include "transform.h"
-#include "profile.h"
 
+#include <algorithm>
 #include <memory>
+
+#include "profile.h"
+#include <iostream>
 
 namespace Inkscape::Colors::CMS {
 
@@ -23,19 +26,21 @@ static constexpr cmsUInt32Number mask_colorspace = ~COLORSPACE_SH(0b11111);
  * cms api ranges and format: 64bit doubles with no scaling except xyz.
  *
  * @arg profile - The color profile which will be transformed into or out of.
- * @arg small   - If true, the format will be 32bit instead of 64bit (default: false)
+ * @arg size    - Number of bytes in this format, default 0 which means 8 byte double
+ * @arg decimal - True if float or double, false if int. Default is true.
  * @arg alpha   - What kind of alpha processing to do (see Alpha)
  *
  * @return The lcms2 transform format for this color profile.
  */
-int Transform::lcms_color_format(std::shared_ptr<Profile> const &profile, bool small, Alpha alpha)
+int Transform::lcms_color_format(std::shared_ptr<Profile> const &profile, int size, bool decimal, Alpha alpha)
 {
     // Format is 64bit floating point (double) or 32bit (float)
-    // Note: size of 8 will clobber channel size bit and cause errors, pass zero (see lcms API docs) 
-    auto format = cmsFormatterForColorspaceOfProfile(profile->getHandle(), small ? 4 : 0, true);
+    // Note: size of 8 will clobber channel size bit and cause errors, pass zero (see lcms API docs)
+    auto format = cmsFormatterForColorspaceOfProfile(profile->getHandle(), std::clamp(size, 0, 4), decimal);
 
     // Add the alpha channel into the formatter
     if (alpha != Alpha::NONE) {
+        // Note that this does not mean the output will have the alpha copied into it, see cmsFLAGS_COPY_ALPHA
         format |= EXTRA_SH(1);
     }
 

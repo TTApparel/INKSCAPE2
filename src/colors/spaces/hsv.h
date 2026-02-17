@@ -21,12 +21,13 @@ public:
     HSV(): RGB(Type::HSV, 3, "HSV", "HSV", "color-selector-hsx") {}
     ~HSV() override = default;
 
-    void spaceToProfile(std::vector<double> &output) const override;
-    void profileToSpace(std::vector<double> &output) const override;
+    bool isDirect() const override { return false; }
 
 protected:
     friend class Inkscape::Colors::Color;
 
+    void spaceToProfile(std::vector<double> &output) const override;
+    void profileToSpace(std::vector<double> &output) const override;
     std::string toString(std::vector<double> const &values, bool opacity) const override;
 
 public:

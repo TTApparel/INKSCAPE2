@@ -30,6 +30,7 @@ public:
     Type getComponentType() const override { return _profile_type; }
     unsigned int getComponentCount() const override;
 
+    bool isDirect() const override { return true; }
     std::shared_ptr<Colors::CMS::Profile> const getProfile() const override;
     void setIntent(RenderingIntent intent) { _intent = intent; }
 

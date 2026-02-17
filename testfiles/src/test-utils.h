@@ -7,6 +7,9 @@
  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
  */
 
+#ifndef INKSCAPE_TEST_UTILS_H
+#define INKSCAPE_TEST_UTILS_H
+
 #include <cmath>
 #include <iomanip>
 #include <gtest/gtest.h>
@@ -30,23 +33,42 @@ struct traced_data
         __FILE__, __LINE__, __VA_ARGS__ \
     }
 
-
 /**
  * Print a vector of doubles for debugging
+ *
+ * @arg v      - The values to be printed
+ * @arg other  - When provided, pads the values to the same width between other and v
+ * @arg failed - When provided, colors the failed entries for console output.
  */
-std::string print_values(const std::vector<double> &v) 
+template <typename T>
+std::string print_values(T const &v, T const *other = nullptr, std::vector<bool> failed = {})
 {
+    auto as_string = [](double v, int precision) {
+        std::ostringstream ch;
+        ch << std::setprecision(precision) << v;
+        return ch.str();
+    };
+
     std::ostringstream oo; 
     oo << "{";
-    bool first = true;
-    for (double const &item : v) {
-        if (!first) {
+    for (auto i = 0; i < v.size(); i++) {
+        int precision = (other ? std::min((*other)[i], v[i]) : v[i]) < 0 ? 4 : 3;
+        int other_size = other ? as_string((*other)[i], precision).length() : 0;
+        auto item = as_string(v[i], precision);
+
+        if (failed.size() && failed[i]) {
+            // Turn a failed text RED in a console
+            oo << "\x1B[91m";
+        }
+        oo << std::setw(std::max((int)item.length(), other_size)) << item;
+        if (failed.size() && failed[i]) {
+            oo << "\033[0m";
+        }
+
+        if (i < v.size() - 1)
             oo << ", ";
-        }   
-        first = false;
-        oo << std::setprecision(3) << item;
-    }   
-    oo << "}";
+    }
+    oo << "}(" << v.size() << ")";
     return oo.str();
 }
 
@@ -61,14 +83,20 @@ inline static ::testing::AssertionResult IsNear(double a, double b, double epsil
 /**
  * Test each value in a values list is within a certain distance from each other.
  */
-inline static ::testing::AssertionResult VectorIsNear(std::vector<double> const &A, std::vector<double> const &B, double epsilon)
+template <typename T>
+inline static ::testing::AssertionResult VectorIsNear(T const &A, T const &B, double epsilon)
 {
-    bool is_same = A.size() == B.size();
-    for (size_t i = 0; is_same && i < A.size(); i++) {
-        is_same = is_same and (std::fabs((A[i]) - (B[i])) < epsilon);
+    bool same_size = A.size() == B.size();
+    bool is_same = same_size;
+    std::vector<bool> failed(A.size(), false);
+    for (size_t i = 0; i < A.size() && i < B.size(); i++) {
+        failed[i] = (std::fabs(A[i] - B[i]) >= epsilon);
+        is_same = is_same and !failed[i];
     }
     if (!is_same) {
-        return ::testing::AssertionFailure() << "\n" << print_values(A) << "\n != \n" << print_values(B);
+        return ::testing::AssertionFailure() << "\n"
+                                             << print_values(A, same_size ? &B : nullptr, failed) << "\n != \n"
+                                             << print_values(B, same_size ? &A : nullptr, failed);
     }
     return ::testing::AssertionSuccess();
 }
@@ -157,6 +185,7 @@ protected:
 
 } // namespace
 
+#endif // INKSCAPE_TEST_UTILS_H
 /*
   Local Variables:
   mode:c++

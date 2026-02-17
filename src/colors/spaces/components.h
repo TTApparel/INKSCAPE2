@@ -68,7 +68,7 @@ class Components
 public:
     Components() = default;
     Components(Type type, Type wheel, Traits traits, std::vector<Component> components):
-        _type(type), _wheel_type(wheel), _components(std::move(components)), _traits(traits) {}
+        _type(type), _components(std::move(components)), _wheel_type(wheel), _traits(traits) {}
 
     static Components const &get(Type type, bool alpha = false);
 

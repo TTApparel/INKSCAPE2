@@ -47,6 +47,7 @@ namespace Space {
 enum class Type
 {
     NONE,      // An error of some kind, or destroyed object
+    Alpha,     // A zero sized profile which forces opacity always on
     Gray,      // Grayscale, typical of some print icc profiles
     RGB,       // sRGB color space typical with SVG
     linearRGB, // linear RGB used in SVG and other transforms

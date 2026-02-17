@@ -14,7 +14,6 @@
 #include <cstdint>
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -67,6 +66,7 @@ public:
     virtual unsigned int getComponentCount() const { return _components; }
     virtual std::shared_ptr<Colors::CMS::Profile> const getProfile() const = 0;
     RenderingIntent getIntent() const { return _intent; }
+    RenderingIntent getBestIntent(std::shared_ptr<AnySpace> const &to_space) const;
     // Specifies if this color space can be used for color interpolation in the render engine.
     virtual bool canInterpolateColors() const { return true; }
     // Some color spaces (like XYZ or LAB) do not put restrictions on valid ranges of values;
@@ -78,10 +78,16 @@ public:
     // Bring 'color' into gamut of '*this' color space
     Color toGamut(const Colors::Color& color);
 
+    // isDirect is true when the child class implements getProfile
+    // TODO: Turn this into a compile time flag, as we know at compile time if it's direct or not.
+    virtual bool isDirect() const { return false; }
+
     Components const &getComponents(bool alpha = false) const;
     std::string const getPrefsPath() const { return "/colorselector/" + getName() + "/"; }
 
     virtual bool isValid() const { return true; }
+
+    bool convert(std::vector<double> &io, std::shared_ptr<AnySpace> to_space) const;
 
 protected:
     friend class Colors::Color;
@@ -92,7 +98,6 @@ protected:
     virtual std::vector<Parser> getParsers() const { return {}; }
     virtual std::string toString(std::vector<double> const &values, bool opacity = true) const = 0;
 
-    bool convert(std::vector<double> &io, std::shared_ptr<AnySpace> to_space) const;
     bool profileToProfile(std::vector<double> &io, std::shared_ptr<AnySpace> to_space) const;
     virtual void spaceToProfile(std::vector<double> &io) const;
     virtual void profileToSpace(std::vector<double> &io) const;

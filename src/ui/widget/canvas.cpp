@@ -34,7 +34,7 @@
 #include "canvas/stores.h"
 #include "canvas/synchronizer.h"
 #include "canvas/util.h"
-#include "colors/cms/transform-cairo.h"
+#include "colors/cms/transform-surface.h"
 #include "colors/cms/system.h"
 #include "desktop.h"
 #include "desktop-events.h"
@@ -145,7 +145,7 @@ struct RedrawData
     Fragment store;
     bool decoupled_mode;
     Cairo::RefPtr<Cairo::Region> snapshot_drawn;
-    std::shared_ptr<Colors::CMS::TransformCairo> cms_transform;
+    std::shared_ptr<Colors::CMS::TransformSurface> cms_transform;
 
     // Saved prefs
     int coarsener_min_size;
@@ -744,7 +744,9 @@ void CanvasPrivate::launch_redraw()
     rd.debug_show_redraw = prefs.debug_show_redraw;
 
     rd.snapshot_drawn = stores.snapshot().drawn ? stores.snapshot().drawn->copy() : Cairo::RefPtr<Cairo::Region>();
-    rd.cms_transform = q->_cms_active ? q->_cms_transform : nullptr;
+    if (q->_cms_active) {
+        rd.cms_transform = q->_cms_transform;
+    }
 
     abort_flags.store((int)AbortFlags::None, std::memory_order_relaxed);
 
@@ -1878,7 +1880,7 @@ void Canvas::set_cms_transform()
     // auto surface = get_surface();
     // auto the_monitor = display->get_monitor_at_surface(surface);
 
-    _cms_transform = Colors::CMS::System::get().getDisplayTransform();
+    //_cms_transform = Colors::CMS::System::get().getDisplayTransform();
 }
 
 // Change cursor
@@ -2476,7 +2478,7 @@ void CanvasPrivate::paint_single_buffer(Cairo::RefPtr<Cairo::ImageSurface> const
     // the user will apply an RGB transform to color correct their screen. This happens now, so the
     // drawing plus all other canvas items (selection boxes, handles, etc) are also color corrected.
     if (rd.cms_transform) {
-        rd.cms_transform->do_transform(surface->cobj(), surface->cobj());
+        rd.cms_transform->do_transform(surface->get_width(), surface->get_height(), surface->get_data(), surface->get_data(), surface->get_stride(), surface->get_stride());
     }
 
     // Paint over newly drawn content with a translucent random colour.

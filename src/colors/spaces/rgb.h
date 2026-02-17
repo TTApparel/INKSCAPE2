@@ -23,6 +23,7 @@ public:
     }
     ~RGB() override = default;
 
+    bool isDirect() const override { return true; }
     std::shared_ptr<Colors::CMS::Profile> const getProfile() const override;
 
 protected:

@@ -5,6 +5,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 # custom "check" target with proper dependencies (builds inkscape and tests)
 file(TO_NATIVE_PATH "/" _separator)
+add_definitions(-DUNIT_TEST="true")
 add_definitions(-DINKSCAPE_TESTS_DIR="${CMAKE_SOURCE_DIR}/testfiles")
 add_definitions(-DINKSCAPE_SHARE_DIR="${CMAKE_SOURCE_DIR}/share")
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
@@ -68,7 +69,6 @@ set(TEST_SOURCES
     async_progress-test
     boolop-attr-test
     colors/cms-system-test
-    colors/cms-transform-color-test
     colors/document-cms-test
     colors/dragndrop-test
     colors/color-set-test
@@ -189,13 +189,15 @@ add_unit_tests(TEST_SOURCES "svg-length-test.cpp"
 
 include("${CMAKE_SOURCE_DIR}/src/colors/CMakeUnit.txt")
 get_color_unit_lib()
-
 add_unit_tests(TEST_SOURCES "colors/cms-profile-test.cpp"
+                            "colors/cms-transform-color-test.cpp"
+                            "colors/cms-transform-surface-test.cpp"
                             "colors/color-test.cpp"
                             "colors/gamut-test.cpp"
                             "colors/manager-test.cpp"
                             "colors/parser-test.cpp"
                             "colors/printer-test.cpp"
+                            "colors/spaces-alpha-test.cpp"
                             "colors/spaces-cms-test.cpp"
                             "colors/spaces-cmyk-test.cpp"
                             "colors/spaces-gray-test.cpp"
@@ -215,6 +217,60 @@ add_unit_tests(TEST_SOURCES "colors/cms-profile-test.cpp"
                             "colors/spaces-xyz-test.cpp"
                             "colors/utils-test.cpp"
                  EXTRA_LIBS colors_unit_lib)
+
+include("${CMAKE_SOURCE_DIR}/src/renderer/CMakeUnit.txt")
+get_renderer_unit_lib()
+add_unit_tests(TEST_SOURCES 
+                            "renderer/context-test.cpp"
+                            "renderer/pixel-access-test.cpp"
+                            "renderer/pixel-filter-average-color-test.cpp"
+                            "renderer/pixel-filter-color-matrix-test.cpp"
+                            "renderer/pixel-filter-color-space-test.cpp"
+                            "renderer/pixel-filter-component-transfer-test.cpp"
+                            "renderer/pixel-filter-composite-test.cpp"
+                            "renderer/pixel-filter-convolve-matrix-test.cpp"
+                            "renderer/pixel-filter-light-test.cpp"
+                            "renderer/pixel-filter-displacement-map-test.cpp"
+                            "renderer/pixel-filter-turbulence-test.cpp"
+                            "renderer/pixel-filter-morphology-test.cpp"
+                            "renderer/pixel-filter-gaussian-blur-test.cpp"
+                            "renderer/surface-filter-average-color-test.cpp"
+                            "renderer/surface-filter-color-matrix-test.cpp"
+                            "renderer/surface-filter-color-space-test.cpp"
+                            "renderer/surface-filter-component-transfer-test.cpp"
+                            "renderer/surface-filter-composite-test.cpp"
+                            "renderer/surface-filter-convolve-matrix-test.cpp"
+                            "renderer/surface-filter-light-test.cpp"
+                            "renderer/surface-filter-displacement-map-test.cpp"
+                            "renderer/surface-filter-turbulence-test.cpp"
+                            "renderer/surface-filter-morphology-test.cpp"
+                            "renderer/surface-filter-gaussian-blur-test.cpp"
+                            "renderer/surface-test.cpp"
+                    EXTRA_LIBS renderer_unit_lib colors_unit_lib)
+
+get_drawing_unit_lib()
+add_unit_tests(TEST_SOURCES 
+                            "renderer/drawing-filter-blend-test.cpp"
+                            "renderer/drawing-filter-color-matrix-test.cpp"
+                            "renderer/drawing-filter-component-transfer-test.cpp"
+                            "renderer/drawing-filter-composite-test.cpp"
+                            "renderer/drawing-filter-convolve-matrix-test.cpp"
+                            "renderer/drawing-filter-displacement-map-test.cpp"
+                            "renderer/drawing-filter-drop-shadow-test.cpp"
+                            "renderer/drawing-filter-flood-test.cpp"
+                            "renderer/drawing-filter-gaussian-blur-test.cpp"
+                            "renderer/drawing-filter-image-test.cpp"
+                            "renderer/drawing-filter-light-test.cpp"
+                            "renderer/drawing-filter-merge-test.cpp"
+                            "renderer/drawing-filter-morphology-test.cpp"
+                            "renderer/drawing-filter-offset-test.cpp"
+                            "renderer/drawing-filter-slot-test.cpp"
+                            "renderer/drawing-filter-test.cpp"
+                            "renderer/drawing-filter-tile-test.cpp"
+                            "renderer/drawing-filter-turbulence-test.cpp"
+                    SOURCES "mocks/util-units-filename.cpp"
+                            "mocks/util-numeric-precision.cpp"
+                    EXTRA_LIBS renderer_unit_lib drawing_unit_lib colors_unit_lib)
 
 add_unit_test(css-syntactic-decomposition-test TEST_SOURCE "css-syntactic-decomposition-test.cpp"
                                                    SOURCES "css/syntactic-decomposition.cpp"

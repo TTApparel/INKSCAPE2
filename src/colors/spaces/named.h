@@ -29,6 +29,8 @@ public:
 
     static std::string getNameFor(unsigned int rgba);
 
+    bool isDirect() const override { return false; }
+
 protected:
     friend class Inkscape::Colors::Color;
 

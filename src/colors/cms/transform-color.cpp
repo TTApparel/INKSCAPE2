@@ -24,10 +24,12 @@ namespace Inkscape::Colors::CMS {
  * @arg to - The target CMS Profile the color data needs to end up in.
  * @arg intent - The rendering intent to use when changing the gamut and white balance.
  */
-TransformColor::TransformColor(std::shared_ptr<Profile> const &from,
-                               std::shared_ptr<Profile> const &to, RenderingIntent intent)
+TransformColor::TransformColor(std::shared_ptr<Profile> const &from, std::shared_ptr<Profile> const &to,
+                               RenderingIntent intent)
     : Transform(cmsCreateTransform(
         from->getHandle(),
+        // Colors may have Alpha, but are NEVER premultiplied and we only convert one "pixel"
+        // at a time so there's no need to specify the presence of the alpha which is optional
         lcms_color_format(from),
         to->getHandle(),
         lcms_color_format(to),
@@ -47,17 +49,17 @@ TransformColor::TransformColor(std::shared_ptr<Profile> const &from,
  */
 bool TransformColor::do_transform(std::vector<double> &io) const
 {
-    bool alpha = io.size() == _channels_in + 1;
+    bool alpha = (int)io.size() == _channels_in + 1;
 
     // Pad data for output channels
-    while (io.size() < _channels_out + alpha) {
+    while ((int)io.size() < _channels_out + alpha) {
         io.insert(io.begin() + _channels_in, 0.0);
     }
 
     cmsDoTransform(_handle, &io.front(), &io.front(), 1);
 
     // Trim data for output channels
-    while (io.size() > _channels_out + alpha) {
+    while ((int)io.size() > _channels_out + alpha) {
         io.erase(io.end() - 1 - alpha);
     }
     return true;

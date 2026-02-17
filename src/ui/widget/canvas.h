@@ -44,7 +44,7 @@ class CanvasItemGroup;
 class Drawing;
 
 namespace Colors::CMS {
-    class TransformCairo;
+    class TransformSurface;
 }
 
 namespace UI::Widget {
@@ -201,7 +201,7 @@ private:
 
     // CMS
     bool _cms_active = false;
-    std::shared_ptr<Colors::CMS::TransformCairo> _cms_transform; ///< The lcms transform to apply to canvas.
+    std::shared_ptr<Colors::CMS::TransformSurface> _cms_transform; ///< The lcms transform to apply to canvas.
     void set_cms_transform(); ///< Set the lcms transform.
 
     /* Internal state */

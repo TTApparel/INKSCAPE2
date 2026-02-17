@@ -26,6 +26,7 @@ public:
     static std::shared_ptr<Profile> create_from_data(std::string const &contents);
 
     /* LittleCMS based identity profiles */
+    static std::shared_ptr<Profile> create_gray();
     static std::shared_ptr<Profile> create_srgb();
     static std::shared_ptr<Profile> create_linearrgb();
     static std::shared_ptr<Profile> create_xyz65();

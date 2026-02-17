@@ -25,12 +25,14 @@ public:
     }
     ~Lab() override = default;
 
+    bool isDirect() const override { return true; }
+    std::shared_ptr<Inkscape::Colors::CMS::Profile> const getProfile() const override;
+
 protected:
     friend class Inkscape::Colors::Color;
 
     Lab(Type type, int components, std::string name, std::string shortName, std::string icon, bool spaceIsUnbounded = false);
 
-    std::shared_ptr<Inkscape::Colors::CMS::Profile> const getProfile() const override;
     std::string toString(std::vector<double> const &values, bool opacity) const override;
 
 public:
@@ -42,9 +44,6 @@ public:
         {}
         bool parse(std::istringstream &input, std::vector<double> &output) const override;
     };
-
-    static void toXYZ(std::vector<double> &output);
-    static void fromXYZ(std::vector<double> &output);
 
     static void scaleDown(std::vector<double> &in_out);
     static void scaleUp(std::vector<double> &in_out);

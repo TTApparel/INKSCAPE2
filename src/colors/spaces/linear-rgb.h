@@ -26,10 +26,12 @@ public:
     }
     ~LinearRGB() override = default;
 
+    bool isDirect() const override { return true; }
+    std::shared_ptr<Colors::CMS::Profile> const getProfile() const override;
+
 protected:
     friend class Inkscape::Colors::Color;
 
-    std::shared_ptr<Colors::CMS::Profile> const getProfile() const override;
     std::string toString(std::vector<double> const &values, bool opacity = true) const override;
 
 public:

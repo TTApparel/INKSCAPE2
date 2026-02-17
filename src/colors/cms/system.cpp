@@ -15,7 +15,7 @@
 
 #include "io/resource.h"
 #include "profile.h"
-#include "transform-cairo.h"
+#include "transform-surface.h"
 
 // clang-format off
 #ifdef _WIN32
@@ -243,7 +243,7 @@ const std::shared_ptr<Profile> &System::getProfile(std::string const &name) cons
  *
  * Transform immutably shared between System and Canvas.
  */
-const std::shared_ptr<TransformCairo> &System::getDisplayTransform()
+const std::shared_ptr<TransformSurface> &System::getDisplayTransform()
 {
     bool need_to_update = false;
 
@@ -261,7 +261,19 @@ const std::shared_ptr<TransformCairo> &System::getDisplayTransform()
 
     if (need_to_update) {
         if (display_profile) {
-            _display_transform = std::make_shared<TransformCairo>(Profile::create_srgb(), display_profile);
+            // No High bit depths here! Just low resolution gamma curved sRGB.
+            // TODO: Replace with something with a better gammut and depth.
+            TransformSurface::Format in = {
+                Profile::create_srgb(), // sRGB profile input
+                sizeof(char),           // Char 8 per channel
+                true,                   // Integral
+            };
+            TransformSurface::Format out = {
+                display_profile,
+                sizeof(char),
+                true,
+            };
+            _display_transform = std::make_shared<TransformSurface>(in, out);
         } else {
             _display_transform = nullptr;
         }

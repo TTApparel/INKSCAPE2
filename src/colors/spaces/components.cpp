@@ -175,6 +175,11 @@ static const std::vector<Components> color_spaces = {
         {
             { "gray", _("G"), _("Gray"), Unit::Linear1024 }
         }
+    },
+    {
+        Type::Alpha, Type::NONE, Traits::Internal,
+        {
+        }
     }
 };
     return color_spaces;

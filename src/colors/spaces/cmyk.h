@@ -26,11 +26,13 @@ public:
     }
     ~DeviceCMYK() override = default;
 
-    void spaceToProfile(std::vector<double> &output) const override;
-    void profileToSpace(std::vector<double> &output) const override;
+    bool isDirect() const override { return false; }
 
 protected:
     friend class Inkscape::Colors::Color;
+
+    void spaceToProfile(std::vector<double> &output) const override;
+    void profileToSpace(std::vector<double> &output) const override;
 
     std::string toString(std::vector<double> const &values, bool opacity = true) const override;
     bool overInk(std::vector<double> const &input) const override;

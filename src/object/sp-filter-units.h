@@ -15,6 +15,21 @@ enum SPFilterUnits {
     SP_FILTER_UNITS_USERSPACEONUSE
 };
 
+enum class CompositeOperator
+{
+    // Default value is 'over', but let's distinguish specifying the
+    // default and implicitly using the default
+    DEFAULT,
+    OVER,              /* Source Over */
+    IN,                /* Source In   */
+    OUT,               /* Source Out  */
+    ATOP,              /* Source Atop */
+    XOR,
+    ARITHMETIC,        /* Not a fundamental PorterDuff operator, nor Cairo */
+    LIGHTER,           /* Plus, Add (Not a fundamental PorterDuff operator  */
+    ENDOPERATOR        /* Cairo Saturate is not included in CSS */
+};
+
 #endif /* !SEEN_SP_FILTER_UNITS_H */
 
 /*

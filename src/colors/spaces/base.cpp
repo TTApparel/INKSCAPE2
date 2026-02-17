@@ -69,6 +69,7 @@ bool AnySpace::convert(std::vector<double> &io, std::shared_ptr<AnySpace> to_spa
 
     // Firstly convert from the formatted values (i.e. hsl) into the profile values (i.e. sRGB)
     spaceToProfile(io);
+
     // Secondly convert the color profile itself using lcms2 if the profiles are different
     if (profileToProfile(io, to_space)) {
         // Thirdly convert to the formatted values (i.e. hsl) from the profile values (i.e. sRGB)
@@ -101,16 +102,7 @@ bool AnySpace::profileToProfile(std::vector<double> &io, std::shared_ptr<AnySpac
     if (*to_profile == *from_profile)
         return true;
 
-    // Choose best rendering intent based on the intent priority
-    auto intent = RenderingIntent::UNKNOWN;
-    if (_intent_priority <= to_space->_intent_priority || getIntent() == RenderingIntent::UNKNOWN) {
-        intent = to_space->getIntent();
-    } else {
-        intent = getIntent();
-    }
-    if (intent == RenderingIntent::UNKNOWN) {
-        intent = RenderingIntent::PERCEPTUAL;
-    }
+    auto intent = getBestIntent(to_space);
 
     // Look in the transform cache for the color profile
     auto to_profile_id = to_profile->getChecksum() + "-" + intentIds[intent];
@@ -125,6 +117,24 @@ bool AnySpace::profileToProfile(std::vector<double> &io, std::shared_ptr<AnySpac
         return tr->do_transform(io);
     }
     return false;
+}
+
+/**
+ * Get the best rendering intent for this color space conversion.
+ */
+RenderingIntent AnySpace::getBestIntent(std::shared_ptr<AnySpace> const &to_space) const
+{
+    // Choose best rendering intent based on the intent priority
+    auto intent = RenderingIntent::UNKNOWN;
+    if (_intent_priority <= to_space->_intent_priority || getIntent() == RenderingIntent::UNKNOWN) {
+        intent = to_space->getIntent();
+    } else {
+        intent = getIntent();
+    }
+    if (intent == RenderingIntent::UNKNOWN) {
+        intent = RenderingIntent::PERCEPTUAL;
+    }
+    return intent;
 }
 
 /**

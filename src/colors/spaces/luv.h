@@ -25,6 +25,8 @@ public:
     Luv(): XYZ(Type::LUV, 3, "Luv", "Luv", "color-selector-luv") {}
     ~Luv() override = default;
 
+    bool isDirect() const override { return false; }
+
 protected:
     friend class Inkscape::Colors::Color;
 

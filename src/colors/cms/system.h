@@ -23,7 +23,7 @@ using DirPaths = std::vector<std::pair<std::string, bool>>;
 namespace Inkscape::Colors::CMS {
 
 class Profile;
-class TransformCairo;
+class TransformSurface;
 class System
 {
 private:
@@ -43,7 +43,7 @@ public:
 
     std::vector<std::shared_ptr<Profile>> getDisplayProfiles() const;
     const std::shared_ptr<Profile> &getDisplayProfile(bool &updated);
-    const std::shared_ptr<TransformCairo> &getDisplayTransform();
+    const std::shared_ptr<TransformSurface> &getDisplayTransform();
 
     std::vector<std::shared_ptr<Profile>> getOutputProfiles() const;
 
@@ -64,7 +64,7 @@ private:
 
     // We track last display transform settings. If there is a change, we delete create new transform.
     std::shared_ptr<Profile> _display_profile;
-    std::shared_ptr<TransformCairo> _display_transform;
+    std::shared_ptr<TransformSurface> _display_transform;
     bool _display = false;
     int _display_intent = -1;
 

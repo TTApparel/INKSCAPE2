@@ -23,6 +23,8 @@ public:
     }
     ~OkLab() override = default;
 
+    bool isDirect() const override { return false; }
+
 protected:
     friend class Inkscape::Colors::Color;
 

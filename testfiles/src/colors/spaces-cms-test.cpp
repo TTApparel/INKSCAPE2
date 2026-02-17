@@ -77,6 +77,14 @@ TEST(ColorsSpaceCms, getType)
     EXPECT_EQ(cmyk->getComponentType(), Space::Type::CMYK);
 }
 
+TEST(ColorsSpacesRgb, isDirect)
+{
+    auto cmyk_profile = Inkscape::Colors::CMS::Profile::create_from_uri(cmyk_icc);
+    auto cmyk = std::make_shared<CMS>(cmyk_profile);
+
+    ASSERT_TRUE(cmyk->isDirect());
+}
+
 TEST(ColorsSpacesCms, realColor)
 {
     auto cmyk_profile = Inkscape::Colors::CMS::Profile::create_from_uri(cmyk_icc);

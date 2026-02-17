@@ -57,63 +57,6 @@ void Lab::scaleDown(std::vector<double> &in_out)
 }
 
 /**
- * Convert a color from the the Lab colorspace to the XYZ colorspace.
- *
- * @param in_out[in,out] The Lab color converted to a XYZ color.
- */
-void Lab::toXYZ(std::vector<double> &in_out)
-{
-    scaleUp(in_out);
-
-    double y = (in_out[0] + 16.0) / 116.0;
-    in_out[0] = in_out[1] / 500.0 + y;
-    in_out[1] = y;
-    in_out[2] = y - in_out[2] / 200.0;
-
-    for (unsigned i = 0; i < 3; i++) {
-        double x3 = std::pow(in_out[i], 3);
-        if (x3 > 0.008856) {
-            in_out[i] = x3;
-        } else {
-            in_out[i] = (in_out[i] - 16.0 / 116.0) / 7.787;
-        }
-        //in_out[i] *= illuminant_d65[i];
-    }
-}
-
-/**
- * Convert a color from the the XYZ colorspace to the Lab colorspace.
- *
- * @param in_out[in,out] The XYZ color converted to a Lab color.
- */
-void Lab::fromXYZ(std::vector<double> &in_out)
-{
-    for (unsigned i = 0; i < 3; i++) {
-        //in_out[i] /= illuminant_d65[i];
-    }
-
-    double l;
-    if (in_out[1] > 0.008856) {
-        l = 116 * std::pow(in_out[1], 0.33333) - 16;
-    } else {
-        l = 903.3 * in_out[1];
-    }
-
-    for (unsigned i = 0; i < 3; i++) {
-        if (in_out[i] > 0.008856) {
-            in_out[i] = std::pow(in_out[i], 0.33333);
-        } else {
-            in_out[i] = 7.787 * in_out[i] + 16.0 / 116.0;
-        }
-    };
-    in_out[2] = 200 * (in_out[1] - in_out[2]);
-    in_out[1] = 500 * (in_out[0] - in_out[1]);
-    in_out[0] = l;
-
-    scaleDown(in_out);
-}
-
-/**
  * Print the Lab color to a CSS string.
  *
  * @arg values - A vector of doubles for each channel in the Lab space

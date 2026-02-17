@@ -27,6 +27,8 @@ public:
     HSLuv(): XYZ(Type::HSLUV, 3, "HSLuv", "HSLuv", "color-selector-hsluv") {}
     ~HSLuv() override = default;
 
+    bool isDirect() const override { return false; }
+
 protected:
     friend class Inkscape::Colors::Color;
 

@@ -9,7 +9,6 @@ set(colors_SRC
 	xml-color.cpp    # sp-document and document-cms
 
 	cms/system.h
-	cms/profile.h
 	document-cms.h
 	dragndrop.h
 	color-set.h

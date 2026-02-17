@@ -21,6 +21,8 @@ public:
     OkHsl(): RGB(Type::OKHSL, 3, "OkHsl", "OkHsl", "color-selector-okhsl", true) {}
     ~OkHsl() override = default;
 
+    bool isDirect() const override { return false; }
+
 protected:
     friend class Inkscape::Colors::Color;
 
