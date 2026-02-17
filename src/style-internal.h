@@ -218,6 +218,7 @@ protected:
 template <SPAttr Id, class Base>
 class TypedSPI : public Base {
   public:
+    using BaseType = Base;
     using Base::Base;
 
     /**
@@ -1102,7 +1103,7 @@ public:
     const Glib::ustring get_value() const override;
     void clear() override {
         SPIBase::clear();
-        underline = false, overline = false, line_through = false, blink = false;
+        underline = false, overline = false, line_through = false, blink = false, spelling_error = false;
     }
 
     void cascade( const SPIBase* const parent ) override;
@@ -1118,6 +1119,7 @@ public:
     bool overline : 1;
     bool line_through : 1;
     bool blink : 1;    // "Conforming user agents are not required to support this value." yay!
+    bool spelling_error : 1;
 };
 
 // CSS3 2.2
@@ -1156,6 +1158,42 @@ public:
     bool wavy : 1;
 };
 
+
+/// Text decoration thickness type internal to SPStyle.
+// CSS: text-decoration-thickness: auto | from-font | <length> | <percentage>
+// Not inherited.
+class SPITextDecorationThickness : public SPILength
+{
+public:
+    SPITextDecorationThickness()
+        : SPILength(0)
+    {
+        auto_val = true;
+        from_font = false;
+    }
+
+    ~SPITextDecorationThickness() override = default;
+
+    void read(gchar const *str) override;
+    const Glib::ustring get_value() const override;
+    void clear() override {
+        SPILength::clear();
+        auto_val = true;
+        from_font = false;
+    }
+
+    // Not inherited
+    void cascade(const SPIBase* const parent) override {};
+    void merge(const SPIBase* const parent) override {};
+
+    SPITextDecorationThickness& operator=(const SPITextDecorationThickness& rhs) = default;
+
+    bool equals(const SPIBase& rhs) const override;
+
+public:
+    bool auto_val : 1;
+    bool from_font : 1;
+};
 
 
 // This class reads in both CSS2 and CSS3 'text-decoration' property. It passes the line, style,

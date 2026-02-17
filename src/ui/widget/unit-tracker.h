@@ -18,7 +18,10 @@
 
 #include <map>
 #include <giomm/liststore.h>
+#include <giomm/menu.h>
+#include <giomm/simpleactiongroup.h>
 #include <glibmm/refptr.h>
+#include <sigc++/signal.h>
 
 #include "unit-menu.h"
 #include "util/units.h"
@@ -56,6 +59,14 @@ public:
 
     UnitMenu* create_unit_dropdown();
 
+    struct PopoverUnitMenu {
+        Glib::RefPtr<Gio::Menu> menu;
+        Glib::RefPtr<Gio::SimpleActionGroup> action_group;
+    };
+    PopoverUnitMenu create_popover_unit_menu(Gtk::Widget& owner);
+
+    sigc::signal<void (Unit const *)>& signal_unit_changed() { return _signal_unit_changed; }
+
 protected:
     UnitType _type;
 
@@ -78,6 +89,7 @@ private:
     std::vector<UnitMenu*> _combo_list;
     std::vector<GtkAdjustment*> _adjList;
     std::map <GtkAdjustment *, double> _priorValues;
+    sigc::signal<void (Unit const *)> _signal_unit_changed;
 };
 
 } // namespace Inkscape::UI::Widget

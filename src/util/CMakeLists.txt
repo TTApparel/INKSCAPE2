@@ -21,6 +21,7 @@ target_sources(inkscape_base PRIVATE
     statics.cpp
     svg-path-parser.cpp
     theme-utils.cpp
+    text-utils.cpp
     transform-objects.cpp
     recently-used-fonts.cpp
     pool.cpp
@@ -72,6 +73,7 @@ target_sources(inkscape_base PRIVATE
     static-doc.h
     svg-path-parser.h
     theme-utils.h
+    text-utils.h
     transform-objects.h
     treeify.h
     trim.h

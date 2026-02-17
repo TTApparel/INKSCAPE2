@@ -56,6 +56,7 @@
 #include "ui/widget/unit-tracker.h"
 #include "ui/widget/generic/number-combo-box.h"
 #include "util/font-collections.h"
+#include "util/text-utils.h"
 #include "widgets/style-utils.h"
 
 using Inkscape::DocumentUndo;
@@ -68,15 +69,6 @@ constexpr bool DEBUG_TEXT = false;
 namespace Inkscape::UI::Toolbar {
 namespace {
 
-bool is_relative(Unit const *unit)
-{
-    return unit->abbr == "" || unit->abbr == "em" || unit->abbr == "ex" || unit->abbr == "%";
-}
-
-bool is_relative(SPCSSUnit const unit)
-{
-    return unit == SP_CSS_UNIT_NONE || unit == SP_CSS_UNIT_EM || unit == SP_CSS_UNIT_EX || unit == SP_CSS_UNIT_PERCENT;
-}
 
 // Set property for object, but unset all descendents
 // Should probably be moved to desktop_style.cpp
@@ -500,7 +492,7 @@ void TextToolbar::fontsize_value_changed(double size)
     text_outer_set_style(css);
 
     auto const unit_lh = _tracker->getActiveUnit();
-    if (!is_relative(unit_lh) && _outer) {
+    if (!is_relative_unit(unit_lh) && _outer) {
         double lineheight = _line_height_item.get_adjustment()->get_value();
         _freeze = false;
         _line_height_item.get_adjustment()->set_value(lineheight * factor);
@@ -621,24 +613,6 @@ void TextToolbar::script_changed(int mode)
     _freeze = false;
 }
 
-// Any text alignment in, right/center/left/justify out.
-SPCSSTextAlign text_align_to_side(SPCSSTextAlign const &align, SPCSSDirection const &direction)
-{
-    auto new_align = align;
-
-    if ((align == SP_CSS_TEXT_ALIGN_START && direction == SP_CSS_DIRECTION_LTR) ||
-        (align == SP_CSS_TEXT_ALIGN_END   && direction == SP_CSS_DIRECTION_RTL)) {
-        new_align = SP_CSS_TEXT_ALIGN_LEFT;
-    }
-
-    if ((align == SP_CSS_TEXT_ALIGN_START && direction == SP_CSS_DIRECTION_RTL) ||
-        (align == SP_CSS_TEXT_ALIGN_END   && direction == SP_CSS_DIRECTION_LTR)) {
-        new_align = SP_CSS_TEXT_ALIGN_RIGHT;
-    }
-
-    return new_align;
-}
-
 void TextToolbar::align_mode_changed(int align_mode)
 {
     // quit if run by the _changed callbacks
@@ -649,131 +623,13 @@ void TextToolbar::align_mode_changed(int align_mode)
 
     Preferences::get()->setInt("/tools/text/align_mode", align_mode);
 
-    // Move the alignment point of all texts to preserve the same bbox.
     bool changed = false;
-    Selection *selection = _desktop->getSelection();
-    for (auto i : selection->items()) {
-        auto text = cast<SPText>(i);
-        // auto flowtext = cast<SPFlowtext>(i);
-        if (text) {
-
-            // Below, variable names suggest horizontal move, but we check the writing direction
-            // and move in the corresponding axis.
-            Geom::Dim2 axis;
-            unsigned writing_mode = text->style->writing_mode.value;
-            if (writing_mode == SP_CSS_WRITING_MODE_LR_TB || writing_mode == SP_CSS_WRITING_MODE_RL_TB) {
-                axis = Geom::X;
-            } else {
-                axis = Geom::Y;
-            }
-
-            // Find current text inline-size (width for horizontal text, height for vertical text.
-            Geom::OptRect bbox = text->get_frame(); // 'inline-size' or rectangle frame.
-            if (!bbox) {
-                bbox = text->geometricBounds();
-            }
-            if (!bbox) {
-                continue; // No bounding box, no joy!
-            }
-            double width = bbox->dimensions()[axis];
-
-            double move = 0;
-            auto direction = text->style->direction.value;
-
-            // Switch alignment point
-            auto old_side = text_align_to_side(text->style->text_align.value, direction);
-            switch (old_side) {
-                case SP_CSS_TEXT_ALIGN_LEFT:
-                    switch (align_mode) {
-                        case 0:
-                            break;
-                        case 1:
-                            move = width/2;
-                            break;
-                        case 2:
-                            move = width;
-                            break;
-                        case 3:
-                            break; // Justify
-                        default:
-                            std::cerr << "TextToolbar::align_mode_changed() Unexpected value (mode): " << align_mode << std::endl;
-                    }
-                    break;
-                case SP_CSS_TEXT_ALIGN_CENTER:
-                    switch (align_mode) {
-                        case 0:
-                            move = -width/2;
-                            break;
-                        case 1:
-                            break;
-                        case 2:
-                            move = width/2;
-                            break;
-                        case 3:
-                            break; // Justify
-                        default:
-                            std::cerr << "TextToolbar::align_mode_changed() Unexpected value (mode): " << align_mode << std::endl;
-                    }
-                    break;
-                case SP_CSS_TEXT_ALIGN_RIGHT:
-                    switch (align_mode) {
-                        case 0:
-                            move = -width;
-                            break;
-                        case 1:
-                            move = -width/2;
-                            break;
-                        case 2:
-                            break;
-                        case 3:
-                            break; // Justify
-                        default:
-                            std::cerr << "TextToolbar::align_mode_changed() Unexpected value (mode): " << align_mode << std::endl;
-                    }
-                    break;
-                case SP_CSS_TEXT_ALIGN_JUSTIFY:
-                    // Do nothing
-                    break;
-                default:
-                    std::cerr << "TextToolbar::align_mode_changed() Unexpected value (old_side): " << old_side << std::endl;
-            }
-
-            if (std::abs(move) > 0) {
+    for (auto item : _desktop->getSelection()->items()) {
+        if (auto text = cast<SPText>(item)) {
+            if (Inkscape::apply_text_alignment(text, align_mode)) {
                 changed = true;
             }
-
-            SPCSSAttr *css = sp_repr_css_attr_new ();
-            if ((align_mode == 0 && direction == SP_CSS_DIRECTION_LTR) ||
-                (align_mode == 2 && direction == SP_CSS_DIRECTION_RTL)) {
-                sp_repr_css_set_property (css, "text-anchor", "start");
-                sp_repr_css_set_property (css, "text-align",  "start");
-            }
-            if ((align_mode == 0 && direction == SP_CSS_DIRECTION_RTL) ||
-                (align_mode == 2 && direction == SP_CSS_DIRECTION_LTR)) {
-                sp_repr_css_set_property (css, "text-anchor", "end");
-                sp_repr_css_set_property (css, "text-align",  "end");
-            }
-            if (align_mode == 1) {
-                sp_repr_css_set_property (css, "text-anchor", "middle");
-                sp_repr_css_set_property (css, "text-align",  "center");
-            }
-            if (align_mode == 3) {
-                sp_repr_css_set_property (css, "text-anchor", "start");
-                sp_repr_css_set_property (css, "text-align",  "justify");
-            }
-            text->changeCSS(css, "style");
-            sp_repr_css_attr_unref(css);
-
-            Geom::Point XY = text->attributes.firstXY();
-            if (axis == Geom::X) {
-                XY = XY + Geom::Point (move, 0);
-            } else {
-                XY = XY + Geom::Point (0, move);
-            }
-            text->attributes.setFirstXY(XY);
-            text->updateRepr();
-            text->requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
-        } // if(text)
+        }
     }
 
     if (changed) {
@@ -903,15 +759,8 @@ void TextToolbar::lineheight_value_changed()
 
     // Set css line height.
     auto css = sp_repr_css_attr_new();
-    CSSOStringStream osfs;
-    if (is_relative(unit)) {
-        osfs << _line_height_item.get_adjustment()->get_value() << unit->abbr;
-    } else {
-        // Inside SVG file, always use "px" for absolute units.
-        osfs << Quantity::convert(_line_height_item.get_adjustment()->get_value(), unit, "px") << "px";
-    }
-
-    sp_repr_css_set_property (css, "line-height", osfs.str().c_str());
+    auto lh_css = format_line_height_css(_line_height_item.get_adjustment()->get_value(), unit);
+    sp_repr_css_set_property (css, "line-height", lh_css.c_str());
 
     auto selection = _desktop->getSelection();
     auto itemlist = selection->items();
@@ -1014,17 +863,13 @@ void TextToolbar::lineheight_unit_changed()
     // Get user selected unit and save as preference
     auto const unit = _tracker->getActiveUnit();
 
-    // This nonsense is to get SP_CSS_UNIT_xx value corresponding to unit.
-    SPILength temp_length;
-    CSSOStringStream temp_stream;
-    temp_stream << 1 << unit->abbr;
-    temp_length.read(temp_stream.str().c_str());
-    Preferences::get()->setInt("/tools/text/lineheight/display_unit", temp_length.unit);
-    if (old_unit == temp_length.unit) {
+    int new_css = unit_to_css_unit(unit);
+    Preferences::get()->setInt("/tools/text/lineheight/display_unit", new_css);
+    if (old_unit == new_css) {
         _freeze = false;
         return;
     } else {
-        _lineheight_unit = temp_length.unit;
+        _lineheight_unit = new_css;
     }
 
     // Read current line height value
@@ -1034,7 +879,7 @@ void TextToolbar::lineheight_unit_changed()
     Selection *selection = desktop->getSelection();
     auto itemlist = selection->items();
 
-    // Convert between units
+    // Get average font size for relative ↔ absolute conversion
     double font_size = 0;
     double doc_scale = 1;
     int count = 0;
@@ -1049,60 +894,13 @@ void TextToolbar::lineheight_unit_changed()
     if (count > 0) {
         font_size /= count;
     } else {
-        // ideally use default font-size.
         font_size = 20;
     }
-    if ((unit->abbr == "" || unit->abbr == "em") && (old_unit == SP_CSS_UNIT_NONE || old_unit == SP_CSS_UNIT_EM)) {
-        // Do nothing
-    } else if ((unit->abbr == "" || unit->abbr == "em") && old_unit == SP_CSS_UNIT_EX) {
-        line_height *= 0.5;
-    } else if ((unit->abbr) == "ex" && (old_unit == SP_CSS_UNIT_EM || old_unit == SP_CSS_UNIT_NONE)) {
-        line_height *= 2.0;
-    } else if ((unit->abbr == "" || unit->abbr == "em") && old_unit == SP_CSS_UNIT_PERCENT) {
-        line_height /= 100.0;
-    } else if ((unit->abbr) == "%" && (old_unit == SP_CSS_UNIT_EM || old_unit == SP_CSS_UNIT_NONE)) {
-        line_height *= 100;
-    } else if ((unit->abbr) == "ex" && old_unit == SP_CSS_UNIT_PERCENT) {
-        line_height /= 50.0;
-    } else if ((unit->abbr) == "%" && old_unit == SP_CSS_UNIT_EX) {
-        line_height *= 50;
-    } else if (is_relative(unit)) {
-        // Convert absolute to relative... for the moment use average font-size
-        if (old_unit == SP_CSS_UNIT_NONE) old_unit = SP_CSS_UNIT_EM;
-        line_height = Quantity::convert(line_height, sp_style_get_css_unit_string(old_unit), "px");
-
-        if (font_size > 0) {
-            line_height /= font_size;
-        }
-        if (unit->abbr == "%") {
-            line_height *= 100;
-        } else if (unit->abbr == "ex") {
-            line_height *= 2;
-        }
-    } else if (old_unit == SP_CSS_UNIT_NONE || old_unit == SP_CSS_UNIT_PERCENT || old_unit == SP_CSS_UNIT_EM ||
-            old_unit == SP_CSS_UNIT_EX) {
-        // Convert relative to absolute... for the moment use average font-size
-        if (old_unit == SP_CSS_UNIT_PERCENT) {
-            line_height /= 100.0;
-        } else if (old_unit == SP_CSS_UNIT_EX) {
-            line_height /= 2.0;
-        }
-        line_height *= font_size;
-        line_height = Quantity::convert(line_height, "px", unit);
-    } else {
-        // Convert between different absolute units (only used in GUI)
-        line_height = Quantity::convert(line_height, sp_style_get_css_unit_string(old_unit), unit);
-    }
+    line_height = convert_lineheight_between_units(line_height, old_unit, unit, font_size);
     // Set css line height.
     auto css = sp_repr_css_attr_new();
-    CSSOStringStream osfs;
-    // Set css line height.
-    if ( is_relative(unit) ) {
-        osfs << line_height << unit->abbr;
-    } else {
-        osfs << Quantity::convert(line_height, unit, "px") << "px";
-    }
-    sp_repr_css_set_property(css, "line-height", osfs.str().c_str());
+    auto lh_css = format_line_height_css(line_height, unit);
+    sp_repr_css_set_property(css, "line-height", lh_css.c_str());
 
     // Update GUI with line_height value.
     line_height_adj->set_value(line_height);
@@ -1204,12 +1002,7 @@ void TextToolbar::fontsize_unit_changed()
     // quit if run by the _changed callbacks
     auto const unit = _tracker_fs->getActiveUnit();
 
-    // This nonsense is to get SP_CSS_UNIT_xx value corresponding to unit.
-    SPILength temp_size;
-    CSSOStringStream temp_size_stream;
-    temp_size_stream << 1 << unit->abbr;
-    temp_size.read(temp_size_stream.str().c_str());
-    Preferences::get()->setInt("/options/font/unitType", temp_size.unit);
+    Preferences::get()->setInt("/options/font/unitType", unit_to_css_unit(unit));
 
     // refresh font size and list of font sizes after unit change
     _selectionChanged(nullptr);
@@ -1274,19 +1067,8 @@ void TextToolbar::dx_value_changed()
     _freeze = true;
 
     double new_dx = _dx_item.get_adjustment()->get_value();
-    bool modified = false;
 
-    if (auto tc = SP_TEXT_CONTEXT(_desktop->getTool())) {
-        unsigned char_index = -1;
-        if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-            double old_dx = attributes->getDx(char_index);
-            double delta_dx = new_dx - old_dx;
-            sp_te_adjust_dx(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta_dx);
-            modified = true;
-        }
-    }
-
-    if (modified) {
+    if (Inkscape::apply_text_dx(SP_TEXT_CONTEXT(_desktop->getTool()), _desktop, new_dx)) {
         DocumentUndo::maybeDone(_desktop->getDocument(), "ttb:dx", RC_("Undo", "Text: Change dx (kern)"), INKSCAPE_ICON("draw-text"));
     }
 
@@ -1302,19 +1084,8 @@ void TextToolbar::dy_value_changed()
     _freeze = true;
 
     double new_dy = _dy_item.get_adjustment()->get_value();
-    bool modified = false;
 
-    if (auto tc = SP_TEXT_CONTEXT(_desktop->getTool())) {
-        unsigned char_index = -1;
-        if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-            double old_dy = attributes->getDy(char_index);
-            double delta_dy = new_dy - old_dy;
-            sp_te_adjust_dy(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta_dy);
-            modified = true;
-        }
-    }
-
-    if (modified) {
+    if (Inkscape::apply_text_dy(SP_TEXT_CONTEXT(_desktop->getTool()), _desktop, new_dy)) {
         DocumentUndo::maybeDone(_desktop->getDocument(), "ttb:dy", RC_("Undo", "Text: Change dy"), INKSCAPE_ICON("draw-text"));
     }
 
@@ -1331,18 +1102,7 @@ void TextToolbar::rotation_value_changed()
 
     double new_degrees = _rotation_item.get_adjustment()->get_value();
 
-    bool modified = false;
-    if (auto tc = SP_TEXT_CONTEXT(_desktop->getTool())) {
-        unsigned char_index = -1;
-        if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-            double old_degrees = attributes->getRotate(char_index);
-            double delta_deg = new_degrees - old_degrees;
-            sp_te_adjust_rotation(tc->textItem(), tc->text_sel_start, tc->text_sel_end, _desktop, delta_deg);
-            modified = true;
-        }
-    }
-
-    if (modified) {
+    if (Inkscape::apply_text_char_rotation(SP_TEXT_CONTEXT(_desktop->getTool()), _desktop, new_degrees)) {
         DocumentUndo::maybeDone(_desktop->getDocument(), "ttb:rotate", RC_("Undo", "Text: Change rotate"), INKSCAPE_ICON("draw-text"));
     }
 
@@ -1604,10 +1364,10 @@ void TextToolbar::_selectionChanged(Selection *selection) // don't bother to upd
         }
 
         // We dot want to parse values just show
-        if (!is_relative(SPCSSUnit(line_height_unit))) {
+        if (!is_relative_unit(line_height_unit)) {
             int curunit = prefs->getInt("/tools/text/lineheight/display_unit", 1);
             // For backwards comaptibility
-            if (is_relative(SPCSSUnit(curunit))) {
+            if (is_relative_unit(curunit)) {
                 prefs->setInt("/tools/text/lineheight/display_unit", 1);
                 curunit = 1;
             }
@@ -1704,30 +1464,23 @@ void TextToolbar::_selectionChanged(Selection *selection) // don't bother to upd
     }
 
     // Kerning (xshift), yshift, rotation.  NB: These are not CSS attributes.
-    if (auto tc = SP_TEXT_CONTEXT(_desktop->getTool())) {
-        unsigned char_index = -1;
-        if (auto attributes = text_tag_attributes_at_position(tc->textItem(), std::min(tc->text_sel_start, tc->text_sel_end), &char_index)) {
-            // Dx
-            double dx = attributes->getDx(char_index);
-            _dx_item.get_adjustment()->set_value(dx);
-
-            // Dy
-            double dy = attributes->getDy(char_index);
-            _dy_item.get_adjustment()->set_value(dy);
-
-            // Rotation
-            double rotation = attributes->getRotate(char_index);
-            /* SVG value is between 0 and 360 but we're using -180 to 180 in widget */
-            if (rotation > 180.0) {
-                rotation -= 360.0;
-            }
-            _rotation_item.get_adjustment()->set_value(rotation);
-
-            if constexpr (DEBUG_TEXT) {
-                std::cout << "    GUI: Dx: " << dx << std::endl;
-                std::cout << "    GUI: Dy: " << dy << std::endl;
-                std::cout << "    GUI: Rotation: " << rotation << std::endl;
-            }
+    auto tc = SP_TEXT_CONTEXT(_desktop->getTool());
+    if (auto dx = Inkscape::query_text_dx(tc)) {
+        _dx_item.get_adjustment()->set_value(*dx);
+        if constexpr (DEBUG_TEXT) {
+            std::cout << "    GUI: Dx: " << *dx << std::endl;
+        }
+    }
+    if (auto dy = Inkscape::query_text_dy(tc)) {
+        _dy_item.get_adjustment()->set_value(*dy);
+        if constexpr (DEBUG_TEXT) {
+            std::cout << "    GUI: Dy: " << *dy << std::endl;
+        }
+    }
+    if (auto rotation = Inkscape::query_text_char_rotation(tc)) {
+        _rotation_item.get_adjustment()->set_value(*rotation);
+        if constexpr (DEBUG_TEXT) {
+            std::cout << "    GUI: Rotation: " << *rotation << std::endl;
         }
     }
 

@@ -14,6 +14,7 @@
 #include <gtkmm/button.h>
 #include <gtkmm/label.h>
 #include <gtkmm/menubutton.h>
+#include <functional>
 #include <sigc++/signal.h>
 
 #include "color-preview.h"
@@ -42,6 +43,7 @@ public:
         StrokeAttributes = 0x04,
         Opacity = 0x08,
         BlendMode = 0x10,
+        Markers = 0x20,
         AllParts = 0xff
     };
     PaintAttribute(Parts add_parts, unsigned int tag);
@@ -49,8 +51,11 @@ public:
     void insert_widgets(InkPropertyGrid& grid);
     void set_document(SPDocument* document);
     void set_desktop(SPDesktop* desktop);
+    void set_apply_css_override(std::function<void(SPCSSAttr*)> override);
     // update UI from passed object style
     void update_from_object(SPObject* object);
+    // update UI using a queried style (for subselection read-back)
+    void update_from_style(SPObject* object, SPStyle* style);
     // update visibility and lock state
     void update_visibility(SPObject* object);
 
@@ -73,10 +78,13 @@ private:
         // set icon representing the current fill / stroke type
         void set_preview(const SPIPaint& paint, double paint_opacity, PaintMode mode);
         PaintMode update_preview_indicators(const SPObject* object);
+        PaintMode update_preview_indicators(SPStyle* style);
         void set_paint(const SPObject* object);
+        void set_paint(SPStyle* style);
         void set_paint(const SPIPaint& paint, double opacity, FillRule fill_rule);
         void set_fill_rule(FillRule rule);
         void set_flat_color(const Colors::Color& color);
+        void apply_style(SPCSSAttr* css);
         // mark an object as modified
         void request_update(bool update_preview);
         void show();
@@ -101,12 +109,14 @@ private:
         SPDesktop* _desktop = nullptr;
         OperationBlocker* _update = nullptr;
         unsigned int _modified_tag;
+        std::function<void(SPCSSAttr*)>* _apply_css = nullptr;
         PaintPopoverManager::Registration _connection; // RAII token.
     };
     PaintStrip _fill;
     PaintStrip _stroke;
     Glib::RefPtr<Gtk::Builder> _builder;
     Gtk::Box& _markers;
+    Gtk::Label& _markers_label;
     MarkerComboBox _marker_start = MarkerComboBox("marker-start", SP_MARKER_LOC_START);
     MarkerComboBox _marker_mid =   MarkerComboBox("marker-mid", SP_MARKER_LOC_MID);
     MarkerComboBox _marker_end =   MarkerComboBox("marker-end", SP_MARKER_LOC_END);
@@ -130,6 +140,7 @@ private:
     Parts _added_parts;
     unsigned int _modified_tag;
     Gtk::Button& _visible;
+    std::function<void(SPCSSAttr*)> _apply_css_override;
 };
 
 } // namespace

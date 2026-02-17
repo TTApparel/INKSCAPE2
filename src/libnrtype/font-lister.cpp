@@ -28,6 +28,7 @@
 
 #include "font-factory.h"
 #include "desktop.h"
+#include "util/text-utils.h"
 #include "desktop-style.h"
 #include "document.h"
 #include "inkscape.h"
@@ -929,157 +930,12 @@ void FontLister::fill_css(SPCSSAttr *css, Glib::ustring fontspec)
     }
 
     std::pair<Glib::ustring, Glib::ustring> ui = ui_from_fontspec(fontspec);
-
     Glib::ustring family = ui.first;
 
-
-    // Font spec is single quoted... for the moment
-    Glib::ustring fontspec_quoted(fontspec);
-    css_quote(fontspec_quoted);
-    sp_repr_css_set_property(css, "-inkscape-font-specification", fontspec_quoted.c_str());
-
-    // Font families needs to be properly quoted in CSS (used unquoted in font-lister)
-    css_font_family_quote(family);
-    sp_repr_css_set_property(css, "font-family", family.c_str());
-
-    PangoFontDescription *desc = pango_font_description_from_string(fontspec.c_str());
-    PangoWeight weight = pango_font_description_get_weight(desc);
-    switch (weight) {
-        case PANGO_WEIGHT_THIN:
-            sp_repr_css_set_property(css, "font-weight", "100");
-            break;
-        case PANGO_WEIGHT_ULTRALIGHT:
-            sp_repr_css_set_property(css, "font-weight", "200");
-            break;
-        case PANGO_WEIGHT_LIGHT:
-            sp_repr_css_set_property(css, "font-weight", "300");
-            break;
-        case PANGO_WEIGHT_SEMILIGHT:
-            sp_repr_css_set_property(css, "font-weight", "350");
-            break;
-        case PANGO_WEIGHT_BOOK:
-            sp_repr_css_set_property(css, "font-weight", "380");
-            break;
-        case PANGO_WEIGHT_NORMAL:
-            sp_repr_css_set_property(css, "font-weight", "normal");
-            break;
-        case PANGO_WEIGHT_MEDIUM:
-            sp_repr_css_set_property(css, "font-weight", "500");
-            break;
-        case PANGO_WEIGHT_SEMIBOLD:
-            sp_repr_css_set_property(css, "font-weight", "600");
-            break;
-        case PANGO_WEIGHT_BOLD:
-            sp_repr_css_set_property(css, "font-weight", "bold");
-            break;
-        case PANGO_WEIGHT_ULTRABOLD:
-            sp_repr_css_set_property(css, "font-weight", "800");
-            break;
-        case PANGO_WEIGHT_HEAVY:
-            sp_repr_css_set_property(css, "font-weight", "900");
-            break;
-        case PANGO_WEIGHT_ULTRAHEAVY:
-            sp_repr_css_set_property(css, "font-weight", "1000");
-            break;
-        default:
-            // Pango can report arbitrary numeric weights, not just those values
-            // with corresponding convenience enums
-            if (weight > 0 && weight < 1000) {
-                sp_repr_css_set_property(css, "font-weight", std::to_string(weight).c_str());
-            }
-            else {
-                g_message("Pango reported font weight of %d ignored (font: '%s').", weight, fontspec.c_str());
-            }
-            break;
-    }
-
-    PangoStyle style = pango_font_description_get_style(desc);
-    switch (style) {
-        case PANGO_STYLE_NORMAL:
-            sp_repr_css_set_property(css, "font-style", "normal");
-            break;
-        case PANGO_STYLE_OBLIQUE:
-            sp_repr_css_set_property(css, "font-style", "oblique");
-            break;
-        case PANGO_STYLE_ITALIC:
-            sp_repr_css_set_property(css, "font-style", "italic");
-            break;
-    }
-
-    PangoStretch stretch = pango_font_description_get_stretch(desc);
-    switch (stretch) {
-        case PANGO_STRETCH_ULTRA_CONDENSED:
-            sp_repr_css_set_property(css, "font-stretch", "ultra-condensed");
-            break;
-        case PANGO_STRETCH_EXTRA_CONDENSED:
-            sp_repr_css_set_property(css, "font-stretch", "extra-condensed");
-            break;
-        case PANGO_STRETCH_CONDENSED:
-            sp_repr_css_set_property(css, "font-stretch", "condensed");
-            break;
-        case PANGO_STRETCH_SEMI_CONDENSED:
-            sp_repr_css_set_property(css, "font-stretch", "semi-condensed");
-            break;
-        case PANGO_STRETCH_NORMAL:
-            sp_repr_css_set_property(css, "font-stretch", "normal");
-            break;
-        case PANGO_STRETCH_SEMI_EXPANDED:
-            sp_repr_css_set_property(css, "font-stretch", "semi-expanded");
-            break;
-        case PANGO_STRETCH_EXPANDED:
-            sp_repr_css_set_property(css, "font-stretch", "expanded");
-            break;
-        case PANGO_STRETCH_EXTRA_EXPANDED:
-            sp_repr_css_set_property(css, "font-stretch", "extra-expanded");
-            break;
-        case PANGO_STRETCH_ULTRA_EXPANDED:
-            sp_repr_css_set_property(css, "font-stretch", "ultra-expanded");
-            break;
-    }
-
-    PangoVariant variant = pango_font_description_get_variant(desc);
-    switch (variant) {
-        case PANGO_VARIANT_NORMAL:
-            sp_repr_css_set_property(css, "font-variant", "normal");
-            break;
-        case PANGO_VARIANT_SMALL_CAPS:
-            sp_repr_css_set_property(css, "font-variant", "small-caps");
-            break;
-    }
-
-    // Convert Pango variations string to CSS format
-    const char* str = pango_font_description_get_variations(desc);
-
-    std::string variations;
-
-    if (str) {
-
-        std::vector<Glib::ustring> tokens = Glib::Regex::split_simple(",", str);
-
-        Glib::RefPtr<Glib::Regex> regex = Glib::Regex::create("(\\w{4})=([-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?)");
-        Glib::MatchInfo matchInfo;
-        for (auto const &token: tokens) {
-            regex->match(token, matchInfo);
-            if (matchInfo.matches()) {
-                variations += "'";
-                variations += matchInfo.fetch(1).raw();
-                variations += "' ";
-                variations += matchInfo.fetch(2).raw();
-                variations += ", ";
-            }
-        }
-        if (variations.length() >= 2) { // Remove last comma/space
-            variations.pop_back();
-            variations.pop_back();
-        }
-    }
-
-    if (!variations.empty()) {
-        sp_repr_css_set_property(css, "font-variation-settings", variations.c_str());
-    } else {
-        sp_repr_css_unset_property(css,  "font-variation-settings" );
-    }
-    pango_font_description_free(desc);
+    // Delegate font-family, font-weight, font-style, font-stretch, font-variant,
+    // and font-variation-settings to the shared utility function.
+    Pango::FontDescription desc(fontspec);
+    Inkscape::fill_css_from_font_description(css, family, desc, fontspec);
 }
 
 Glib::ustring FontLister::fontspec_from_style(SPStyle *style) const

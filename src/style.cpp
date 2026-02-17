@@ -114,6 +114,7 @@ class SPStylePropHelper {
         REGISTER_PROPERTY(SPAttr::TEXT_DECORATION_LINE, text_decoration_line, "text-decoration-line");
         REGISTER_PROPERTY(SPAttr::TEXT_DECORATION_STYLE, text_decoration_style, "text-decoration-style");
         REGISTER_PROPERTY(SPAttr::TEXT_DECORATION_COLOR, text_decoration_color, "text-decoration-color");
+        REGISTER_PROPERTY(SPAttr::TEXT_DECORATION_THICKNESS, text_decoration_thickness, "text-decoration-thickness");
         REGISTER_PROPERTY(SPAttr::TEXT_DECORATION_FILL, text_decoration_fill, "text-decoration-fill");
         REGISTER_PROPERTY(SPAttr::TEXT_DECORATION_STROKE, text_decoration_stroke, "text-decoration-stroke");
 
@@ -320,6 +321,7 @@ SPStyle::SPStyle(SPDocument *document_in, SPObject *object_in) :
     text_decoration_line(),
     text_decoration_style(),
     text_decoration_color(  ),  // SPIColor
+    text_decoration_thickness(), // SPITextDecorationThickness
     text_decoration_fill(   ),  // SPIPaint
     text_decoration_stroke( ),  // SPIPaint
 

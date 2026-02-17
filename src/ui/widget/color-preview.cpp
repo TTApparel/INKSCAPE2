@@ -28,7 +28,7 @@ ColorPreview::ColorPreview(std::uint32_t const rgba)
 }
 
 ColorPreview::ColorPreview(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder) :
-    Glib::ObjectBase("InkSpinButton"),
+    Glib::ObjectBase("ColorPreview"),
     Gtk::DrawingArea(cobject),
     _rgba(0) {
 

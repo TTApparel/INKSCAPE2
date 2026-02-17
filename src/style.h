@@ -191,6 +191,7 @@ public:
     T<SPAttr::TEXT_DECORATION_LINE, SPITextDecorationLine> text_decoration_line;
     T<SPAttr::TEXT_DECORATION_STYLE, SPITextDecorationStyle> text_decoration_style;  // SPIEnum? Only one can be set at time.
     T<SPAttr::TEXT_DECORATION_COLOR, SPIColor> text_decoration_color;
+    T<SPAttr::TEXT_DECORATION_THICKNESS, SPITextDecorationThickness> text_decoration_thickness;
     T<SPAttr::TEXT_DECORATION_FILL, SPIPaint> text_decoration_fill;
     T<SPAttr::TEXT_DECORATION_STROKE, SPIPaint> text_decoration_stroke;
     // used to implement text_decoration, not saved to or read from SVG file

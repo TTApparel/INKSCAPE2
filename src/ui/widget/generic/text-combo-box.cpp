@@ -160,6 +160,7 @@ void TextComboBox::set_model(
     _model = model;
     _filtered_model = Gtk::FilterListModel::create(model, _filter);
     _selection_model = Gtk::SingleSelection::create(_filtered_model);
+    _selection_model->set_can_unselect(true);
     _list_view.set_model(_selection_model);
     reset_filter();
 }
@@ -354,6 +355,10 @@ void TextComboBox::set_selected(int index) {
         _selection_model->set_selected(index);
         _list_view.scroll_to(index);
         _entry.set_text(get_selected_text());
+    }
+    else if (index < 0) {
+        _selection_model->set_selected(GTK_INVALID_LIST_POSITION);
+        _entry.set_text({});
     }
 }
 

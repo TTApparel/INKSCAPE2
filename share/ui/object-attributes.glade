@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <placeholder width="334" height="28"></placeholder>
+  <placeholder width="101" height="161"></placeholder>
   <requires lib="gtk" version="4.0"></requires>
   <object class="GtkGrid" id="ellipse-main">
     <property name="row-spacing">4</property>
@@ -604,7 +604,7 @@
   <object class="GtkGrid" id="text-main">
     <property name="row-spacing">4</property>
     <property name="column-spacing">4</property>
-    <!--dim: 5, 7-->
+    <!--dim: 5, 6-->
     <child>
       <object class="GtkLabel">
         <property name="label" translatable="yes">Font</property>
@@ -615,73 +615,11 @@
       </object>
     </child>
     <child>
-      <object class="GtkEntry" id="text-font">
-        <property name="focus-on-click">true</property>
-        <property name="focusable">false</property>
-        <property name="can-focus">false</property>
-        <property name="editable">false</property>
-        <property name="placeholder-text" translatable="yes"></property>
+      <object class="gtkmm__CustomObject_TextComboBox" id="text-font">
         <layout>
           <property name="column">2</property>
           <property name="row">0</property>
           <property name="column-span">2</property>
-        </layout>
-      </object>
-    </child>
-    <child>
-      <object class="GtkButton" id="text-font-edit">
-        <property name="valign">center</property>
-        <property name="icon-name">edit</property>
-        <property name="has-frame">false</property>
-        <layout>
-          <property name="column">4</property>
-          <property name="row">0</property>
-        </layout>
-      </object>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="hexpand">true</property>
-        <property name="hexpand-set">true</property>
-        <child>
-          <object class="GtkBox" id="text-font-scale-box">
-            <property name="height-request">12</property>
-            <property name="width-request">-1</property>
-            <property name="valign">center</property>
-            <property name="margin-end">2</property>
-            <property name="margin-start">5</property>
-            <property name="hexpand">true</property>
-            <property name="hexpand-set">true</property>
-          </object>
-        </child>
-        <child>
-          <object class="gtkmm__CustomObject_InkSpinButton" id="text-font-scale">
-            <property name="digits">3</property>
-            <property name="halign">end</property>
-            <property name="has-frame">false</property>
-            <property name="tooltip-text" translatable="yes">Font height</property>
-          </object>
-        </child>
-        <style>
-          <class name="border-box"></class>
-          <class name="entry-box"></class>
-          <class name="std-widget-height"></class>
-        </style>
-        <layout>
-          <property name="column">2</property>
-          <property name="row">6</property>
-          <property name="column-span">2</property>
-        </layout>
-      </object>
-    </child>
-    <child>
-      <object class="GtkButton" id="text-font-size-units">
-        <property name="valign">center</property>
-        <property name="icon-name">pan-down</property>
-        <property name="has-frame">false</property>
-        <layout>
-          <property name="column">4</property>
-          <property name="row">1</property>
         </layout>
       </object>
     </child>
@@ -697,7 +635,7 @@
             <property name="hexpand-set">true</property>
             <property name="icon-name">format-justify-left</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
@@ -709,7 +647,7 @@
             <property name="hexpand-set">true</property>
             <property name="icon-name">format-justify-center</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
@@ -721,7 +659,7 @@
             <property name="hexpand-set">true</property>
             <property name="icon-name">format-justify-right</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
@@ -733,64 +671,131 @@
             <property name="hexpand-set">true</property>
             <property name="icon-name">format-justify-fill</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <layout>
-          <property name="column">3</property>
-          <property name="row">2</property>
+          <property name="column">2</property>
+          <property name="row">5</property>
+          <property name="column-span">2</property>
         </layout>
       </object>
     </child>
     <child>
-      <object class="gtkmm__CustomObject_InkSpinButton" id="text-line-height">
-        <property name="tooltip-text" translatable="yes">Line height</property>
-        <property name="icon">text_line_spacing</property>
-        <property name="step-value">0.100000</property>
-        <property name="max-value">100000.000000</property>
+      <object class="GtkBox">
+        <child>
+          <object class="gtkmm__CustomObject_InkSpinButton" id="text-line-height">
+            <property name="hexpand">true</property>
+            <property name="hexpand-set">true</property>
+            <property name="tooltip-text" translatable="yes">Vertical space bewteen lines of text</property>
+            <property name="icon">text_line_spacing</property>
+            <property name="step-value">0.100000</property>
+            <property name="max-value">100000.000000</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="text-line-height-unit">
+            <property name="popover">text-line-hight-unit-menu</property>
+            <property name="valign">center</property>
+            <property name="icon-name">tool-measure</property>
+          </object>
+        </child>
+        <style>
+          <class name="linked"></class>
+        </style>
         <layout>
           <property name="column">2</property>
-          <property name="row">2</property>
+          <property name="row">4</property>
+          <property name="column-span">2</property>
         </layout>
       </object>
     </child>
     <child>
-      <object class="GtkDropDown" id="text-line-height-unit-ex">
+      <object class="GtkBox">
+        <child>
+          <object class="gtkmm__CustomObject_InkSpinButton" id="text-font-size">
+            <property name="hexpand">true</property>
+            <property name="hexpand-set">true</property>
+            <property name="tooltip-text" translatable="yes">Font size</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="text-font-size-units">
+            <property name="popover">text-font-size-unit-menu</property>
+            <property name="valign">center</property>
+            <property name="icon-name">tool-measure</property>
+          </object>
+        </child>
+        <style>
+          <class name="linked"></class>
+        </style>
         <layout>
-          <property name="column">3</property>
+          <property name="column">2</property>
+          <property name="row">3</property>
+          <property name="column-span">2</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="gtkmm__CustomObject_TextComboBox" id="text-font-styles">
+        <property name="tooltip-text" translatable="yes">Font style</property>
+        <layout>
+          <property name="column">2</property>
+          <property name="row">1</property>
+          <property name="column-span">2</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="label" translatable="yes">Style</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="row">1</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="label" translatable="yes">Size</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="row">3</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="label" translatable="yes">Leading</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="row">4</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="label" translatable="yes">Alignment</property>
+        <layout>
+          <property name="column">0</property>
           <property name="row">5</property>
         </layout>
       </object>
     </child>
     <child>
-      <object class="gtkmm__CustomObject_InkSpinButton" id="text-font-size">
-        <property name="tooltip-text" translatable="yes">Font size</property>
-        <property name="suffix" translatable="yes"> px</property>
-        <layout>
-          <property name="column">3</property>
-          <property name="row">1</property>
-        </layout>
-      </object>
-    </child>
-    <child>
-      <object class="GtkDropDown" id="text-font-styles">
-        <property name="tooltip-text" translatable="yes">Font style</property>
+      <object class="GtkScrolledWindow" id="text-var-axis">
+        <property name="propagate-natural-height">true</property>
+        <property name="overlay-scrolling">false</property>
+        <property name="hscrollbar-policy">never</property>
         <layout>
           <property name="column">2</property>
-          <property name="row">1</property>
-        </layout>
-      </object>
-    </child>
-    <child>
-      <object class="GtkButton" id="text-line-height-unit">
-        <property name="valign">center</property>
-        <property name="icon-name">pan-down</property>
-        <property name="has-frame">false</property>
-        <layout>
-          <property name="column">4</property>
           <property name="row">2</property>
+          <property name="column-span">2</property>
         </layout>
+        <style>
+          <class name="small-window"></class>
+        </style>
       </object>
     </child>
   </object>
@@ -826,7 +831,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkLabel">
+      <object class="GtkLabel" id="text-kerning-label">
         <property name="label" translatable="yes">Kerning</property>
         <layout>
           <property name="column">0</property>
@@ -844,7 +849,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkLabel">
+      <object class="GtkLabel" id="text-rotation-label">
         <property name="label" translatable="yes">Rotation</property>
         <layout>
           <property name="column">0</property>
@@ -864,31 +869,34 @@
         </style>
         <child>
           <object class="GtkToggleButton" id="text-horz-text">
+            <property name="tooltip-text" translatable="yes">Horizontal text</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <property name="icon-name">frmt-text-direction-horizontal</property>
             <style>
-              <class name="grid-section-button"></class>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="text-vert-l2r">
-            <property name="hexpand">true</property>
-            <property name="hexpand-set">true</property>
-            <property name="icon-name">frmt-text-direction-vertical-lr</property>
-            <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <child>
           <object class="GtkToggleButton" id="text-vert-r2l">
+            <property name="group">text-horz-text</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <property name="icon-name">frmt-text-direction-vertical</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="text-vert-l2r">
+            <property name="group">text-horz-text</property>
+            <property name="hexpand">true</property>
+            <property name="hexpand-set">true</property>
+            <property name="icon-name">frmt-text-direction-vertical-lr</property>
+            <style>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
@@ -898,27 +906,29 @@
             <property name="hexpand-set">true</property>
             <property name="icon-name">text-orientation-auto</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <child>
           <object class="GtkToggleButton" id="text-dir-upright">
+            <property name="group">text-dir-auto</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <property name="icon-name">text-orientation-upright</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <child>
           <object class="GtkToggleButton" id="text-dir-sideways">
+            <property name="group">text-dir-auto</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <property name="icon-name">text-orientation-sideways</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
@@ -926,6 +936,7 @@
     </child>
     <child>
       <object class="gtkmm__CustomObject_InkSpinButton" id="text-letter-space">
+        <property name="min-value">-100000.000000</property>
         <property name="icon">text_letter_spacing</property>
         <property name="tooltip-text" translatable="yes">Letter spacing</property>
         <property name="max-value">100000.000000</property>
@@ -938,6 +949,7 @@
     </child>
     <child>
       <object class="gtkmm__CustomObject_InkSpinButton" id="text-word-space">
+        <property name="min-value">-100000.000000</property>
         <property name="icon">text_word_spacing</property>
         <property name="tooltip-text" translatable="yes">Word spacing</property>
         <property name="digits">3</property>
@@ -951,6 +963,7 @@
     </child>
     <child>
       <object class="gtkmm__CustomObject_InkSpinButton" id="text-kern-horz">
+        <property name="min-value">-100000.000000</property>
         <property name="icon">text_horz_kern</property>
         <property name="tooltip-text" translatable="yes">Horizontal kerning</property>
         <property name="max-value">100000.000000</property>
@@ -963,6 +976,7 @@
     </child>
     <child>
       <object class="gtkmm__CustomObject_InkSpinButton" id="text-kern-vert">
+        <property name="min-value">-100000.000000</property>
         <property name="icon">text_vert_kern</property>
         <property name="tooltip-text" translatable="yes">Vertical kerning</property>
         <property name="max-value">100000.000000</property>
@@ -1006,6 +1020,7 @@
         </style>
         <child>
           <object class="GtkToggleButton" id="text-dir-l2r">
+            <property name="tooltip-text" translatable="yes">Text left-to-right (LTR)</property>
             <property name="icon-name">frmt-text-direction-horizontal</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
@@ -1013,6 +1028,8 @@
         </child>
         <child>
           <object class="GtkToggleButton" id="text-dir-r2l">
+            <property name="group">text-dir-l2r</property>
+            <property name="tooltip-text" translatable="yes">Text right-to-left (RTL)</property>
             <property name="icon-name">frmt-text-direction-r2l</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
@@ -1032,43 +1049,60 @@
         </style>
         <child>
           <object class="GtkToggleButton" id="text-underline">
-            <property name="icon-name">text-on-path-align-above</property>
+            <property name="tooltip-text" translatable="yes">Text underline</property>
+            <property name="icon-name">text-underline</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <child>
           <object class="GtkToggleButton" id="text-overline">
+            <property name="tooltip-text" translatable="yes">Text overline</property>
+            <property name="icon-name">text-overline</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <child>
           <object class="GtkToggleButton" id="text-strike-thru">
+            <property name="tooltip-text" translatable="yes">Text strike through</property>
+            <property name="icon-name">text-line-through</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <child>
-          <object class="GtkToggleButton" id="text-two-lines">
+          <object class="GtkToggleButton" id="text-decor-syntax">
+            <property name="icon-name">text-syntax</property>
             <property name="hexpand">true</property>
             <property name="hexpand-set">true</property>
+            <property name="tooltip-text" translatable="yes">Text syntax error</property>
             <style>
-              <class name="grid-section-button"></class>
+              <class name="menu-btn-tight"></class>
             </style>
           </object>
         </child>
         <child>
-          <object class="GtkDropDown" id="text-decoration-lines"></object>
+          <object class="GtkMenuButton" id="text-decoration-lines">
+            <property name="hexpand">true</property>
+            <property name="hexpand-set">false</property>
+            <property name="popover">text-decor-popover</property>
+            <property name="tooltip-text" translatable="yes">Decoration options</property>
+            <property name="always-show-arrow">true</property>
+            <property name="icon-name">settings</property>
+            <style>
+              <class name="menu-btn-tight"></class>
+            </style>
+          </object>
         </child>
       </object>
     </child>
@@ -1099,6 +1133,18 @@
         </child>
       </object>
     </child>
+    <child>
+      <object class="GtkButton" id="text-clear-decor">
+        <property name="valign">center</property>
+        <property name="tooltip-text" translatable="yes">Clear text decorations</property>
+        <property name="icon-name">none</property>
+        <property name="has-frame">false</property>
+        <layout>
+          <property name="column">4</property>
+          <property name="row">1</property>
+        </layout>
+      </object>
+    </child>
   </object>
   <object class="GtkGrid" id="empty-panel">    <!--dim: 5, 1-->
 
@@ -1115,4 +1161,201 @@
       </object>
     </child>
   </object>
+  <object class="GtkPopover" id="text-decor-popover">
+    <property name="child">
+      <object class="GtkGrid">
+        <property name="row-spacing">0</property>
+        <property name="column-spacing">0</property>
+        <!--dim: 5, 9-->
+        <child>
+          <object class="GtkLabel">
+            <property name="halign">start</property>
+            <property name="label" translatable="yes" context="Text decoration line style">Style</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <child>
+              <object class="GtkToggleButton" id="text-line-solid">
+                <property name="tooltip-text" translatable="yes">Solid line</property>
+                <property name="icon-name">text-line-solid</property>
+                <property name="hexpand">true</property>
+                <property name="hexpand-set">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="text-line-double">
+                <property name="tooltip-text" translatable="yes">Double line</property>
+                <property name="icon-name">text-line-double</property>
+                <property name="group">text-line-solid</property>
+                <property name="hexpand">true</property>
+                <property name="hexpand-set">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="text-line-dotted">
+                <property name="tooltip-text" translatable="yes">Dotted line</property>
+                <property name="icon-name">text-line-dotted</property>
+                <property name="group">text-line-solid</property>
+                <property name="hexpand">true</property>
+                <property name="hexpand-set">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="text-line-dashed">
+                <property name="tooltip-text" translatable="yes">Dashed line</property>
+                <property name="icon-name">text-line-dashed</property>
+                <property name="group">text-line-solid</property>
+                <property name="hexpand">true</property>
+                <property name="hexpand-set">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="text-line-wavy">
+                <property name="tooltip-text" translatable="yes">Wavy line</property>
+                <property name="icon-name">text-line-wavy</property>
+                <property name="group">text-line-solid</property>
+                <property name="hexpand">true</property>
+                <property name="hexpand-set">true</property>
+              </object>
+            </child>
+            <style>
+              <class name="linked"></class>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">0</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="halign">start</property>
+            <property name="label" translatable="yes" context="Text decoration line thickness">Thickness</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">Color</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">6</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="text-line-thickness-auto">
+            <property name="label" translatable="yes" context="Text decoration line thickness">Auto</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="text-line-thickness-font">
+            <property name="group">text-line-thickness-auto</property>
+            <property name="label" translatable="yes" context="Text decoration line thickness">From font</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="text-line-thickness-length">
+            <property name="label" translatable="yes" context="Text decoration line thickness">Custom</property>
+            <property name="group">text-line-thickness-auto</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="gtkmm__CustomObject_InkSpinButton" id="text-line-thickness">
+            <property name="max-value">100000.000000</property>
+            <property name="step-value">0.100000</property>
+            <property name="valign">fill</property>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="text-decor-color-default">
+            <property name="label" translatable="yes" context="Text decoration" comments="Default color for text decoration">Default</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">6</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="text-decor-color-custom">
+            <property name="group">text-decor-color-default</property>
+            <property name="label" translatable="yes" context="Text decoration" comments="Custom color for text decoration line">Custom</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">7</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="height-request">4</property>
+            <property name="width-request">-1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="height-request">4</property>
+            <property name="width-request">-1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="text-decor-color">
+            <layout>
+              <property name="column">3</property>
+              <property name="row">7</property>
+            </layout>
+            <style>
+              <class name="small"></class>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="height-request">8</property>
+            <property name="width-request">-1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">8</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+  <object class="GtkPopoverMenu" id="text-font-size-unit-menu"></object>
+  <object class="GtkPopoverMenu" id="text-line-hight-unit-menu"></object>
 </interface>

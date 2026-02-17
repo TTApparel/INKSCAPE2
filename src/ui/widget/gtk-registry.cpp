@@ -10,6 +10,7 @@
 #include "generic/reorderable-stack.h"
 #include "generic/spin-button.h"
 #include "generic/tab-strip.h"
+#include "generic/text-combo-box.h"
 #include "style/paint-order.h"
 
 namespace Inkscape::UI::Widget {
@@ -20,6 +21,7 @@ void register_all()
     InkSpinButton::register_type();
     TabStrip::register_type();
     ReorderableStack::register_type();
+    TextComboBox::register_type();
 
     // Specific widgets
     PaintOrderWidget::register_type();

@@ -17,7 +17,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <memory>
-#include <optional>
 #include <string>
 #include <tuple>
 #include <2geom/rect.h>
@@ -33,6 +32,7 @@
 #include <gtkmm/grid.h>
 #include <gtkmm/label.h>
 #include <gtkmm/menubutton.h>
+#include <gtkmm/popovermenu.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/separator.h>
 #include <gtkmm/spinbutton.h>
@@ -40,8 +40,10 @@
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/version.h>
 
+#include "colors/color.h"
 #include "css-chemistry.h"
 #include "desktop.h"
+#include "desktop-style.h"
 #include "document-undo.h"
 #include "dialog-container.h"
 #include "filter-chemistry.h"
@@ -54,6 +56,7 @@
 #include "selection-chemistry.h"
 #include "selection.h"
 #include "style.h"
+#include "text-editing.h"
 #include "actions/actions-tools.h"
 #include "live_effects/effect.h"
 #include "live_effects/lpeobject.h"
@@ -64,6 +67,7 @@
 #include "object/sp-image.h"
 #include "object/sp-item.h"
 #include "object/sp-lpe-item.h"
+#include "object/sp-flowtext.h"
 #include "object/sp-namedview.h"
 #include "object/sp-object-iterator.h"
 #include "object/sp-object.h"
@@ -86,12 +90,21 @@
 #include "ui/util.h"
 #include "ui/tools/object-picker-tool.h"
 #include "ui/tools/text-tool.h"
+#include "ui/widget/color-picker.h"
+#include "ui/widget/generic/text-combo-box.h"
 #include "ui/widget/image-properties.h"
 #include "ui/widget/ink-property-grid.h"
 #include "ui/widget/object-composite-settings.h"
 #include "ui/widget/paint-attribute.h"
+#include "ui/widget/unit-tracker.h"
+#include "ui/widget/font-variations.h"
+#include "util/font-discovery.h"
+#include "util/delete-with.h"
 #include "util/object-modified-tags.h"
+#include "util/text-utils.h"
 #include "widgets/sp-attribute-widget.h"
+#include "xml/repr.h"
+#include "xml/sp-css-attr.h"
 
 namespace Inkscape::UI::Dialog {
 
@@ -346,6 +359,7 @@ void align_star_shape(SPStar* path) {
     path->updateRepr();
 }
 
+#if false
 void set_dimension_adj(Widget::InkSpinButton& btn) {
     btn.set_adjustment(Gtk::Adjustment::create(0, 0, 1'000'000, 1, 5));
 }
@@ -353,6 +367,7 @@ void set_dimension_adj(Widget::InkSpinButton& btn) {
 void set_location_adj(Widget::InkSpinButton& btn) {
     btn.set_adjustment(Gtk::Adjustment::create(0, -1'000'000, 1'000'000, 1, 5));
 }
+#endif
 
 } // namespace
 
@@ -1643,34 +1658,436 @@ auto paint_to_item(const PaintKey& paint) {
     }
 }
 
+template <typename T>
+struct type_from_member;
+
+template <typename M, typename T>
+struct type_from_member<M T::*> {
+    using class_type = T;
+    using member_type = M;
+};
+
+// template <typename T>
+// auto tttest(T ptr) -> std::add_const_t<typename type_from_member<T>::member_type>* {
+//     SPStyle s;
+//     return &(s.*ptr);
+// }
+
+// void sometest() {
+//     SPStyle s;
+//     auto style = tttest(&SPStyle::font_style);
+//     if (style) {style->value;}
+// }
+
+
 } // namespace
 
 class TextPanel : public details::AttributesPanel {
 public:
     TextPanel(Glib::RefPtr<Gtk::Builder> builder) :
-        _font_size(get_widget<Widget::InkSpinButton>(builder, "text-font-scale")) {
+        _builder(builder),
+        _font_family(get_widget<Widget::TextComboBox>(builder, "text-font")),
+        _font_styles(get_widget<Widget::TextComboBox>(builder, "text-font-styles")),
+        _font_size(get_widget<Widget::InkSpinButton>(builder, "text-font-size")),
+        _line_height(get_widget<Widget::InkSpinButton>(builder, "text-line-height")),
+        _letter_spacing(get_widget<Widget::InkSpinButton>(builder, "text-letter-space")),
+        _word_spacing(get_widget<Widget::InkSpinButton>(builder, "text-word-space")),
+        _kern_horz(get_widget<Widget::InkSpinButton>(builder, "text-kern-horz")),
+        _kern_vert(get_widget<Widget::InkSpinButton>(builder, "text-kern-vert")),
+        _char_rotation(get_widget<Widget::InkSpinButton>(builder, "text-char-rotation")),
+        _decoration_color(get_derived_widget<Widget::ColorPicker>(builder, "text-decor-color", _("Text decoration"), false)),
+        _thickness_auto(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-auto")),
+        _thickness_font(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-font")),
+        _thickness_custom(get_widget<Gtk::CheckButton>(builder, "text-line-thickness-length")),
+        _line_thickness(get_widget<Widget::InkSpinButton>(builder, "text-line-thickness")),
+        _decor_color_default(get_widget<Gtk::CheckButton>(builder, "text-decor-color-default")),
+        _decor_color_custom(get_widget<Gtk::CheckButton>(builder, "text-decor-color-custom")),
+        _var_axes(get_widget<Gtk::ScrolledWindow>(builder, "text-var-axis")),
+        _tracker_fs(std::make_unique<Widget::UnitTracker>(Util::UNIT_TYPE_LINEAR)),
+        _tracker_lh(std::make_unique<Widget::UnitTracker>(Util::UNIT_TYPE_LINEAR))
+    {
+        // --- unit tracker setup ---
+        auto const &unit_table = Util::UnitTable::get();
 
-        // TODO - text panel
-        // add all fill paints widgets:
-        // _fill_paint.set_hexpand();
-        // _grid.add_row(_("Fills"), &_fill_paint);
+        // Font-size tracker: restore saved unit (default to pt)
+        {
+            int fs_css = Preferences::get()->getInt("/options/font/unitType", SP_CSS_UNIT_PT);
+            _tracker_fs->setActiveUnitByAbbr(sp_style_get_css_unit_string(fs_css));
+        }
+
+        // Line-height tracker: add special units (same as text toolbar)
+        auto lines = Util::Unit::create("lines");
+        _tracker_lh->prependUnit(lines.get());
+        _tracker_lh->addUnit(unit_table.unit("%"));
+        _tracker_lh->addUnit(unit_table.unit("em"));
+        _tracker_lh->addUnit(unit_table.unit("ex"));
+        _tracker_lh->setActiveUnit(lines.get());
+
+        // Wire popover menus from glade to unit trackers
+        auto& fs_menu_btn = get_widget<Gtk::MenuButton>(builder, "text-font-size-units");
+        auto& lh_menu_btn = get_widget<Gtk::MenuButton>(builder, "text-line-height-unit");
+        auto& fs_popover = get_widget<Gtk::PopoverMenu>(builder, "text-font-size-unit-menu");
+        auto& lh_popover = get_widget<Gtk::PopoverMenu>(builder, "text-line-hight-unit-menu");
+
+        auto fs_unit_menu = _tracker_fs->create_popover_unit_menu(fs_menu_btn);
+        fs_popover.set_menu_model(fs_unit_menu.menu);
+
+        auto lh_unit_menu = _tracker_lh->create_popover_unit_menu(lh_menu_btn);
+        lh_popover.set_menu_model(lh_unit_menu.menu);
+
+        // Update spinbutton suffix when unit changes
+        _tracker_fs->signal_unit_changed().connect([this](Util::Unit const *unit) {
+            if (unit) _font_size.set_suffix(" " + unit->abbr);
+        });
+        _tracker_lh->signal_unit_changed().connect([this](Util::Unit const *unit) {
+            if (unit) _line_height.set_suffix(unit->abbr.empty() ? "" : " " + unit->abbr);
+        });
+
+        // Set initial suffixes
+        if (auto u = _tracker_fs->getActiveUnit()) _font_size.set_suffix(" " + u->abbr);
+        if (auto u = _tracker_lh->getActiveUnit()) _line_height.set_suffix(u->abbr.empty() ? "" : " " + u->abbr);
+
+        // Font-size unit change: convert displayed value and save preference
+        _tracker_fs->signal_unit_changed().connect([this](Util::Unit const *unit) {
+            if (!unit) return;
+
+            Preferences::get()->setInt("/options/font/unitType", unit_to_css_unit(unit));
+            update_text_properties();
+        });
+
+        // Line-height unit change: convert value between old/new units
+        _tracker_lh->signal_unit_changed().connect([this](Util::Unit const *unit) {
+            if (!unit || !can_update()) return;
+
+            int new_css = unit_to_css_unit(unit);
+            if (_lineheight_unit == new_css) return;
+
+            // Get average font size for relative ↔ absolute conversion
+            double font_size = 0;
+            int count = 0;
+            for (auto item : get_query_items()) {
+                if (item && item->style) { font_size += item->style->font_size.computed; ++count; }
+            }
+            font_size = count > 0 ? font_size / count : 20;
+
+            double lh = convert_lineheight_between_units(_line_height.get_value(), _lineheight_unit, unit, font_size);
+            _lineheight_unit = new_css;
+            _line_height.set_step(unit->abbr == "%" ? 1.0 : 0.1);
+
+            auto scoped(_update.block());
+            _line_height.set_value(lh);
+        });
+
+        // alignment buttons
+        _align_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-align-left");
+        _align_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-align-center");
+        _align_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-align-right");
+        _align_buttons[3] = &get_widget<Gtk::ToggleButton>(builder, "text-align-justify");
+
+        // writing mode buttons
+        _writing_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-horz-text");
+        _writing_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-vert-r2l");
+        _writing_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-vert-l2r");
+
+        // direction buttons
+        _direction_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-l2r");
+        _direction_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-r2l");
+
+        // text orientation buttons
+        _orientation_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-auto");
+        _orientation_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-upright");
+        _orientation_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-dir-sideways");
+
+        // decoration popover: line style
+        _line_style_buttons[0] = &get_widget<Gtk::ToggleButton>(builder, "text-line-solid");
+        _line_style_buttons[1] = &get_widget<Gtk::ToggleButton>(builder, "text-line-double");
+        _line_style_buttons[2] = &get_widget<Gtk::ToggleButton>(builder, "text-line-dotted");
+        _line_style_buttons[3] = &get_widget<Gtk::ToggleButton>(builder, "text-line-dashed");
+        _line_style_buttons[4] = &get_widget<Gtk::ToggleButton>(builder, "text-line-wavy");
+
+        // --- font discovery ---
+
+        _font_stream = FontDiscovery::get().connect_to_fonts([this](const FontDiscovery::MessageType& msg) {
+            if (auto r = Async::Msg::get_result(msg)) {
+                _font_families = **r;
+                sort_font_families(_font_families, true);
+                populate_families();
+            }
+            else if (auto p = Async::Msg::get_progress(msg)) {
+                auto&& family = std::get<std::vector<FontInfo>>(*p);
+                if (!family.empty()) {
+                    _font_families.push_back(family);
+                }
+            }
+        });
+
+        // --- signal handlers ---
+
+        _font_family.signal_value_changed().connect([this](Glib::ustring family_name) {
+            if (!can_update()) return;
+            // populate styles for the selected family
+            int data_idx = _font_family.get_selected();
+            if (data_idx >= 0) {
+                // set up variable font axes
+                if (data_idx < (int)_font_families.size() && !_font_families[data_idx].empty()) {
+                    auto& regular = get_family_font(_font_families[data_idx]);
+                    update_font_variants(&regular);
+
+                    apply_font_style(&regular);
+                }
+                else {
+                    update_font_variants(nullptr);
+                }
+            } else {
+                // unknown family — just set font-family
+                apply_font_style(nullptr, family_name);
+            }
+        });
+
+        _font_styles.signal_value_changed().connect([this](Glib::ustring style_name) {
+            if (auto font = get_selected_font()) {
+                // update variants from font style first
+                update_font_variants(font);
+                // apply changes
+                apply_font_style(font);
+            }
+        });
+
+        _font_variations.set_scales_visible(false);
+        _font_variations.set_hexpand();
+        _var_axes.set_child(_font_variations);
+        static auto four = _font_variations.measure_height(4);
+        static auto five = _font_variations.measure_height(5);
+        // fractional size to expose fifth axis and let users know there's more content there
+        _var_axes.set_max_content_height((four + five) / 2);
+        _font_variations.connectChanged([this]() {
+            if (auto font = get_selected_font()) {
+                apply_font_style(font);
+            }
+        });
+
+        _font_size.signal_value_changed().connect([this](double value) {
+            if (!can_update()) return;
+
+            auto unit = _tracker_fs->getActiveUnit();
+            double px_value = Util::Quantity::convert(value, unit, "px");
+            auto css = make_css();
+            sp_repr_css_set_property_double(css.get(), "font-size", px_value);
+            apply_css(css.get(), "ttb:size");
+        });
+
+        _line_height.signal_value_changed().connect([this](double value) {
+            if (!can_update()) return;
+
+            auto css = make_css();
+            auto lh_str = format_line_height_css(value, _tracker_lh->getActiveUnit());
+            sp_repr_css_set_property(css.get(), "line-height", lh_str.c_str());
+            apply_css(css.get(), "ttb:line-height");
+        });
+
+        _letter_spacing.signal_value_changed().connect([this](double value) {
+            if (!can_update()) return;
+
+            auto css = make_css();
+            sp_repr_css_set_property_double(css.get(), "letter-spacing", value);
+            apply_css(css.get(), "ttb:letter-spacing");
+        });
+
+        _word_spacing.signal_value_changed().connect([this](double value) {
+            if (!can_update()) return;
+
+            auto css = make_css();
+            sp_repr_css_set_property_double(css.get(), "word-spacing", value);
+            apply_css(css.get(), "ttb:word-spacing");
+        });
+
+        _kern_horz.signal_value_changed().connect([this](double new_dx) {
+            if (!can_update()) return;
+
+            if (apply_text_dx(get_text_tool(), _desktop, new_dx)) {
+                DocumentUndo::maybeDone(_document, "ttb:dx", RC_("Undo", "Text: Change horizontal kerning"), INKSCAPE_ICON("draw-text"));
+            }
+        });
+
+        _kern_vert.signal_value_changed().connect([this](double new_dy) {
+            if (!can_update()) return;
+
+            if (apply_text_dy(get_text_tool(), _desktop, new_dy)) {
+                DocumentUndo::maybeDone(_document, "ttb:dy", RC_("Undo", "Text: Change vertical kerning"), INKSCAPE_ICON("draw-text"));
+            }
+        });
+
+        _char_rotation.signal_value_changed().connect([this](double new_degrees) {
+            if (!can_update()) return;
+
+            if (apply_text_char_rotation(get_text_tool(), _desktop, new_degrees)) {
+                DocumentUndo::maybeDone(_document, "ttb:rotate", RC_("Undo", "Text: Rotate characters"), INKSCAPE_ICON("draw-text"));
+            }
+        });
+
+        for (int i = 0; i < 4; ++i) {
+            _align_buttons[i]->signal_toggled().connect([this, i] {
+                if (!can_update() || !_align_buttons[i]->get_active()) return;
+                apply_alignment(i);
+            });
+        }
+
+        _superscript_btn.signal_toggled().connect([this] {
+            if (!can_update()) return;
+            apply_baseline_shift(_superscript_btn.get_active() ? "super" : "baseline");
+        });
+        _subscript_btn.signal_toggled().connect([this] {
+            if (!can_update()) return;
+            apply_baseline_shift(_subscript_btn.get_active() ? "sub" : "baseline");
+        });
+
+        auto connect_decoration = [this](Gtk::ToggleButton& btn) {
+            btn.signal_toggled().connect([this, &btn] {
+                if (!can_update()) return;
+                apply_decorations(btn);
+            });
+        };
+        connect_decoration(_underline_btn);
+        connect_decoration(_overline_btn);
+        connect_decoration(_strikethrough_btn);
+        connect_decoration(_syntax_error_btn);
+
+        for (int i = 0; i < 3; ++i) {
+            _writing_buttons[i]->signal_toggled().connect([this, i] {
+                if (!can_update() || !_writing_buttons[i]->get_active()) return;
+
+                static const char* modes[] = {"lr-tb", "tb-rl", "vertical-lr"};
+                auto css = make_css();
+                sp_repr_css_set_property(css.get(), "writing-mode", modes[i]);
+                apply_css(css.get(), "ttb:writing-mode");
+            });
+        }
+
+        for (int i = 0; i < 2; ++i) {
+            _direction_buttons[i]->signal_toggled().connect([this, i] {
+                if (!can_update() || !_direction_buttons[i]->get_active()) return;
+
+                auto css = make_css();
+                sp_repr_css_set_property(css.get(), "direction", i == 0 ? "ltr" : "rtl");
+                apply_css(css.get(), "ttb:direction");
+            });
+        }
+
+        // text orientation
+        for (int i = 0; i < 3; ++i) {
+            _orientation_buttons[i]->signal_toggled().connect([this, i] {
+                if (!can_update() || !_orientation_buttons[i]->get_active()) return;
+
+                static const char* orientations[] = {"auto", "upright", "sideways"};
+                auto css = make_css();
+                sp_repr_css_set_property(css.get(), "text-orientation", orientations[i]);
+                apply_css(css.get(), "ttb:text-orientation");
+            });
+        }
+
+        // decoration popover: line style
+        for (int i = 0; i < 5; ++i) {
+            _line_style_buttons[i]->signal_toggled().connect([this, i] {
+                if (!can_update() || !_line_style_buttons[i]->get_active()) return;
+
+                static const char* styles[] = {"solid", "double", "dotted", "dashed", "wavy"};
+                auto css = make_css();
+                sp_repr_css_set_property(css.get(), "text-decoration-style", styles[i]);
+                apply_css(css.get(), "ttb:text-decoration-style");
+            });
+        }
+
+        // decoration popover: thickness
+        _thickness_auto.signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_auto.get_active()) return;
+
+            auto css = make_css();
+            sp_repr_css_set_property(css.get(), "text-decoration-thickness", "auto");
+            apply_css(css.get(), "ttb:text-decoration-thickness");
+            _line_thickness.set_sensitive(false);
+        });
+        _thickness_font.signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_font.get_active()) return;
+
+            auto css = make_css();
+            sp_repr_css_set_property(css.get(), "text-decoration-thickness", "from-font");
+            apply_css(css.get(), "ttb:text-decoration-thickness");
+            _line_thickness.set_sensitive(false);
+        });
+        _thickness_custom.signal_toggled().connect([this] {
+            if (!can_update() || !_thickness_custom.get_active()) return;
+            _line_thickness.set_sensitive(true);
+
+            auto css = make_css();
+            sp_repr_css_set_property_double(css.get(), "text-decoration-thickness", _line_thickness.get_value());
+            apply_css(css.get(), "ttb:text-decoration-thickness");
+        });
+        _line_thickness.signal_value_changed().connect([this](double value) {
+            if (!can_update()) return;
+
+            auto css = make_css();
+            sp_repr_css_set_property_double(css.get(), "text-decoration-thickness", value);
+            apply_css(css.get(), "ttb:text-decoration-thickness");
+        });
+
+        // clear all decorations button
+        get_widget<Gtk::Button>(builder, "text-clear-decor").signal_clicked().connect([this] {
+            if (!can_update()) return;
+
+            auto css = make_css();
+            sp_repr_css_set_property(css.get(), "text-decoration-line", "none");
+            sp_repr_css_unset_property(css.get(), "text-decoration-style");
+            sp_repr_css_unset_property(css.get(), "text-decoration-thickness");
+            sp_repr_css_unset_property(css.get(), "text-decoration-color");
+            apply_css(css.get(), "ttb:text-decoration");
+        });
+
+        // decoration popover: color
+        _decor_color_default.signal_toggled().connect([this] {
+            if (!can_update() || !_decor_color_default.get_active()) return;
+
+            // let's apply default color by removing text-decoration-color property;
+            // this is the same as setting it to "currentColor"
+            auto css = make_css();
+            sp_repr_css_unset_property(css.get(), "text-decoration-color");
+            apply_css(css.get(), "ttb:text-decoration-color");
+            _decoration_color.set_sensitive(false);
+        });
+        _decor_color_custom.signal_toggled().connect([this] {
+            if (!can_update() || !_decor_color_custom.get_active()) return;
+
+            _decoration_color.set_sensitive(true);
+        });
+        _decoration_color.connectChanged([this](const Colors::Color& color) {
+            if (!can_update()) return;
+
+            auto css = make_css();
+            auto str = color.toString(false);
+            sp_repr_css_set_property(css.get(), "text-decoration-color", str.c_str());
+            apply_css(css.get(), "ttb:text-decoration-color");
+        });
+
+        // --- layout ---
 
         add_object_label();
         add_size_properties();
         _grid.add_gap();
-        // add F&S for the main text element
-        add_fill_and_stroke();
-        get_widget<Gtk::Box>(builder, "text-font-scale-box").append(_font_size_scale);
-        _font_size_scale.set_max_block_count(1);
-        _font_size_scale.set_hexpand();
-        _font_size_scale.set_adjustment(_font_size.get_adjustment());
+        add_fill_and_stroke(static_cast<Widget::PaintAttribute::Parts>(Widget::PaintAttribute::AllParts & ~Widget::PaintAttribute::Markers));
+        _paint->set_apply_css_override([this](SPCSSAttr* css) {
+            if (!_current_item || !_document) return;
+            apply_text_css(_current_item, get_text_tool(), css);
+        });
         add_header(_("Text"));
         Widget::reparent_properties(get_widget<Gtk::Grid>(builder, "text-main"), _grid);
+        // remove extra margins added by "reparenting"
+        _var_axes.set_margin_top(0);
+        _var_axes.set_margin_bottom(0);
         _section_toggle = _grid.add_section(_("Typography"));
         _section_widgets = Widget::reparent_properties(get_widget<Gtk::Grid>(builder, "text-secondary"), _grid);
         _grid.add_section_divider();
         add_filters(false);
-        add_lpes();
+        // TODO: make text work with LPEs: it needs to be converted first (otherwise Inkscape will crash)
+        // add_lpes();
         add_name_properties();
         add_interactivity_properties();
 
@@ -1691,87 +2108,539 @@ private:
         _grid.open_section(_section_toggle, expand);
     }
 
+    Tools::TextTool* get_text_tool() {
+        if (!_desktop) return nullptr;
+        return dynamic_cast<Tools::TextTool*>(_desktop->getTool());
+    }
+
+    std::vector<SPItem*> get_subselection() {
+        if (auto tool = get_text_tool()) {
+            return tool->get_subselection(true);
+        }
+        return {};
+    }
+
+    // Build item list for querying: subselection spans, or _current_item's children
+    std::vector<SPItem*> get_query_items() {
+        auto spans = get_subselection();
+        if (!spans.empty()) return spans;
+
+        // No subselection — query children of the text element
+        if (_current_item) {
+            std::vector<SPItem*> items;
+            for (auto& child : _current_item->children) {
+                if (auto item = cast<SPItem>(&child)) {
+                    items.push_back(item);
+                }
+            }
+            if (items.empty()) {
+                // text element with no children (single span) — query itself
+                items.push_back(_current_item);
+            }
+            return items;
+        }
+        return {};
+    }
+
+    void update_text_properties() {
+        auto scoped(_update.block());
+
+        auto items = get_query_items();
+        if (items.empty()) return;
+
+        auto props = query_text_properties(items);
+        static const Glib::ustring mixed_text = "…";
+
+        // font size (stored in px, convert to display unit)
+        if (props.font_size.state == PropState::Mixed) {
+            auto unit = _tracker_fs->getActiveUnit();
+            double display_val = Util::Quantity::convert(props.font_size.value, "px", unit);
+            _font_size.set_value(display_val);
+            _font_size.set_placeholder(mixed_text);
+        } else if (props.font_size.state == PropState::Single) {
+            auto unit = _tracker_fs->getActiveUnit();
+            double display_val = Util::Quantity::convert(props.font_size.value, "px", unit);
+            _font_size.set_value(display_val);
+        }
+
+        // line height — set tracker unit and convert value for display
+        {
+            int lh_unit = props.line_height_unit.unit;
+            double height = props.line_height.value;
+
+            // For absolute units stored in px, convert to display unit
+            if (!is_relative_unit(lh_unit)) {
+                // Use current display unit preference for absolute line-height
+                auto cur_unit = _tracker_lh->getActiveUnit();
+                if (cur_unit && !is_relative_unit(cur_unit)) {
+                    height = Util::Quantity::convert(height, "px", cur_unit);
+                }
+            }
+
+            // Set the tracker's active unit based on the style's unit
+            if (lh_unit == SP_CSS_UNIT_NONE) {
+                _tracker_lh->setActiveUnitByAbbr("lines");
+            } else {
+                _tracker_lh->setActiveUnitByAbbr(sp_style_get_css_unit_string(lh_unit));
+            }
+
+            // Update step increments based on unit
+            if (lh_unit == SP_CSS_UNIT_PERCENT) {
+                _line_height.set_step(1.0);
+            } else {
+                _line_height.set_step(0.1);
+            }
+
+            // Save unit for conversion on unit change
+            _lineheight_unit = lh_unit;
+
+            if (props.line_height.state == PropState::Mixed) {
+                _line_height.set_value(height);
+                _line_height.set_placeholder(mixed_text);
+            } else if (props.line_height.state == PropState::Single) {
+                _line_height.set_value(height);
+            }
+        }
+
+        // letter spacing
+        if (props.letter_spacing.state == PropState::Mixed) {
+            _letter_spacing.set_value(props.letter_spacing.value);
+            _letter_spacing.set_placeholder(mixed_text);
+        } else if (props.letter_spacing.state == PropState::Single) {
+            _letter_spacing.set_value(props.letter_spacing.value);
+        }
+
+        // word spacing
+        if (props.word_spacing.state == PropState::Mixed) {
+            _word_spacing.set_value(props.word_spacing.value);
+            _word_spacing.set_placeholder(mixed_text);
+        } else if (props.word_spacing.state == PropState::Single) {
+            _word_spacing.set_value(props.word_spacing.value);
+        }
+
+        // font family
+        if (props.font_family.state == PropState::Mixed) {
+            _font_family.set_selected(-1);
+        } else if (props.font_family.state == PropState::Single) {
+            int idx = find_family_index(props.font_family.family);
+            _font_family.set_selected(idx);
+            populate_styles(idx);
+        }
+
+        // font style
+        if (props.font_style.state == PropState::Mixed) {
+            _font_styles.set_selected(-1);
+        } else if (props.font_style.state == PropState::Single) {
+            int idx = find_style_index(props.font_style.style);
+            if (idx >= 0) {
+                _font_styles.set_selected(idx);
+            }
+        }
+
+        // font variation settings
+        if (props.font_variation.state == PropState::Mixed || props.font_family.state == PropState::Mixed) {
+            // TODO: show mixed state in var axes?
+            // what if there are different axis?
+            update_font_variants(nullptr);
+        } else if (props.font_variation.state == PropState::Single) {
+            auto& fontspec = props.font_family.family;
+            if (props.font_variation.settings.axes.empty()) {
+                // if there are no explicit axes set, then variable font can still derive
+                // settings from the font style
+                update_font_variants(get_selected_font());
+            } else {
+                _font_variations.update(fontspec, &props.font_variation.settings);
+            }
+            _var_axes.set_visible(_font_variations.variations_present());
+            set_min_font_variants_height();
+        }
+
+        // alignment
+        if (props.text_align.state == PropState::Single && props.text_align.value >= 0 && props.text_align.value < 4) {
+            _align_buttons[props.text_align.value]->set_active(true);
+        }
+        else {
+            for (auto& btn : _align_buttons) {
+                btn->set_active(false);
+            }
+        }
+
+        // super/subscript — check subselection first, then fall back to _current_item
+        if (props.superscript.state != PropState::Unset) {
+            _superscript_btn.set_active(props.superscript.value);
+            _subscript_btn.set_active(props.subscript.value);
+        } else if (_current_item && _current_item->style) {
+            auto& bs = _current_item->style->baseline_shift;
+            bool is_super = bs.set && bs.type == SP_BASELINE_SHIFT_LITERAL && bs.literal == SP_CSS_BASELINE_SHIFT_SUPER;
+            bool is_sub   = bs.set && bs.type == SP_BASELINE_SHIFT_LITERAL && bs.literal == SP_CSS_BASELINE_SHIFT_SUB;
+            _superscript_btn.set_active(is_super);
+            _subscript_btn.set_active(is_sub);
+        }
+
+        // decorations; TODO: handle mixed state better
+        if (props.underline.state != PropState::Unset) {
+            _underline_btn.set_active(props.underline.value);
+        }
+        if (props.overline.state != PropState::Unset) {
+            _overline_btn.set_active(props.overline.value);
+        }
+        if (props.strikethrough.state != PropState::Unset) {
+            _strikethrough_btn.set_active(props.strikethrough.value);
+        }
+        if (props.decoration_syntax_error.state != PropState::Unset) {
+            _syntax_error_btn.set_active(props.decoration_syntax_error.value);
+        }
+
+        // writing mode: map CSS enum to button index
+        // buttons: 0=horizontal, 1=vert-r2l, 2=vert-l2r
+        // enum: LR_TB=0, RL_TB=1, TB_RL=2, TB_LR=3
+        if (props.writing_mode.state == PropState::Single) {
+            int btn = -1;
+            switch (props.writing_mode.value) {
+                case SP_CSS_WRITING_MODE_LR_TB: // fall through
+                case SP_CSS_WRITING_MODE_RL_TB: btn = 0; break;
+                case SP_CSS_WRITING_MODE_TB_RL: btn = 1; break;
+                case SP_CSS_WRITING_MODE_TB_LR: btn = 2; break;
+            }
+            if (btn >= 0) {
+                for (int j = 0; j < 3; ++j) _writing_buttons[j]->set_active(j == btn);
+            }
+        }
+
+        // direction
+        if (props.direction.state == PropState::Single && props.direction.value >= 0 && props.direction.value < 2) {
+            _direction_buttons[props.direction.value]->set_active(true);
+        }
+
+        // text orientation (only applicable to vertical text)
+        bool vertical = props.writing_mode.state == PropState::Single &&
+            (props.writing_mode.value == SP_CSS_WRITING_MODE_TB_RL ||
+             props.writing_mode.value == SP_CSS_WRITING_MODE_TB_LR);
+        for (int i = 0; i < 3; ++i) {
+            _orientation_buttons[i]->set_sensitive(vertical);
+        }
+        if (vertical && props.text_orientation.state == PropState::Single &&
+            props.text_orientation.value >= 0 && props.text_orientation.value < 3) {
+            for (int j = 0; j < 3; ++j) _orientation_buttons[j]->set_active(j == props.text_orientation.value);
+        }
+
+        // decoration style
+        if (props.decoration_style.state == PropState::Single &&
+            props.decoration_style.value >= 0 && props.decoration_style.value < 5) {
+            for (int j = 0; j < 5; ++j) _line_style_buttons[j]->set_active(j == props.decoration_style.value);
+        }
+
+        // decoration thickness
+        {
+            auto& th = props.decoration_thickness;
+            if (th.from_font) {
+                _thickness_font.set_active(true);
+                _line_thickness.set_sensitive(false);
+            } else if (!th.auto_val && th.state == PropState::Single) {
+                _thickness_custom.set_active(true);
+                _line_thickness.set_sensitive(true);
+                _line_thickness.set_value(th.value);
+            } else {
+                _thickness_auto.set_active(true);
+                _line_thickness.set_sensitive(false);
+            }
+        }
+
+        // decoration color
+        _decoration_color.setColor(props.decoration_color.color.value_or(Colors::Color(0)));
+        if (props.decoration_color.state == PropState::Single) {
+            _decor_color_custom.set_active(true);
+        }
+        else if (props.decoration_color.state == PropState::Unset) {
+            _decor_color_default.set_active(true);
+        }
+        else {
+            // mixed state for color button?
+            _decor_color_default.set_active(false);
+            _decor_color_custom.set_active(false);
+        }
+
+        // Dx, Dy, rotation (not CSS attributes — read from text tag attributes)
+        _kern_horz.set_value(query_text_dx(get_text_tool()).value_or(0));
+        _kern_vert.set_value(query_text_dy(get_text_tool()).value_or(0));
+        _char_rotation.set_value(query_text_char_rotation(get_text_tool()).value_or(0));
+
+        // Flow text: SPFlowtext or SPText with shape-inside (same logic as text-toolbar)
+        bool is_flow = is<SPFlowtext>(_current_item) || !is_kerning_supported(_current_item);
+        _align_buttons[3]->set_sensitive(is_flow); // justify only for flow text
+        _kern_horz.set_sensitive(!is_flow);
+        _kern_vert.set_sensitive(!is_flow);
+        _kerning_label.set_sensitive(!is_flow);
+        _char_rotation.set_sensitive(!is_flow);
+        _rotation_label.set_sensitive(!is_flow);
+    }
+
     void update(SPObject* object) override {
-        auto text = cast<SPText>(object);
-        _current_item = text;
-        if (text) {
-            // set title; there are various "text" types
-            //todo: is text-in-a-shape a flow text?
-            _title = text->displayName();
-            if (SP_IS_TEXT_TEXTPATH(text)) {
-                // sp-text description uses similar (and translation dubious) concatenation approach
+        _current_item = cast<SPItem>(object);
+        if (_current_item) {
+            _title = _current_item->displayName();
+            if (SP_IS_TEXT_TEXTPATH(_current_item)) {
                 _title += " ";
                 _title += C_("<text> on path", "on path");
             }
         }
+        update_text_properties();
+    }
 
-        auto spans = get_subselection();
-        // all paints:
-        // auto fills = spans.empty() ? collect_paints(text) : collect_paints(spans);
-        // update_paints(fills);
+    void update_paint(SPObject* object) override {
+        if (!_paint) return;
+
+        _current_item = cast<SPItem>(object);
+        _paint->update_visibility(object);
+
+        auto items = get_query_items();
+        if (items.empty()) {
+            _paint->update_from_object(object);
+            return;
+        }
+
+        SPStyle query_style(_document);
+        sp_desktop_query_style_from_list(items, &query_style, QUERY_STYLE_PROPERTY_FILL);
+        sp_desktop_query_style_from_list(items, &query_style, QUERY_STYLE_PROPERTY_STROKE);
+        _paint->update_from_style(object, &query_style);
     }
 
     void subselection_changed(const std::vector<SPItem*>& items) override {
-        auto spans = get_subselection();
+        update_text_properties();
+        update_paint(_current_object);
     }
 
-    std::set<PaintKey> collect_paints(SPText* text) {
-        if (!text) return {};
+    using CssPtr = std::unique_ptr<SPCSSAttr, Util::Deleter<sp_repr_css_attr_unref>>;
 
-        std::set<PaintKey> fills; // fill paints
-        for (auto obj : text) {
-            if (obj == _current_item) continue;
+    static CssPtr make_css() { return CssPtr(sp_repr_css_attr_new()); }
 
-            if (auto item = cast<SPItem>(obj)) {
-                auto fill = item->style->getFillOrStroke(true);
-                fills.insert(get_paint(fill));
-            }
+    // Apply CSS and record undo with per-property key
+    void apply_css(SPCSSAttr* css, const char* undo_key) {
+        if (!_current_item || !_document) return;
+
+        apply_text_css(_current_item, get_text_tool(), css);
+        DocumentUndo::maybeDone(_document, undo_key, RC_("Undo", "Set text style"), INKSCAPE_ICON("draw-text"));
+    }
+
+    void apply_alignment(int index) {
+        if (!is<SPText>(_current_item) || !_document) return;
+
+        if (apply_text_alignment(cast<SPText>(_current_item), index)) {
+            DocumentUndo::done(_document, RC_("Undo", "Text: Change alignment"), INKSCAPE_ICON("draw-text"));
         }
-        return fills;
     }
 
-    std::set<PaintKey> collect_paints(const std::vector<SPItem*>& spans) {
-        std::set<PaintKey> fills; // fill paints
-        for (auto item : spans) {
-            if (item == _current_item) continue;
+    void apply_baseline_shift(const char* value) {
+        auto css = make_css();
+        sp_repr_css_set_property(css.get(), "baseline-shift", value);
+        apply_css(css.get(), "ttb:baseline-shift");
+    }
 
-            auto fill = item->style->getFillOrStroke(true);
-            fills.insert(get_paint(fill));
+    void apply_decorations(Gtk::ToggleButton& source) {
+        bool is_syntax_error = (&source == &_syntax_error_btn);
+
+        // CSS Text Decoration 3: spelling-error cannot be combined with line keywords.
+        // The button that fired the toggle takes precedence.
+        std::string decor;
+        if (is_syntax_error) {
+            if (_syntax_error_btn.get_active()) decor = "spelling-error ";
+        } else {
+            if (_underline_btn.get_active()) decor += "underline ";
+            if (_overline_btn.get_active()) decor += "overline ";
+            if (_strikethrough_btn.get_active()) decor += "line-through ";
         }
-        return fills;
+        if (decor.empty()) decor = "none";
+
+        auto css = make_css();
+        sp_repr_css_set_property(css.get(), "text-decoration-line", decor.c_str());
+        apply_css(css.get(), "ttb:text-decoration");
     }
 
-    void update_paints(const std::set<PaintKey>& fills) {
-        if (fills.size() <= 1) {
-            // hide fill paints
-            //todo
-            _fill_paint.update_store(0, {});
+    void populate_families() {
+        auto model = Gtk::StringList::create({});
+        _family_names.clear();
+        // Generic CSS font family names; leave it to Pango in font discovery
+        // static const char* generic_families[] = {"serif", "sans-serif", "monospace", "cursive", "fantasy"};
+        // for (auto name : generic_families) {
+        //     _font_families.push_back()
+        //     _family_names.emplace_back(name);
+        //     model->append(name);
+        // }
+        for (auto& family : _font_families) {
+            auto& regular = get_family_font(family);
+            auto name = regular.ff->get_name();
+            _family_names.push_back(name);
+            model->append(name);
+        }
+
+        _font_family.set_model(model);
+    }
+
+    void apply_font_style(const FontInfo* font, Glib::ustring family_name = {}) {
+        if (!can_update()) return;
+
+        if (!family_name.empty()) {
+            auto css = make_css();
+            auto desc = Pango::FontDescription(family_name);
+            fill_css_from_font_description(css.get(), family_name, desc, {});
+            apply_css(css.get(), "ttb:font-style");
+        }
+        else if (font) {
+            auto variations = _font_variations.get_pango_string(true);
+            auto fontspec = get_inkscape_fontspec(font->ff, font->face, variations);
+            auto desc = get_font_description(font->ff, font->face);
+            desc.set_variations(variations);
+            auto css = make_css();
+            fill_css_from_font_description(css.get(), font->ff->get_name(), desc, fontspec);
+            apply_css(css.get(), "ttb:font-style");
         }
         else {
-            auto it = fills.begin();
-            _fill_paint.update_store(fills.size(), [&](auto index) {
-                return paint_to_item(*it++);
-            });
+            // Generic family — apply style/weight directly
+            auto css = make_css();
+            auto style_name = _font_styles.get_selected_text();
+            bool bold = style_name.find("Bold") != Glib::ustring::npos;
+            bool italic = style_name.find("Italic") != Glib::ustring::npos;
+            sp_repr_css_set_property(css.get(), "font-weight", bold ? "bold" : "normal");
+            sp_repr_css_set_property(css.get(), "font-style", italic ? "italic" : "normal");
+            sp_repr_css_unset_property(css.get(), "-inkscape-font-specification");
+            sp_repr_css_unset_property(css.get(), "font-variation-settings");
+            sp_repr_css_unset_property(css.get(), "font-stretch");
+            sp_repr_css_unset_property(css.get(), "font-variant");
+            apply_css(css.get(), "ttb:font-style");
         }
     }
 
-    std::vector<SPItem*> get_subselection() {
-        if (!_desktop) return {};
-
-        if (auto tool = dynamic_cast<Tools::TextTool*>(_desktop->getTool())) {
-            return tool->get_subselection(false);
+    void set_min_font_variants_height() {
+        auto height = _font_variations.measure_height();
+        auto min_height = std::min(height, _var_axes.get_max_content_height());
+        if (_var_axes.get_min_content_height() != min_height) {
+            _var_axes.set_min_content_height(min_height);
         }
-
-        return {};
     }
 
-    Widget::ScaleBar _font_size_scale;
+    void update_font_variants(const FontInfo* font) {
+        if (!font) {
+            // remove all variable font info
+            _font_variations.update({});
+            _var_axes.set_visible(false);
+        }
+        else {
+            auto vars = font->variations;
+            if (vars.empty() && font->variable_font) {
+                vars = get_inkscape_fontspec(font->ff, font->face, font->variations);
+            }
+            _font_variations.update(vars);
+            _var_axes.set_visible(_font_variations.variations_present());
+            set_min_font_variants_height();
+        }
+    }
+
+    void populate_styles(int family_data_index) {
+        if (family_data_index == _style_index) return;
+        _style_index = family_data_index;
+
+        auto model = Gtk::StringList::create({});
+        _style_names.clear();
+        if (family_data_index >= 0 && family_data_index < (int)_font_families.size()) {
+            auto& family = _font_families[family_data_index];
+            for (auto& font : family) {
+                if (font.face) {
+                    auto style = get_face_style(font.face->describe());
+                    _style_names.push_back(style);
+                    model->append(style);
+                }
+            }
+        }
+        else {
+            // Generic font family — provide default styles
+            static const char* default_styles[] = {"Normal", "Italic", "Bold", "Bold Italic"};
+            for (auto s : default_styles) {
+                _style_names.emplace_back(s);
+                model->append(s);
+            }
+        }
+        _font_styles.set_model(model);
+    }
+
+    int find_family_index(const Glib::ustring& name) const {
+        auto lower = name.lowercase();
+        for (int i = 0; i < (int)_family_names.size(); ++i) {
+            if (_family_names[i].lowercase() == lower) return i;
+        }
+        return -1;
+    }
+
+    int find_style_index(const Glib::ustring& name) const {
+        auto lower = name.lowercase();
+        for (int i = 0; i < (int)_style_names.size(); ++i) {
+            if (_style_names[i].lowercase() == lower) return i;
+        }
+        return -1;
+    }
+
+    const FontInfo* get_selected_font() const {
+        return find_font_by_style(_font_styles.get_selected_text());
+    }
+
+    const FontInfo* find_font_by_style(const Glib::ustring& style_name) const {
+        auto index = _font_family.get_selected();
+        if (index >= 0 && index < (int)_font_families.size()) {
+            for (auto& font : _font_families[index]) {
+                if (font.face && get_face_style(font.face->describe()) == style_name) {
+                    return &font;
+                }
+            }
+            // fallback
+            return &get_family_font(_font_families[index]);
+        }
+        return nullptr;
+    }
+
+    Glib::RefPtr<Gtk::Builder> _builder;
+    Widget::TextComboBox& _font_family;
+    Widget::TextComboBox& _font_styles;
     Widget::InkSpinButton& _font_size;
-    SPText* _current_item = nullptr;
-    Gtk::Button* _section_toggle;
+    Widget::InkSpinButton& _line_height;
+    Widget::InkSpinButton& _letter_spacing;
+    Widget::InkSpinButton& _word_spacing;
+    Widget::InkSpinButton& _kern_horz;
+    Widget::InkSpinButton& _kern_vert;
+    Widget::InkSpinButton& _char_rotation;
+    Widget::ColorPicker& _decoration_color;
+    Gtk::ToggleButton* _align_buttons[4] = {};
+    Gtk::ToggleButton& _superscript_btn = get_widget<Gtk::ToggleButton>(_builder, "text-super");
+    Gtk::ToggleButton& _subscript_btn = get_widget<Gtk::ToggleButton>(_builder, "text-sub");
+    Gtk::ToggleButton& _underline_btn = get_widget<Gtk::ToggleButton>(_builder, "text-underline");
+    Gtk::ToggleButton& _overline_btn = get_widget<Gtk::ToggleButton>(_builder, "text-overline");
+    Gtk::ToggleButton& _strikethrough_btn = get_widget<Gtk::ToggleButton>(_builder, "text-strike-thru");
+    Gtk::ToggleButton& _syntax_error_btn = get_widget<Gtk::ToggleButton>(_builder, "text-decor-syntax");
+    Gtk::ToggleButton* _writing_buttons[3] = {};
+    Gtk::ToggleButton* _direction_buttons[2] = {};
+    Gtk::ToggleButton* _orientation_buttons[3] = {}; // auto, upright, sideways
+    // decoration popover
+    Gtk::ToggleButton* _line_style_buttons[5] = {}; // solid, double, dotted, dashed, wavy
+    Gtk::CheckButton& _thickness_auto;
+    Gtk::CheckButton& _thickness_font;
+    Gtk::CheckButton& _thickness_custom;
+    Widget::InkSpinButton& _line_thickness;
+    Gtk::CheckButton& _decor_color_default;
+    Gtk::CheckButton& _decor_color_custom;
+    Widget::FontVariations _font_variations;
+    Gtk::ScrolledWindow& _var_axes;
+    Gtk::Label& _kerning_label = get_widget<Gtk::Label>(_builder, "text-kerning-label");
+    Gtk::Label& _rotation_label = get_widget<Gtk::Label>(_builder, "text-rotation-label");
+    SPItem* _current_item = nullptr;
+    Gtk::Button* _section_toggle = nullptr;
     Widget::WidgetGroup _section_widgets;
-    GridViewList _fill_paint{GridViewList::ColorCompact};
     Pref<bool> _section_props_visibility = {details::dlg_pref_path + "/options/show_typography_section"};
+    std::vector<std::vector<FontInfo>> _font_families;
+    std::vector<Glib::ustring> _family_names;
+    std::vector<Glib::ustring> _style_names;
+    int _style_index = -2;
+    int _lineheight_unit = SP_CSS_UNIT_NONE;
+    std::unique_ptr<Widget::UnitTracker> _tracker_fs;
+    std::unique_ptr<Widget::UnitTracker> _tracker_lh;
+    sigc::scoped_connection _font_stream;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2527,12 +3396,8 @@ std::unique_ptr<details::AttributesPanel> ObjectAttributes::create_panel(int key
         case tag_of<SPPolygon>:  return std::make_unique<PolygonPanel>(_builder);
         case tag_of<SPGroup>:    return std::make_unique<GroupPanel>(_builder);
         case tag_of<SPUse>:      return std::make_unique<ClonePanel>(_builder);
+        case tag_of<SPText>:     return std::make_unique<TextPanel>(_builder); //todo: tref, tspan, textpath, flowtext?
     }
-
-    //TODO: those panels are not ready yet
-if constexpr (INCLUDE_EXPERIMENTAL_PANELS) {
-        if (key == tag_of<SPText>) return std::make_unique<TextPanel>(_builder); //todo: tref, tspan, textpath, flowtext?
-}
 
     return {};
 }

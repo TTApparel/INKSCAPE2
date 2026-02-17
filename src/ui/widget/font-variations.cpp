@@ -257,12 +257,36 @@ FontVariations::FontVariations()
     _size_group_edit = Gtk::SizeGroup::create(Gtk::SizeGroup::Mode::HORIZONTAL);
 }
 
-// Update GUI based on query.
-void FontVariations::update(Glib::ustring const &font_spec)
+void FontVariations::update(const Glib::ustring& font_spec, const SPIFontVariationSettings* variations)
 {
     auto res = FontFactory::get().FaceFromFontSpecification(font_spec.c_str());
+    // always use axes map from the font; it's order is important
     const auto& axes = res ? res->get_opentype_varaxes() : std::map<Glib::ustring, OTVarAxis>();
 
+    if (variations) {
+        // update axes values
+        auto copy = axes;
+
+        for (const auto& [name, value] : variations->axes) {
+            auto it = std::find_if(copy.begin(), copy.end(), [name](const auto& kv) {
+                return kv.second.tag == name.raw();
+            });
+            if (it != copy.end()) {
+                it->second.set_val = std::min(it->second.maximum, std::max(it->second.minimum, (double)value));
+            }
+            else {
+                g_message("Axis '%s' not found in font", name.c_str());
+            }
+        }
+        update_axes(copy);
+    }
+    else {
+        update_axes(axes);
+    }
+}
+
+void FontVariations::update_axes(const std::map<Glib::ustring, OTVarAxis>& axes)
+{
     bool rebuild = false;
     if (_open_type_axes.size() != axes.size()) {
         rebuild = true;
@@ -332,6 +356,9 @@ void FontVariations::build_ui(const std::map<Glib::ustring, OTVarAxis>& ot_axes)
         axis->get_editbox()->get_adjustment()->signal_value_changed().connect(
             [this](){ if (!_update.pending()) {_signal_changed.emit();} }
         );
+        // apply remembered scale visibility
+        axis->get_scale()->set_visible(_scales_visible);
+        axis->get_editbox()->set_hexpand(!_scales_visible);
     }
 }
 
@@ -411,6 +438,12 @@ Glib::RefPtr<Gtk::SizeGroup> FontVariations::get_size_group(int index) {
     }
 }
 
+int FontVariations::measure_height() {
+    int min = 0, nat = 0, b1, b2;
+    measure(Gtk::Orientation::VERTICAL, 9999, min, nat, b1, b2);
+    return nat;
+}
+
 int FontVariations::measure_height(int axis_count) {
     std::map<Glib::ustring, OTVarAxis> axes;
     for (int i = 0; i < axis_count; ++i) {
@@ -420,10 +453,18 @@ int FontVariations::measure_height(int axis_count) {
         axes[name] = axis;
     }
     build_ui(axes);
-    int min=0,nat=0,b1,b2;
-    measure(Gtk::Orientation::VERTICAL, 9999, min, nat, b1, b2);
+    auto h = measure_height();
     build_ui({});
-    return nat;
+    return h;
+}
+
+void FontVariations::set_scales_visible(bool visible) {
+    if (_scales_visible == visible) return;
+
+    _scales_visible = visible;
+    for (auto axis : _axes) {
+        axis->get_scale()->set_visible(visible);
+    }
 }
 
 }

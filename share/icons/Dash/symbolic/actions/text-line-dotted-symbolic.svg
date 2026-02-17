@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="16"
+   height="16"
+   viewBox="0 0 16 16"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   sodipodi:docname="text-line-dotted-symbolic.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.125"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="1"
+     showgrid="false"
+     inkscape:current-layer="layer1"
+     inkscape:cx="7.5"
+     inkscape:cy="8.5"
+     inkscape:window-width="976"
+     inkscape:window-height="755"
+     inkscape:window-x="339"
+     inkscape:window-y="91"
+     inkscape:window-maximized="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <ellipse
+       style="fill:#000000"
+       id="path2"
+       cx="1.9904886"
+       cy="7.9999995"
+       rx="1.3585759"
+       ry="1.345776" />
+    <ellipse
+       style="fill:#000000"
+       id="ellipse7"
+       cx="5.990489"
+       cy="7.9999995"
+       rx="1.3585759"
+       ry="1.345776" />
+    <ellipse
+       style="fill:#000000"
+       id="ellipse8"
+       cx="9.990489"
+       cy="7.9999995"
+       rx="1.3585759"
+       ry="1.345776" />
+    <ellipse
+       style="fill:#000000"
+       id="ellipse9"
+       cx="13.990489"
+       cy="7.9999995"
+       rx="1.3585759"
+       ry="1.345776" />
+  </g>
+</svg>

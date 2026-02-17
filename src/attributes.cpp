@@ -551,6 +551,7 @@ static SPStyleProp const props[] = {
     {SPAttr::TEXT_DECORATION_LINE,  "text-decoration-line"},
     {SPAttr::TEXT_DECORATION_STYLE, "text-decoration-style"},
     {SPAttr::TEXT_DECORATION_COLOR, "text-decoration-color"},
+    {SPAttr::TEXT_DECORATION_THICKNESS, "text-decoration-thickness"},
     {SPAttr::TEXT_DECORATION_FILL,  "text-decoration-fill"},
     {SPAttr::TEXT_DECORATION_STROKE,"text-decoration-stroke"},
 
