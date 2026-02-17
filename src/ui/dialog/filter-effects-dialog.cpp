@@ -23,6 +23,8 @@
 #include <glibmm/main.h>
 #include <glibmm/stringutils.h>
 #include <gtkmm/dragsource.h>
+#include <gtkmm/dropsource.h>
+#include <gtkmm/droptarget.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/eventcontrollermotion.h>
 #include <gtkmm/frame.h>
@@ -1490,12 +1492,13 @@ FilterEffectsDialog::FilterModifier::FilterModifier(FilterEffectsDialog& d, Glib
     _list.get_column(1)->set_expand(true);
 
     _list.set_reorderable(false);
-    _list.enable_model_drag_dest(Gdk::DragAction::MOVE);
-
-#if 0 // on_filter_move() was commented-out in GTK3, so itʼs removed for GTK4. FIXME if you can...!
-    _list.signal_drag_drop().connect( sigc::mem_fun(*this, &FilterModifier::on_filter_move), false );
-#endif
-
+    auto drop_target = Gtk::DropTarget::create(Glib::Value<Gtk::TreeModel::Path>::value_type(), Gdk::DragAction::MOVE);
+    drop_target->signal_drop().connect(
+        [this](const Glib::ValueBase& value, double x, double y) -> bool {
+            // TODO: Implement GTK4 filter reordering
+            return false;
+        }, false);
+    _list.add_controller(drop_target);
     _add.signal_clicked().connect([this]{ add_filter(); });
     _del.signal_clicked().connect([this]{ remove_filter(); });
     _dup.signal_clicked().connect([this]{ duplicate_filter(); });
@@ -1588,23 +1591,7 @@ void FilterEffectsDialog::FilterModifier::on_name_edited(const Glib::ustring& pa
     }
 }
 
-#if 0 // on_filter_move() was commented-out in GTK3, so itʼs removed for GTK4. FIXME if you can...!
-bool FilterEffectsDialog::FilterModifier::on_filter_move(const Glib::RefPtr<Gdk::DragContext>& /*context*/, int /*x*/, int /*y*/, guint /*time*/) {
 
-//const Gtk::TreeModel::Path& /*path*/) {
-/* The code below is bugged. Use of "object->getRepr()->setPosition(0)" is dangerous!
-   Writing back the reordered list to XML (reordering XML nodes) should be implemented differently.
-   Note that the dialog does also not update its list of filters when the order is manually changed
-   using the XML dialog
-  for (auto i = _model->children().begin(); i != _model->children().end(); ++i) {
-      SPObject* object = (*i)[_columns.filter];
-      if(object && object->getRepr()) ;
-        object->getRepr()->setPosition(0);
-  }
-*/
-  return false;
-}
-#endif
 
 void FilterEffectsDialog::FilterModifier::on_selection_toggled(const Glib::ustring& path)
 {
