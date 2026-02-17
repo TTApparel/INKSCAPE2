@@ -17,19 +17,18 @@
 #include "sp-star.h"
 
 #include <cstring>
-
 #include <glib.h>
 #include <glibmm/i18n.h>
 
 #include "attributes.h"
-#include "snap-candidate.h"       // for SnapCandidatePoint
-#include "snap-enums.h"           // for SnapTargetType, SnapSourceType
-#include "snap-preferences.h"     // for SnapPreferences
-
 #include "display/curve.h"
+#include "preferences.h"
+#include "snap-candidate.h"   // for SnapCandidatePoint
+#include "snap-enums.h"       // for SnapTargetType, SnapSourceType
+#include "snap-preferences.h" // for SnapPreferences
 #include "svg/svg.h"
-#include "xml/document.h"         // for Document
-#include "xml/node.h"             // for Node
+#include "xml/document.h" // for Document
+#include "xml/node.h"     // for Node
 
 class SPDocument;
 
@@ -495,7 +494,10 @@ Geom::Affine SPStar::set_transform(Geom::Affine const &xform)
     this->set_shape();
 
     // Adjust stroke width
-    this->adjust_stroke(s);
+    Inkscape::Preferences *prefs = Inkscape::Preferences::get();
+    if (prefs->getBool("/options/transform/stroke", true)) {
+        this->adjust_stroke(s);
+    }
 
     // Adjust pattern fill
     this->adjust_pattern(xform * ret.inverse());
