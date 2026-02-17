@@ -177,6 +177,47 @@ Geom::PathVector SPHatchPath::calculateRenderCurve(unsigned key) const
     return {};
 }
 
+// We construct a curve that will completely cover the height of the hatch bbox
+// (scaling for hatchContentUnits happens in SPHatch).
+Geom::PathVector SPHatchPath::calculateRenderCurve(Geom::Rect const &hatch_bbox,
+                                                   Geom::Point const &hatch_origin)
+{
+    Geom::PathVector calculated_curve;
+
+    if (hatch_bbox.area() == 0) {
+        return calculated_curve;
+    }
+
+    auto y_interval = hatch_bbox[Geom::Y];
+    if (!_curve) {
+        calculated_curve = path_from_curve(Geom::LineSegment{Geom::Point{0, y_interval.min()}, Geom::Point{0, y_interval.max()}});
+    } else {
+        double repeatLength = _repeatLength();
+        if (repeatLength > 0) {
+            double initial_y =
+                floor((y_interval.min())/ repeatLength) * repeatLength;
+            int segment_count =
+                ceil((y_interval.extent()) / repeatLength) + 1;
+
+            auto segment = *_curve;
+            segment *= Geom::Translate(0, initial_y);
+
+            Geom::Affine step_transform = Geom::Translate(0, repeatLength);
+            for (int i = 0; i < segment_count; ++i) {
+                if (_continuous) {
+                    pathvector_append_continuous(calculated_curve, segment);
+                } else {
+                    pathvector_append(calculated_curve, segment);
+                }
+                segment *= step_transform;
+            }
+        }
+    }
+
+    calculated_curve *= Geom::Translate(offset.computed, 0);
+    return calculated_curve;
+}
+
 double SPHatchPath::_repeatLength() const
 {
     double val = 0;

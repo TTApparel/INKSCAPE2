@@ -54,6 +54,7 @@ public:
     Geom::Interval bounds() const;
 
     Geom::PathVector calculateRenderCurve(unsigned key) const;
+    Geom::PathVector calculateRenderCurve(Geom::Rect const &hatch_bbox, Geom::Point const &hatch_origin);
 
 protected:
     void build(SPDocument* doc, Inkscape::XML::Node* repr) override;

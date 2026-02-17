@@ -1168,7 +1168,7 @@ CairoRenderContext::_createHatchPainter(SPPaintServer const *const paintserver, 
     evil->show(drawing, dkey, pbox);
 
     SPHatch::RenderInfo render_info = hatch->calculateRenderInfo(dkey);
-    Geom::Rect tile_rect = render_info.tile_rect;
+    Geom::Rect tile_rect = render_info.hatch_tile;
 
     // Cairo requires an integer pattern surface width/height.
     // Subtract 0.5 to prevent small rounding errors from increasing pattern size by one pixel.
@@ -1179,7 +1179,7 @@ CairoRenderContext::_createHatchPainter(SPPaintServer const *const paintserver, 
     Geom::Affine drawing_scale = Geom::Scale(surface_width / tile_rect.width(), surface_height / tile_rect.height());
     Geom::Affine drawing_transform = Geom::Translate(-tile_rect.min()) * drawing_scale;
 
-    Geom::Affine child_transform = render_info.child_transform;
+    Geom::Affine child_transform = render_info.content_to_hatch;
     child_transform *= drawing_transform;
 
     //The rendering of hatch overflow is implemented by repeated drawing
@@ -1219,7 +1219,7 @@ CairoRenderContext::_createHatchPainter(SPPaintServer const *const paintserver, 
     cairo_pattern_set_extend(result, CAIRO_EXTEND_REPEAT);
 
     Geom::Affine pattern_transform;
-    pattern_transform = render_info.pattern_to_user_transform.inverse() * drawing_transform;
+    pattern_transform = render_info.hatch_to_user.inverse() * drawing_transform;
     ink_cairo_pattern_set_matrix(result, pattern_transform);
 
     evil->hide(dkey);

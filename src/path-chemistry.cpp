@@ -32,6 +32,7 @@
 #include "object/box3d.h"
 #include "object/object-set.h"
 #include "object/sp-flowtext.h"
+#include "object/sp-hatch.h"
 #include "object/sp-path.h"
 #include "object/sp-root.h"
 #include "object/sp-text.h"
@@ -371,9 +372,35 @@ static void collect_object_items(SPObject *object, std::vector<SPItem*> &items)
     }
 }
 
+bool convert_hatch_to_paths(SPShape &shape)
+{
+    std::cout << "convert_hatch_to_paths: " << shape << std::endl;
+    auto style = shape.style;
+    if (!style) {
+        return false;
+    }
+
+    if (auto paint = style->getFillOrStroke(true)) {
+        if (paint->set) {
+            auto server = style->getFillPaintServer();
+            if (auto hatch = cast<SPHatch>(server)) {
+                auto curves = hatch->toPaths(shape);
+                auto parent = shape.parent;
+                if (parent) {
+                    std::cout << "  Parent: " << parent << std::endl;
+                } else {
+                    std::cout << "  No parent" << std::endl;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 bool
 sp_item_list_to_curves(const std::vector<SPItem*> &items, std::vector<SPItem*>& selected, std::vector<Inkscape::XML::Node*> &to_select, bool skip_all_lpeitems)
 {
+    std::cout << "\nsp_item_list_to_curves: Entrance" << std::endl;
     bool did = false;
     for (auto item : items){
         g_assert(item != nullptr);
@@ -431,6 +458,9 @@ sp_item_list_to_curves(const std::vector<SPItem*> &items, std::vector<SPItem*>& 
                 item->removeAttribute("inkscape:connection-end-point");
                 item->removeAttribute("inkscape:connector-type");
                 item->removeAttribute("inkscape:connector-curvature");
+                did = true;
+            }
+            if (convert_hatch_to_paths(*cast<SPShape>(item))) {
                 did = true;
             }
             continue; // already a path, and no path effect
@@ -632,10 +662,15 @@ Inkscape::XML::Node *sp_text_to_curve_repr(SPItem *item)
 
 Inkscape::XML::Node *sp_selected_item_to_curved_repr(SPItem *item, guint32 /*text_grouping_policy*/)
 {
+    std::cout << "\nsp_selected_item_to_curved_repr" << std::endl;
     if (!item)
         return nullptr;
 
     Inkscape::XML::Document *xml_doc = item->getRepr()->document();
+
+    if (auto shape = cast<SPShape>(item)) {
+        convert_hatch_to_paths(*shape);
+    }
 
     if (is<SPText>(item) || is<SPFlowtext>(item)) {
         return sp_text_to_curve_repr(item);

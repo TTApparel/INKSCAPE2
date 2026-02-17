@@ -57,11 +57,19 @@ public:
 
     struct RenderInfo
     {
-        Geom::Affine child_transform;
-        Geom::Affine pattern_to_user_transform;
-        Geom::Rect tile_rect;
+        Geom::Rect hatch_bbox;
+        Geom::Rect hatch_tile;
+        double strip_width = 0;
+        Geom::Point hatch_origin;
+        Geom::Affine hatch_to_user;
+        Geom::Affine content_to_hatch;
 
-        int overflow_steps = 0;
+        // Used by toPath()
+        int overflow_right = 0;
+        int overflow_left = 1;
+
+        // Used by rendering to screen
+        int overflow_steps = 1;
         Geom::Affine overflow_step_transform;
         Geom::Affine overflow_initial_transform;
     };
@@ -96,7 +104,11 @@ public:
     Inkscape::DrawingPattern *show(Inkscape::Drawing &drawing, unsigned key, Geom::OptRect const &bbox) override;
     void hide(unsigned key) override;
 
+    RenderInfo calculateRenderInfo(Geom::OptRect const &bbox) const;
     RenderInfo calculateRenderInfo(unsigned key) const;
+
+    bool toPaths(SPShape &shape);
+
     Geom::Interval bounds() const;
     void setBBox(unsigned int key, Geom::OptRect const &bbox) override;
 
@@ -115,7 +127,7 @@ private:
     static bool _hasHatchPatchChildren(SPHatch const *hatch);
 
     void _updateView(View &view);
-    RenderInfo _calculateRenderInfo(View const &view) const;
+    RenderInfo _calculateRenderInfo(Geom::OptRect const &bbox) const;
     Geom::OptInterval _calculateStripExtents(Geom::OptRect const &bbox) const;
 
     /**
