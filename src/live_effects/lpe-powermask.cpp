@@ -5,22 +5,17 @@
 #include "lpe-powermask.h"
 
 #include <glibmm/i18n.h>
-
-#include <bad-uri-exception.h>
-
-#include <2geom/path-intersection.h>
 #include <2geom/intersection-graph.h>
+#include <2geom/path-intersection.h>
 
 #include "inkscape.h"
-#include "preferences.h"
-#include "selection.h"
-
 #include "live_effects/lpeobject-reference.h"
 #include "live_effects/lpeobject.h"
 #include "object/sp-defs.h"
 #include "object/sp-item-group.h"
 #include "object/sp-mask.h"
-#include "svg/stringstream.h"
+#include "preferences.h"
+#include "selection.h"
 #include "svg/svg.h"
 #include "util/safe-printf.h"
 #include "util/uri.h"
@@ -29,13 +24,15 @@ namespace Inkscape {
 namespace LivePathEffect {
 
 LPEPowerMask::LPEPowerMask(LivePathEffectObject *lpeobject)
-    : Effect(lpeobject),
-    uri("Store the uri of mask", "", "uri", &wr, this, "false", false),
-    invert(_("Invert mask"), _("Invert mask"), "invert", &wr, this, false),
-    //wrap(_("Wrap mask data"), _("Wrap mask data allowing previous filters"), "wrap", &wr, this, false),
-    hide_mask(_("Hide mask"), _("Hide mask"), "hide_mask", &wr, this, false),
-    background(_("Add background to mask"), _("Add background to mask"), "background", &wr, this, false),
-    background_color(_("Background color and opacity"), _("Set color and opacity of the background"), "background_color", &wr, this, Colors::Color(0xffffffff))
+    : Effect(lpeobject)
+    , uri("Store the uri of mask", "", "uri", &wr, this, "false", false)
+    , invert(_("Invert mask"), _("Invert mask"), "invert", &wr, this, false)
+    ,
+    // wrap(_("Wrap mask data"), _("Wrap mask data allowing previous filters"), "wrap", &wr, this, false),
+    hide_mask(_("Hide mask"), _("Hide mask"), "hide_mask", &wr, this, false)
+    , background(_("Add background to mask"), _("Add background to mask"), "background", &wr, this, false)
+    , background_color(_("Background color and opacity"), _("Set color and opacity of the background"),
+                       "background_color", &wr, this, Colors::Color(0xffffffff))
 {
     registerParameter(&uri);
     registerParameter(&invert);
@@ -47,22 +44,25 @@ LPEPowerMask::LPEPowerMask(LivePathEffectObject *lpeobject)
 
 LPEPowerMask::~LPEPowerMask() = default;
 
-Glib::ustring LPEPowerMask::getId() { return Glib::ustring("mask-powermask-") + Glib::ustring(getLPEObj()->getId()); }
-
-void
-LPEPowerMask::doOnApply (SPLPEItem const * lpeitem)
+Glib::ustring LPEPowerMask::getId()
 {
-    SPLPEItem *item = const_cast<SPLPEItem*>(lpeitem);
-    SPObject * mask = item->getMaskObject();
+    return Glib::ustring("mask-powermask-") + getLPEObj()->getId();
+}
+
+void LPEPowerMask::doOnApply(SPLPEItem const *lpeitem)
+{
+    auto const item = const_cast<SPLPEItem *>(lpeitem);
+    SPObject *mask = item->getMaskObject();
     bool hasit = false;
     if (lpeitem->hasPathEffect() && lpeitem->pathEffectsEnabled()) {
         PathEffectList path_effect_list(*lpeitem->path_effect_list);
-        for (auto &lperef : path_effect_list) {
-            LivePathEffectObject *lpeobj = lperef->lpeobject;
+        for (auto const &lperef : path_effect_list) {
+            auto const lpeobj = lperef->lpeobject;
             if (!lpeobj) {
                 /** \todo Investigate the cause of this.
-                 * For example, this happens when copy pasting an object with LPE applied. Probably because the object is pasted while the effect is not yet pasted to defs, and cannot be found.
-                */
+                 * For example, this happens when copy pasting an object with LPE applied. Probably because the object
+                 * is pasted while the effect is not yet pasted to defs, and cannot be found.
+                 */
                 g_warning("SPLPEItem::performPathEffect - NULL lpeobj in list!");
                 return;
             }
@@ -75,38 +75,38 @@ LPEPowerMask::doOnApply (SPLPEItem const * lpeitem)
     if (!mask || hasit) {
         item->removeCurrentPathEffect(false);
     } else {
-        Glib::ustring newmask = getId();
-        Glib::ustring uri = Glib::ustring("url(#") + newmask + Glib::ustring(")");
+        auto const newmask = getId();
+        auto const new_uri = "url(#" + newmask + ")";
         mask->setAttribute("id", newmask);
-        item->setAttribute("mask", uri);
+        item->setAttribute("mask", new_uri);
     }
 }
 
 void LPEPowerMask::tryForkMask()
 {
-    SPDocument *document = getSPDoc();
+    auto const document = getSPDoc();
     if (!document || !sp_lpe_item) {
         return;
     }
     SPObject *mask = sp_lpe_item->getMaskObject();
-    SPObject *elemref = document->getObjectById(getId().c_str());
-    if (!elemref && sp_lpe_item && mask) {
-        Glib::ustring newmask = getId();
-        Glib::ustring uri = Glib::ustring("url(#") + newmask + Glib::ustring(")");
-        Inkscape::XML::Document *xml_doc = document->getReprDoc();
-        Inkscape::XML::Node *fork = mask->getRepr()->duplicate(xml_doc);
-        mask = document->getDefs()->appendChildRepr(fork);
+    auto const elem_ref = document->getObjectById(getId().c_str());
+    if (!elem_ref && sp_lpe_item && mask) {
+        auto const newmask = getId();
+        auto const new_uri = "url(#" + newmask + ")";
+        auto const xml_doc = document->getReprDoc();
+        XML::Node *fork = mask->getRepr()->duplicate(xml_doc);
+        document->getDefs()->appendChildRepr(fork);
         fork->setAttribute("id", newmask);
         Inkscape::GC::release(fork);
-        sp_lpe_item->setAttribute("mask", uri);
+        sp_lpe_item->setAttribute("mask", new_uri);
     }
 }
 
-void
-LPEPowerMask::doBeforeEffect (SPLPEItem const* lpeitem){
-    //To avoid close of color dialog and better performance on change color
+void LPEPowerMask::doBeforeEffect(SPLPEItem const *lpeitem)
+{
+    // To avoid close of color dialog and better performance on change color
     tryForkMask();
-    SPObject * mask = sp_lpe_item->getMaskObject();
+    auto mask = sp_lpe_item->getMaskObject();
     auto uri_str = uri.param_getSVGValue();
     if (hide_mask && mask) {
         sp_lpe_item->getMaskRef().detach();
@@ -119,10 +119,10 @@ LPEPowerMask::doBeforeEffect (SPLPEItem const* lpeitem){
             previous_color = *background_color.get_value();
             setMask();
         } else {
-            uri.param_setValue(Glib::ustring(extract_uri(sp_lpe_item->getAttribute("mask"))), true);
+            uri.param_setValue(extract_uri(sp_lpe_item->getAttribute("mask")), true);
             sp_lpe_item->getMaskRef().detach();
-            Geom::OptRect bbox = lpeitem->visualBounds();
-            if(!bbox) {
+            Geom::OptRect const bbox = lpeitem->visualBounds();
+            if (!bbox) {
                 return;
             }
             uri_str = uri.param_getSVGValue();
@@ -132,38 +132,35 @@ LPEPowerMask::doBeforeEffect (SPLPEItem const* lpeitem){
             bboxrect.expandBy(1);
             mask_box.clear();
             mask_box = Geom::Path(bboxrect);
-            SPDocument *document = getSPDoc();
-            if (!document || !mask) {
+            auto const document = getSPDoc();
+            if (!document) {
                 return;
             }
             DocumentUndo::ScopedInsensitive tmp(document);
             setMask();
         }
-    } else if(!hide_mask) {
-        SPLPEItem * item = const_cast<SPLPEItem*>(lpeitem);
+    } else if (!hide_mask) {
+        auto const item = const_cast<SPLPEItem *>(lpeitem);
         item->removeCurrentPathEffect(false);
     }
 }
 
-void
-LPEPowerMask::setMask(){
-    SPMask *mask = sp_lpe_item->getMaskObject();
-    SPObject *elemref = nullptr;
-    SPDocument *document = getSPDoc();
+void LPEPowerMask::setMask()
+{
+    auto const mask = sp_lpe_item->getMaskObject();
+    auto const document = getSPDoc();
     if (!document || !mask) {
         return;
     }
-    Inkscape::XML::Document *xml_doc = document->getReprDoc();
-    Inkscape::XML::Node *box = nullptr;
-    Inkscape::XML::Node *filter = nullptr;
-    SPDefs * defs = document->getDefs();
-    Glib::ustring mask_id = getId();
-    Glib::ustring box_id = mask_id + (Glib::ustring)"_box";
-    Glib::ustring filter_id = mask_id + (Glib::ustring)"_inverse";
-    Glib::ustring filter_label = (Glib::ustring)"filter" + mask_id;
-    Glib::ustring filter_uri = (Glib::ustring)"url(#" + filter_id + (Glib::ustring)")";
-    if (!(elemref = document->getObjectById(filter_id))) {
-        filter = xml_doc->createElement("svg:filter");
+    XML::Document *xml_doc = document->getReprDoc();
+    SPDefs *defs = document->getDefs();
+    auto const mask_id = getId();
+    auto const box_id = mask_id + "_box";
+    auto const filter_id = mask_id + "_inverse";
+    auto const filter_label = "filter" + mask_id;
+    auto const filter_uri = "url(#" + filter_id + ")";
+    if (!document->getObjectById(filter_id)) {
+        auto filter = xml_doc->createElement("svg:filter");
         filter->setAttribute("id", filter_id);
         filter->setAttribute("inkscape:label", filter_label);
         SPCSSAttr *css = sp_repr_css_attr_new();
@@ -174,28 +171,30 @@ LPEPowerMask::setMask(){
         filter->setAttribute("width", "100");
         filter->setAttribute("x", "-50");
         filter->setAttribute("y", "-50");
-        Inkscape::XML::Node *primitive1 =  xml_doc->createElement("svg:feColorMatrix");
-        Glib::ustring primitive1_id = (mask_id + (Glib::ustring)"_primitive1").c_str();
+        Inkscape::XML::Node *primitive1 = xml_doc->createElement("svg:feColorMatrix");
+        auto const primitive1_id = mask_id + "_primitive1";
         primitive1->setAttribute("id", primitive1_id);
         primitive1->setAttribute("values", "1");
         primitive1->setAttribute("type", "saturate");
         primitive1->setAttribute("result", "fbSourceGraphic");
-        Inkscape::XML::Node *primitive2 =  xml_doc->createElement("svg:feColorMatrix");
-        Glib::ustring primitive2_id = (mask_id + (Glib::ustring)"_primitive2").c_str();
+        Inkscape::XML::Node *primitive2 = xml_doc->createElement("svg:feColorMatrix");
+        auto const primitive2_id = mask_id + "_primitive2";
         primitive2->setAttribute("id", primitive2_id);
         primitive2->setAttribute("values", "-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0 ");
         primitive2->setAttribute("in", "fbSourceGraphic");
-        elemref = defs->appendChildRepr(filter);
+        defs->appendChildRepr(filter);
         Inkscape::GC::release(filter);
         filter->appendChild(primitive1);
         Inkscape::GC::release(primitive1);
         filter->appendChild(primitive2);
         Inkscape::GC::release(primitive2);
     }
-    Glib::ustring g_data_id = mask_id + (Glib::ustring)"_container";
-    if((elemref = document->getObjectById(g_data_id))){
-        std::vector<SPItem*> item_list = cast<SPGroup>(elemref)->item_list();
-        for (auto iter : item_list) {
+
+    SPObject *elemref = nullptr;
+    auto const g_data_id = mask_id + "_container";
+    if ((elemref = document->getObjectById(g_data_id))) {
+        auto const &item_list = cast<SPGroup>(elemref)->item_list();
+        for (auto const iter : item_list) {
             Inkscape::XML::Node *mask_node = iter->getRepr();
             elemref->getRepr()->removeChild(mask_node);
             mask->getRepr()->appendChild(mask_node);
@@ -203,36 +202,38 @@ LPEPowerMask::setMask(){
         }
         elemref->deleteObject(true);
     }
-    std::vector<SPObject*> mask_list = mask->childList(true);
-    for (auto iter : mask_list) {
+
+    auto const &mask_list = mask->childList(true);
+    for (auto const iter : mask_list) {
         auto mask_data = cast<SPItem>(iter);
-        Inkscape::XML::Node *mask_node = mask_data->getRepr();
-        if (! strcmp(mask_data->getId(), box_id.c_str())){
+        auto mask_node = mask_data->getRepr();
+        if (mask_data->getId() == box_id.c_str()) {
             continue;
         }
-        Glib::ustring mask_data_id = (Glib::ustring)mask_data->getId();
-        SPCSSAttr *css = sp_repr_css_attr_new();
-        if(mask_node->attribute("style")) {
+        auto const css = sp_repr_css_attr_new();
+        if (mask_node->attribute("style")) {
             sp_repr_css_attr_add_from_string(css, mask_node->attribute("style"));
         }
-        char const* filter = sp_repr_css_property (css, "filter", nullptr);
-        if(!filter || !strcmp(filter, filter_uri.c_str())) {
+        auto const css_filter = sp_repr_css_property(css, "filter", nullptr);
+        if (!css_filter || filter_uri == Glib::ustring(css_filter)) {
             if (invert && is_visible) {
-                sp_repr_css_set_property (css, "filter", filter_uri.c_str());
+                sp_repr_css_set_property(css, "filter", filter_uri.c_str());
             } else {
-                sp_repr_css_set_property (css, "filter", nullptr);
+                sp_repr_css_set_property(css, "filter", nullptr);
             }
             Glib::ustring css_str;
             sp_repr_css_write_string(css, css_str);
             mask_node->setAttribute("style", css_str);
         }
     }
-    if ((elemref = document->getObjectById(box_id))) {
-        elemref->deleteObject(true);
-    }
+
     if (background && is_visible) {
+        XML::Node *box = nullptr;
         bool exist = true;
-        if (!(elemref = document->getObjectById(box_id))) {
+
+        if (auto box_elem_ref = document->getObjectById(box_id)) {
+            box = box_elem_ref->getRepr();
+        } else {
             box = xml_doc->createElement("svg:path");
             box->setAttribute("id", box_id);
             exist = false;
@@ -243,75 +244,75 @@ LPEPowerMask::setMask(){
         sp_repr_css_set_property_double(css, "fill-opacity", background_color.get_value()->getOpacity());
         sp_repr_css_set_property_string(css, "stroke", "none");
 
-        char const* filter = sp_repr_css_property (css, "filter", nullptr);
-        if(!filter || !strcmp(filter, filter_uri.c_str())) {
+        auto const css_filter = sp_repr_css_property(css, "filter", nullptr);
+        if (!css_filter || filter_uri == Glib::ustring(css_filter)) {
             if (invert && is_visible) {
-                sp_repr_css_set_property (css, "filter", filter_uri.c_str());
+                sp_repr_css_set_property(css, "filter", filter_uri.c_str());
             } else {
-                sp_repr_css_set_property (css, "filter", nullptr);
+                sp_repr_css_set_property(css, "filter", nullptr);
             }
         }
         sp_repr_css_change(box, css, "style");
         sp_repr_css_attr_unref(css);
         box->setAttribute("d", sp_svg_write_path(mask_box));
         if (!exist) {
-            elemref = mask->appendChildRepr(box);
+            mask->appendChildRepr(box);
+            box->setPosition(0);
             Inkscape::GC::release(box);
         }
-        box->setPosition(0);
-    } else if ((elemref = document->getObjectById(box_id))) {
+    } else if (!background && ((elemref = document->getObjectById(box_id)))) {
         elemref->deleteObject(true);
     }
     mask->requestDisplayUpdate(SP_OBJECT_MODIFIED_FLAG);
 }
 
-void 
-LPEPowerMask::doOnVisibilityToggled(SPLPEItem const* lpeitem)
+void LPEPowerMask::doOnVisibilityToggled(SPLPEItem const *lpeitem)
 {
     doBeforeEffect(lpeitem);
 }
 
 void LPEPowerMask::doEffect(Geom::PathVector &curve) {}
 
-void 
-LPEPowerMask::doOnRemove (SPLPEItem const* lpeitem)
+void LPEPowerMask::doOnRemove(SPLPEItem const *lpeitem)
 {
-    SPMask *mask = lpeitem->getMaskObject();
-    if (mask) {
-        Inkscape::Preferences *prefs = Inkscape::Preferences::get();
-        if (keep_paths || prefs->getBool("/options/onungroup", false)) {
-            return;
-        }
-        invert.param_setValue(false);
-        //wrap.param_setValue(false);
-        background.param_setValue(false);
-        setMask();
-        SPObject *elemref = nullptr;
-        SPDocument *document = getSPDoc();
-        Glib::ustring mask_id = getId();
-        Glib::ustring filter_id = mask_id + (Glib::ustring)"_inverse";
-        if ((elemref = document->getObjectById(filter_id))) {
-            elemref->deleteObject(true);
-        }
+    if (!lpeitem->getMaskObject()) {
+        return;
+    }
+
+    if (keep_paths || Inkscape::Preferences::get()->getBool("/options/onungroup", false)) {
+        return;
+    }
+
+    invert.param_setValue(false);
+    auto const document = getSPDoc();
+    auto const mask_id = getId();
+    auto const filter_id = mask_id + "_inverse";
+    auto const box_id = mask_id + "_box";
+
+    if (auto const elem_ref = document->getObjectById(filter_id)) {
+        elem_ref->deleteObject(true);
+    }
+
+    if (auto const elem_ref = document->getObjectById(box_id)) {
+        elem_ref->deleteObject(true);
     }
 }
 
-void sp_inverse_powermask(Inkscape::Selection *sel) {
-    if (!sel->isEmpty()) {
-        SPDocument *document = SP_ACTIVE_DOCUMENT;
-        if (!document) {
-            return;
-        }
-        for (auto lpeitem : sel->objects_of_type<SPLPEItem>() | std::views::reverse) {
-            if (lpeitem->getMaskObject()) {
-                Effect::createAndApply(POWERMASK, SP_ACTIVE_DOCUMENT, lpeitem);
-                if (auto lpe = lpeitem->getCurrentLPE()) {
-                    lpe->getRepr()->setAttribute("invert", "false");
-                    lpe->getRepr()->setAttribute("is_visible", "true");
-                    lpe->getRepr()->setAttribute("hide_mask", "false");
-                    lpe->getRepr()->setAttribute("background", "true");
-                    lpe->getRepr()->setAttribute("background_color", "#ffffffff");
-                }
+void sp_inverse_powermask(Inkscape::Selection *sel)
+{
+    if (sel->isEmpty() || !SP_ACTIVE_DOCUMENT) {
+        return;
+    }
+
+    for (auto lpeitem : sel->objects_of_type<SPLPEItem>() | std::views::reverse) {
+        if (lpeitem->getMaskObject()) {
+            Effect::createAndApply(POWERMASK, SP_ACTIVE_DOCUMENT, lpeitem);
+            if (auto lpe = lpeitem->getCurrentLPE()) {
+                lpe->getRepr()->setAttribute("invert", "false");
+                lpe->getRepr()->setAttribute("is_visible", "true");
+                lpe->getRepr()->setAttribute("hide_mask", "false");
+                lpe->getRepr()->setAttribute("background", "true");
+                lpe->getRepr()->setAttribute("background_color", "#ffffffff");
             }
         }
     }
@@ -319,25 +320,27 @@ void sp_inverse_powermask(Inkscape::Selection *sel) {
 
 void sp_remove_powermask(Inkscape::Selection *sel)
 {
-    if (!sel->isEmpty()) {
-        for (auto lpeitem : sel->objects_of_type<SPLPEItem>() | std::views::reverse) {
-            if (lpeitem->hasPathEffect() && lpeitem->pathEffectsEnabled()) {
-                PathEffectList path_effect_list(*lpeitem->path_effect_list);
-                for (auto &lperef : path_effect_list) {
-                    LivePathEffectObject *lpeobj = lperef->lpeobject;
-                    if (!lpeobj) {
-                        /** \todo Investigate the cause of this.
-                         * For example, this happens when copy pasting an object with LPE applied. Probably because
-                         * the object is pasted while the effect is not yet pasted to defs, and cannot be found.
-                         */
-                        g_warning("SPLPEItem::performPathEffect - NULL lpeobj in list!");
-                        return;
-                    }
-                    if (LPETypeConverter.get_key(lpeobj->effecttype) == "powermask") {
-                        lpeitem->setCurrentPathEffect(lperef);
-                        lpeitem->removeCurrentPathEffect(false);
-                        break;
-                    }
+    if (sel->isEmpty()) {
+        return;
+    }
+
+    for (auto lpeitem : sel->objects_of_type<SPLPEItem>() | std::views::reverse) {
+        if (lpeitem->hasPathEffect() && lpeitem->pathEffectsEnabled()) {
+            PathEffectList path_effect_list(*lpeitem->path_effect_list);
+            for (auto const &lperef : path_effect_list) {
+                auto const lpeobj = lperef->lpeobject;
+                if (!lpeobj) {
+                    /** \todo Investigate the cause of this.
+                     * For example, this happens when copy pasting an object with LPE applied. Probably because
+                     * the object is pasted while the effect is not yet pasted to defs, and cannot be found.
+                     */
+                    g_warning("SPLPEItem::performPathEffect - NULL lpeobj in list!");
+                    return;
+                }
+                if (LPETypeConverter.get_key(lpeobj->effecttype) == "powermask") {
+                    lpeitem->setCurrentPathEffect(lperef);
+                    lpeitem->removeCurrentPathEffect(false);
+                    break;
                 }
             }
         }
