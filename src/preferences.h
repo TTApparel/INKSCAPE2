@@ -713,6 +713,10 @@ public:
         });
     }
 
+    // is there a value present in preference defaults (skeleton preferences)?
+    // this function is used to verify that all settings have corresponding default values
+    bool is_default_valid(const Glib::ustring& path);
+
 protected:
     // helper methods used by Entry
     /**
@@ -737,6 +741,7 @@ private:
     void _keySplit(Glib::ustring const &pref_path, Glib::ustring &node_key, Glib::ustring &attr_key);
     XML::Node *_getNode(Glib::ustring const &pref_path, bool create=false);
     XML::Node *_findObserverNode(Glib::ustring const &pref_path, Glib::ustring &node_key, Glib::ustring &attr_key, bool create);
+    XML::Node* _get_node(XML::Document* document, const Glib::ustring& pref_path, bool create = false);
 
     std::string _prefs_filename; ///< Full filename (with directory) of the prefs file
     Glib::ustring _lastErrPrimary; ///< Last primary error message, if any.
@@ -749,6 +754,8 @@ private:
     /// Cache for getEntry()
     // cache key has type std::string because Glib::ustring is slower for equality checks
     std::unordered_map<std::string, Entry> cachedEntry;
+    // defaults from preferences skeleton document
+    XML::Document* _prefs_defaults = nullptr; ///< XML document storing defaults only
 
     /// Wrapper class for XML node observers
     class PrefNodeObserver;

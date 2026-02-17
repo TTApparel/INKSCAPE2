@@ -34,7 +34,7 @@ public:
     UnitMenu();
 
     /* GtkBuilder constructor */
-    UnitMenu(DropDown::BaseObjectType *cobject, Glib::RefPtr<Gtk::Builder> const & /*builder*/);
+    UnitMenu(BaseObjectType *cobject, Glib::RefPtr<Gtk::Builder> const & /*builder*/);
 
     ~UnitMenu() override;
 
@@ -135,7 +135,7 @@ public:
 
 private:
     Glib::ustring get_selected_string() const;
-    UnitType          _type;
+    UnitType          _type = UNIT_TYPE_NONE;
 };
 
 } // namespace Inkscape::UI::Widget

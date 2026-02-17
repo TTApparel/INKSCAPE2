@@ -708,6 +708,9 @@ private:
   Inkscape::PrefObserver _theme_oberver;
 };
 
+// draw circle filled with rgb color, to use as a color indicator/sample
+Cairo::RefPtr<Cairo::Surface> draw_color_preview(unsigned int rgb, unsigned int frame_rgb, int device_scale);
+
 } // namespace Inkscape::UI::Dialog
 
 #endif //INKSCAPE_UI_DIALOG_INKSCAPE_PREFERENCES_H

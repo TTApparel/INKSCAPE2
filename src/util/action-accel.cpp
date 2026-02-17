@@ -16,6 +16,7 @@
 #include <gtkmm/accelerator.h>
 
 #include "inkscape-application.h"
+#include "key-helpers.h"
 #include "ui/shortcuts.h"
 
 namespace Inkscape::Util {
@@ -54,7 +55,10 @@ bool ActionAccel::_query()
     }
 
     auto const &accels = Shortcuts::getInstance().get_triggers(_action);
-    std::set<AcceleratorKey> new_keys{accels.begin(), accels.end()};
+    std::set<AcceleratorKey> new_keys;
+    for (auto& acc : accels) {
+        new_keys.insert(parse_accelerator_string(acc));
+    }
     if (new_keys == _accels) {
         return false;
     }

@@ -444,8 +444,10 @@ static char const preferences_skeleton[] =
        small="0"
        iconsize="16">
       <group
-         id="buttons" 
-         showLPETool="0"/>
+         id="buttons"
+        show3DBox="1" showPencil="1" showSelect="1" showNode="1" showSpiral="1" showCalligraphic="1" showTweak="1" showSymbol="1"
+        showGradient="1" showBooleans="1" showRect="1" showStar="1" showArc="1" showPen="1" showText="1" showMesh="1" showDropper="1"
+        showPaintBucket="1" showSpray="1" showPages="1" showZoom="1" showLPETool="1" showMeasure="1" showEraser="1" showConnector="1" />
     </group>
     <group
        id="controlbars"

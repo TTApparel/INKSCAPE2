@@ -19,7 +19,7 @@ UnitMenu::UnitMenu() : _type(UNIT_TYPE_NONE)
 }
 
 UnitMenu::UnitMenu(BaseObjectType * const cobject, Glib::RefPtr<Gtk::Builder> const &builder)
-    : DropDownList{cobject, builder}
+    : DropDownList(cobject, builder)
 {
     // We assume the UI file sets the active item & thus we do not do that here.
 

@@ -1,0 +1,485 @@
+<?xml version="1.0"?>
+<ui>
+  <templates>
+    <template name="modifiers">
+      <group type="segmented" validation="off">
+        <toggle label="@Ctrl" translate="no" path="ctrl" value="1" size="quarter"/>
+        <toggle label="@Shift" translate="no" path="shift" value="1" size="quarter"/>
+        <toggle label="@Alt" translate="no" path="alt" value="1" size="quarter"/>
+        <toggle label="@Meta" translate="no" path="meta" value="1" size="quarter"/>
+      </group>
+    </template>
+
+    <template name="object-style">
+      <row label="Style of new object">
+        <group type="radio" path="usecurrent">
+          <toggle label="Last used" value="1" tooltip="Apply the style you last set on an object"/>
+          <toggle label="Custom style" value="0" tooltip="This tool's own style"/>
+        </group>
+      </row>
+      <row label="Fill" visible="usecurrent" value="0">
+        <color-picker label="Shape fill" tooltip="This tool's own fill style" path="style" type="fill"/>
+      </row>
+      <row label="Stroke" visible="usecurrent" value="0">
+        <color-picker label="Shape stroke" tooltip="This tool's own stroke style" path="style" type="stroke"/>
+      </row>
+      <row label="" visible="usecurrent" value="0">
+        <button label="From selection" icon="edit-select-same-fill-and-stroke" action="copy-style" tooltip="Take style from current selection"/>
+      </row>
+    </template>
+
+    <template name="shape-settings">
+      <gap/>
+      <row label="Display">
+        <checkbox label="Show selection cue" path="/x"/>
+      </row>
+      <gap />
+      <row label="Behavior">
+        <checkbox label="Enable gradient editing" path="gradientdrag"
+                  tooltip="Whether selected objects display gradient editing controls"/>
+        <checkbox label="Use edges instead of bounding box when converting to guides" path="convertguides"
+                  tooltip="Converting an object to guides places these along the object's true edges (imitating the object's shape), not along the bounding box" />
+      </row>
+      <gap />
+      <insert template="object-style" />
+    </template>
+
+    <template name="tool-header">
+      <header label="{label}" icon="{icon}">
+        <switch path="/toolbox/tools/buttons/show{tool}" tooltip="Toggle tool's visibility" />
+      </header>
+    </template>
+
+    <template name="about">
+      <row label="About">
+        <text class="strong">{label}</text>
+      </row>
+      <gap/>
+    </template>
+
+    <template name="tool-shortcut">
+      <row label="Shortcut">
+        <shortcut path="/shortcuts/win.tool-switch('{tool}')"/>
+      </row>
+    </template>
+
+  </templates>
+
+  <!-- =========================================================================================== -->
+
+  <section label="Tools" id="tools" path="/tools">
+    <gap/>
+    <panel path="select" id="tool-select">
+      <insert template="tool-header" label="Selector" icon="tool-pointer" tool="Select" />
+      <insert template="about" label="Select, move, rotate and transform objects"/>
+      <insert template="tool-shortcut" tool="Select"/>
+      <row label="Selection cue">
+        <group type="radio" path="/options/selcue/value">
+          <toggle label="None" value="0" tooltip="No per-object selection indication"/>
+          <toggle label="Mark" value="1" tooltip="Each selected object has a diamond mark in the top left corner"/>
+          <toggle label="Box" value="2" tooltip="Each selected object displays its bounding box"/>
+        </group>
+      </row>
+      <row label="When transforming, show">
+        <group type="radio" path="/tools/select/show">
+          <toggle label="Object" value="content" tooltip="Show the actual objects when moving or transforming"/>
+          <toggle label="Box outline" value="outline"
+                  tooltip="Show only a box outline of the objects when moving or transforming"/>
+        </group>
+      </row>
+      <gap/>
+      <row label="On select">
+        <checkbox label="Change layer" path="changelayer"
+                  tooltip="Whether selecting objects in another layer changes the active layer"/>
+        <checkbox label="Change page" path="changepage"
+                  tooltip="Whether selecting objects on another page changes the current page"/>
+      </row>
+      <gap/>
+      <row label="On layer change">
+        <checkbox label="Deselect all objects" path="/options/selection/layerdeselect"/>
+      </row>
+      <gap/>
+      <row label="Miscellaneous">
+        <checkbox label="Gradient editing" path="gradientdrag"
+                  tooltip="Whether selected objects display gradient editing controls"/>
+        <checkbox label='"Select same" behaves as "Select All"' path="/options/selection/samelikeall" tooltip=""/>
+        <checkbox label="Select transparent objects, strokes and fills" path="/options/selection/zeroopacity"/>
+        <checkbox label="In touch selection mode, only select topmost items" path="/options/selection/touchsel_topmost_only"/>
+      </row>
+      <expander label="MODIFIER KEYS">
+        <row label="Ctrl+A, Tab, Shift+Tab" path="/options/kbselection/inlayer">
+          <radiobutton label="Affect all layers" value="0"/>
+          <radiobutton label="Affect only within current layers" value="1"/>
+          <radiobutton label="Affect current layers and sublayers" value="2"/>
+        </row>
+        <gap/>
+        <row label="Alt+Scroll wheel">
+          <checkbox label="Cycle through stacked objects" path="/x"/>
+          <checkbox label="Wrap when cycle selecting" path="/options/selection/cycleWrap"/>
+        </row>
+        <gap/>
+        <row label="Ignore">
+          <checkbox label="Hidden objects and layers" path="/options/kbselection/onlyvisible"/>
+          <checkbox label="Locked objects and layers" path="/options/kbselection/onlysensitive"/>
+        </row>
+      </expander>
+    </panel>
+
+    <panel path="nodes" id="tool-node">
+      <insert template="tool-header" label="Node Editor" icon="tool-node-editor" tool="Node" />
+      <insert template="about" label="Edit paths by nodes"/>
+      <insert template="tool-shortcut" tool="Node"/>
+      <row label="On select">
+        <checkbox label="Change layer" path="/x"/>
+      </row>
+      <gap/>
+      <row label="Display">
+        <checkbox label="Show selection cue" path="/x"/>
+        <checkbox label="Show transform handles for single nodes" path="/x"/>
+      </row>
+      <gap/>
+      <row label="Simplification threshold">
+        <number min="0.01" max="1.0" step="0.01" precision="4" path="/x"/>
+      </row>
+      <expander label="PATH OUTLINE">
+        <row label="Color">
+          <color-picker label="Path outline" tooltip="Explanation..." path="/x"/>
+        </row>
+        <row label="Flash time">
+          <number min="0.0" max="10.0" step="0.1" precision="2" unit="s" path="/x"/>
+        </row>
+        <gap/>
+        <row label="Display">
+          <checkbox label="Always show outline" path="/x"/>
+          <checkbox label="Show path direction on outlines" path="/x"/>
+          <checkbox label="Show temporary path outlines" path="x/"/>
+          <checkbox label="Show temporary outline for selected paths" path="/x"/>
+        </row>
+        <gap/>
+        <row label="Behavior">
+          <checkbox label="Update outline when dragging nodes" path="/x"/>
+          <checkbox label="Update paths when dragging nodes" path="/x"/>
+        </row>
+        <gap/>
+      </expander>
+      <expander label="MODIFIER KEYS">
+        <row label="Linear node selection" tooltip="Select the next nodes with scroll wheel or keyboard">
+          <insert template="modifiers" path="/shortcuts/modifiers/node-grow-linear"/>
+        </row>
+        <row label="Spatial node selection" tooltip="Select more nodes with scroll wheel or keyboard">
+          <insert template="modifiers" path="/shortcuts/modifiers/node-grow-spatial"/>
+        </row>
+      </expander>
+    </panel>
+
+    <panel path="shape-builder" id="tool-shape-builder">
+      <insert template="tool-header" label="Shape Builder" icon="draw-booleans" tool="Booleans" />
+      <insert template="about" label="Build shapes with the boolean tool"/>
+      <insert template="tool-shortcut" tool="Booleans"/>
+      <expander label="MODIFIER KEYS">
+        <row label="Switch mode" tooltip="Change mode temporarily by holding a modifier key">
+          <insert template="modifiers" path="/shortcuts/modifiers/bool-shift" />
+        </row>
+      </expander>
+    </panel>
+
+    <panel path="shapes/rect">
+      <insert template="tool-header" label="Draw Rectangle" icon="shape-rect" tool="Rect" />
+      <insert template="about" label="Create rectangles and squares"/>
+      <insert template="tool-shortcut" tool="Rect"/>
+      <insert template="shape-settings" />
+    </panel>
+
+    <panel path="shapes/arc">
+      <insert template="tool-header" label="Draw Ellipse" icon="shape-circle" tool="Arc" />
+      <insert template="about" label="Create ellipses, squares, chords and arcs"/>
+      <insert template="tool-shortcut" tool="Arc"/>
+      <insert template="shape-settings" />
+    </panel>
+
+    <panel path="shapes/star">
+      <insert template="tool-header" label="Draw Polygon" icon="shape-polygon" tool="Star" />
+      <insert template="about" label="Create stars and polygons"/>
+      <insert template="tool-shortcut" tool="Star"/>
+      <insert template="shape-settings" />
+    </panel>
+
+    <panel path="shapes/3dbox">
+      <insert template="tool-header" label="Draw 3D Box" icon="draw-cuboid" tool="3DBox" />
+      <insert template="about" label="Create 3D boxes"/>
+      <insert template="tool-shortcut" tool="3DBox"/>
+      <insert template="shape-settings" />
+    </panel>
+
+    <panel path="shapes/spiral">
+      <insert template="tool-header" label="Draw Spiral" icon="shape-spiral" tool="Spiral" />
+      <insert template="about" label="Create spirals"/>
+      <insert template="tool-shortcut" tool="Spiral"/>
+      <insert template="shape-settings" />
+    </panel>
+
+    <panel path="tool/pen">
+      <insert template="tool-header" label="Pen" icon="draw-path" tool="Pen" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Pen"/>
+    </panel>
+
+    <panel path="tool/pencil">
+      <insert template="tool-header" label="Pencil" icon="draw-freehand" tool="Pencil" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Pencil"/>
+    </panel>
+
+    <panel path="tool/calligraphic">
+      <insert template="tool-header" label="Calligraphy" icon="draw-calligraphic" tool="Calligraphic" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Calligraphic"/>
+    </panel>
+
+    <panel path="tool/text">
+      <insert template="tool-header" label="Text" icon="draw-text" tool="Text" />
+      <insert template="about" label="Create and edit text objects"/>
+      <insert template="tool-shortcut" tool="Text"/>
+      <row label="Display">
+        <checkbox label="Show font samples in drop-down list" path="show_sample_in_list" tooltip="Show font samples alongside font names in the drop-down list in Text bar"/>
+        <checkbox label="Show font substitution warning dialog" path="/options/font/substitutedlg" tooltip="Show font substitution warning dialog when requested fonts are not available on the system"/>
+        <checkbox label="Show selection cue" path="/x"/>
+      </row>
+      <gap/>
+      <row label="Behavior">
+        <checkbox label="Enable gradient editing" path="gradientdrag"
+                  tooltip="Whether selected objects display gradient editing controls"/>
+        <checkbox label="Use SVG2 auto-flowed text" path="use_svg2" tooltip="Use SVG2 auto-flowed text instead of SVG1.2 auto-flowed text. (Recommended)"/>
+      </row>
+      <insert template="object-style" />
+      <expander label="Font directories">
+        <row label="Directories to use">
+          <checkbox label="Inkscape's fonts directory" path="/options/font/use_fontsdir_system" tooltip="Load additional fonts from &quot;fonts&quot; directory located in Inkscape's global &quot;share&quot; directory"/>
+          <checkbox label="User's fonts directory" path="/options/font/use_fontsdir_user" tooltip="Load additional fonts from &quot;fonts&quot; directory located in Inkscape's user configuration directory"/>
+        </row>
+        <row label="Additional directories" tooltip="Load additional fonts from custom locations (one path per line)">
+          <path edit="true" path="/options/font/custom_fontdirs"/>
+        </row>
+      </expander>
+    </panel>
+
+    <panel path="tool/gradient">
+      <insert template="tool-header" label="Gradient" icon="color-gradient" tool="Gradient" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Gradient"/>
+    </panel>
+
+    <panel path="tool/mesh">
+      <insert template="tool-header" label="Mesh" icon="paint-gradient-mesh" tool="Mesh" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Mesh"/>
+    </panel>
+
+    <panel path="tool/dropper">
+      <insert template="tool-header" label="Dropper" icon="color-picker" tool="Dropper" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Dropper"/>
+    </panel>
+
+    <panel path="tool/paintbucket">
+      <insert template="tool-header" label="Paint Bucket" icon="color-fill" tool="PaintBucket" />
+      <gap/>
+      <insert template="tool-shortcut" tool="PrintBucket"/>
+    </panel>
+
+    <panel path="tool/tweak">
+      <insert template="tool-header" label="Tweak" icon="tool-tweak" tool="Tweak" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Tweak"/>
+    </panel>
+
+    <panel path="tool/spray">
+      <insert template="tool-header" label="Spray" icon="tool-spray" tool="Spray" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Spray"/>
+    </panel>
+
+    <panel path="tool/eraser">
+      <insert template="tool-header" label="Eraser" icon="draw-eraser" tool="Eraser" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Eraser"/>
+    </panel>
+
+    <panel path="tool/connector">
+      <insert template="tool-header" label="Connector" icon="draw-connector" tool="Connector" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Connector"/>
+    </panel>
+
+    <panel path="tool/measure">
+      <insert template="tool-header" label="Ruler" icon="tool-measure" tool="Measure" />
+      <gap/>
+      <insert template="tool-shortcut" tool="Measure"/>
+    </panel>
+
+    <panel path="tool/lpetool">
+      <insert template="tool-header" label="Geometric Constructions" icon="draw-geometry" tool="LPETool" />
+      <insert template="about" label="Construct figures from points"/>
+      <insert template="tool-shortcut" tool="LPETool"/>
+    </panel>
+
+    <panel path="tool/zoom">
+      <insert template="tool-header" label="Zoom" icon="zoom" tool="Zoom" />
+      <insert template="about" label="Zoom in and out"/>
+      <insert template="tool-shortcut" tool="Zoom"/>
+    </panel>
+
+    <panel path="tool/pages">
+      <insert template="tool-header" label="Pages" icon="tool-pages" tool="Pages" />
+      <insert template="about" label="Create and edit document pages"/>
+      <insert template="tool-shortcut" tool="Pages"/>
+    </panel>
+  </section>
+
+<!--UI section ================================================================================== -->
+  <section label="UI settings" id="ui">
+    <gap/>
+    <panel id="ui">
+      <header label="User interface" icon="ui"/>
+      <row label="Language" tooltip="Set the language for menus and number formats" reset-icon="yes">
+        <selector path="/ui/language" search="yes" source="languages" />
+      </row>
+      <gap/>
+      <row label="UI theme" tooltip="Select UI look" path="/theme">
+        <selector path="gtkTheme" source="ui-themes" />
+      </row>
+      <row label="" path="/theme">
+        <group type="radio" path="darkTheme">
+          <toggle label="Light" value="0" size="quarter" tooltip="Select light theme variant"/>
+          <toggle label="Dark" value="1" size="quarter" tooltip="Select dark theme variant"/>
+        </group>
+      </row>
+      <gap/>
+      <row label="Icon theme" tooltip="Select icons" path="/theme">
+        <selector path="iconTheme" source="icon-themes" />
+      </row>
+      <expander label="Theme options">
+        <row label="todo">
+        </row>
+      </expander>
+      <row label="XML editor theme" tooltip="Select text color theme and font for XML editor" path="/theme">
+        <selector path="syntax-color-theme" source="xml-themes" />
+      </row>
+      <row label="">
+        <checkbox label="Use monospaced font" path="/dialogs/xml/mono-font" tooltip="Use fixed-width font in XML Editor" />
+      </row>
+      <row label="Font" tooltip="Select XML editor monospaced font" path="/theme">
+        <font-selector monospaced="yes"/>
+      </row>
+      <gap/>
+      <row label="Show in status bar" path="/statusbar/visibility">
+        <checkbox label="Current style" path="style" size="quarter"/>
+        <checkbox label="Layer selector" path="layer" size="quarter"/>
+        <checkbox label="Mouse coordinates" path="coordinates" size="quarter"/>
+        <checkbox label="Canvas rotation" path="rotation" size="quarter"/>
+      </row>
+      <gap/>
+      <row label="Color selector">
+        <checkbox label="Use compact selector" path="/x" />
+      </row>
+      <row label="">
+        <group type="segmented" path="/show">
+          <toggle label="RGB" path="rgb" size="sixth"/>
+          <toggle label="CMYK" path="cmyk" size="sixth"/>
+          <toggle label="HSL" path="hsl" size="sixth"/>
+          <toggle label="HSV" path="hsv" size="sixth"/>
+          <toggle label="HSLuv" path="hsluv" size="sixth"/>
+          <toggle label="OkHsl" path="okhsl" size="sixth"/>
+        </group>
+      </row>
+      <gap/>
+      <row label="Welcome dialog">
+        <checkbox label="Show on start-up" path="/x" />
+      </row>
+      <expander label="ADVANCED">
+        <row label="Command palette">
+          <checkbox label="Show command line argument names" path="/x" />
+          <checkbox label="Show untranslated (English) names" path="/x" />
+        </row>
+        <row label="Recent docs">
+          <number min="0" max="30" step="1" path="/x"/>
+        </row>
+        <row label="Mouse cursor">
+          <checkbox label="Enable high-DPI scaling" path="/x" />
+          <checkbox label="Show drop shadow" path="/x" />
+        </row>
+        <gap/>
+        <row label="UI text scale">
+          <number unit="%" min="50" max="300" step="5" scaling-factor="100" path="/x"/>
+        </row>
+        <row label="Icon scale">
+          <number unit="%" min="50" max="300" step="5" scaling-factor="100" path="/x"/>
+        </row>
+        <row label="Snap control bar">
+          <group type="radio" path="/x">
+            <toggle label="Simple" value="0" tooltip="Show simplified snap controls"/>
+            <toggle label="Advanced" value="1" tooltip="Show advanced snap controls"/>
+            <toggle label="Permanent" value="2" tooltip="`"/>
+          </group>
+        </row>
+        <row label="Lock canvas" tooltip="Prevent accidental canvas rotation by disabling on-canvas keyboard and mouse actions for rotation">
+          <checkbox label="Lock canvas rotation" path="/x" />
+        </row>
+        <row label="Dialog tab labels">
+          <group type="radio" path="/x">
+            <toggle label="Show all" value="0" tooltip="Show labels in all docked dialog tabs"/>
+            <toggle label="Active only" value="1" tooltip="Show label of visible docked dialog only"/>
+            <toggle label="Hidden" value="2" tooltip="Hide labels in all docked dialog tabs"/>
+          </group>
+        </row>
+        <row label="Save window size">
+          <group type="radio" path="/x">
+            <toggle label="Don't save" value="0" tooltip=""/>
+            <toggle label="Last window" value="1" tooltip=""/>
+            <toggle label="Each document" value="2" tooltip=""/>
+          </group>
+        </row>
+      </expander>
+    </panel>
+
+    <panel id="drawing">
+      <header label="Drawing" icon="canvas"/>
+      <row label="Handle size" path="/options/grabsize/value">
+        <number min="1" max="10" step="1"/>
+      </row>
+      <row label="">
+        <!-- handle preview -->
+      </row>
+      <row label="Handle color" path="/x">
+        <selector source="handle-colors"/>
+      </row>
+      <row label="Selection" path="/options/ruler/show_bbox" tooltip="Shows a blue line in the ruler where the selection is.">
+        <checkbox label="Show in ruler"/>
+      </row>
+      <row label="Zoom drawing" path="/x">
+        <checkbox label="When window is resized"/>
+      </row>
+      <expander label="ADVANCED">
+        <row label="">
+          <checkbox label="Show zoom percentage corrected by factor" path="/options/zoomcorrection/shown"/>
+        </row>
+        <row label="Zoom correction factor">
+          <number unit="%" min="50" max="300" step="0.1" scaling-factor="100" path="/options/zoomcorrection/value"/>
+        </row>
+<!-- todo         <selector source="units" />-->
+        <ruler/>
+        <gap/>
+        <row label="Document viewports">
+          <checkbox label="Save and restore" path="/x" />
+        </row>
+      </expander>
+    </panel>
+
+    <panel id="keyboard">
+      <header label="Keyboard" icon="keyboard"/>
+      <row label="todo">
+      </row>
+    </panel>
+  </section>
+
+</ui>

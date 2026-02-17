@@ -30,6 +30,8 @@ class DropDownList : public Gtk::DropDown {
 public:
     DropDownList();
 
+    explicit DropDownList(GtkWidget* cobject);
+
     // GtkBuilder constructor
     DropDownList(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder);
 

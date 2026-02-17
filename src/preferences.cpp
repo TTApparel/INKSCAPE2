@@ -33,6 +33,7 @@
 #include "xml/attribute-record.h"
 #include "xml/node-iterators.h"
 #include "xml/node-observer.h"
+#include "xml/simple-document.h"
 
 #define PREFERENCES_FILE_NAME "preferences.xml"
 
@@ -96,6 +97,10 @@ void Preferences::_loadDefaults()
     // No maximise for macOS, see lp:1302627
     setInt("/options/defaultwindowsize/value", -1);
 #endif
+    // keep copy of defaults intact, so we can find gaps
+    _prefs_defaults = new Inkscape::XML::SimpleDocument();
+    auto node = _prefs_doc->root()->duplicate(_prefs_defaults);
+    _prefs_defaults->appendChild(node);
 }
 
 /**
@@ -661,29 +666,26 @@ void Preferences::removeObserver(Observer &o)
     }
 }
 
-
 /**
  * Get the XML node corresponding to the given pref key.
  *
  * @param pref_key Preference key (path) to get.
  * @param create Whether to create the corresponding node if it doesn't exist.
- * @param separator The character used to separate parts of the pref key.
  * @return XML node corresponding to the specified key.
  *
  * Derived from former inkscape_get_repr(). Private because it assumes that the backend is
  * a flat XML file, which may not be the case e.g. if we are using GConf (in future).
  */
-Inkscape::XML::Node *Preferences::_getNode(Glib::ustring const &pref_key, bool create)
-{
+XML::Node* Preferences::_get_node(XML::Document* document, const Glib::ustring& pref_key, bool create) {
     // verify path
     g_assert( pref_key.empty() || pref_key.at(0) == '/' ); // empty corresponds to root node
     // No longer necessary, can cause problems with input devices which have a dot in the name
     // g_assert( pref_key.find('.') == Glib::ustring::npos );
 
-    if (_prefs_doc == nullptr){
+    if (document == nullptr){
         return nullptr;
     }
-    Inkscape::XML::Node *node = _prefs_doc->root();
+    Inkscape::XML::Node *node = document->root();
     Inkscape::XML::Node *child = nullptr;
     gchar **splits = g_strsplit(pref_key.c_str(), "/", 0);
 
@@ -731,6 +733,10 @@ Inkscape::XML::Node *Preferences::_getNode(Glib::ustring const &pref_key, bool c
         g_strfreev(splits);
     }
     return node;
+}
+
+Inkscape::XML::Node *Preferences::_getNode(Glib::ustring const &pref_key, bool create) {
+    return _get_node(_prefs_doc, pref_key, create);
 }
 
 /** Get raw value for preference path, without any caching.
@@ -1120,6 +1126,23 @@ Glib::ustring Preferences::Entry::getEntryName() const
     Glib::ustring path_base = _pref_path;
     path_base.erase(0, path_base.rfind('/') + 1);
     return path_base;
+}
+
+bool Preferences::is_default_valid(const Glib::ustring& path) {
+    Glib::ustring node_key, attr_key;
+    _keySplit(path, node_key, attr_key);
+
+    // retrieve the attribute from preference defaults
+    auto node = _get_node(_prefs_defaults, node_key, false);
+    if (!node) {
+        return false;
+    }
+    auto attr = node->attribute(attr_key.c_str());
+    if (!attr) {
+        return false;
+    }
+
+    return true;
 }
 
 SPCSSAttr *Preferences::_getInheritedStyleForPath(Glib::ustring const &prefPath)

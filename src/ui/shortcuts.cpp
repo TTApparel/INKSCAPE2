@@ -20,6 +20,8 @@
 #include <gtkmm/actionable.h>
 #include <gtkmm/eventcontrollerkey.h>
 #include <gtkmm/shortcut.h>
+#include <gtkmm/shortcuttrigger.h>
+#include <gtkmm/window.h>
 
 #include "actions/actions-helper.h"
 #include "document.h"
@@ -32,6 +34,7 @@
 #include "ui/tools/tool-base.h" // For latin keyval
 #include "ui/util.h"
 #include "ui/widget/events/canvas-event.h"
+#include "util/key-helpers.h"
 #include "xml/simple-document.h"
 
 using namespace Inkscape::IO::Resource;
@@ -140,7 +143,7 @@ Shortcuts::add_user_shortcut(Glib::ustring const &detailed_action_name,const Gtk
 
     if (_add_shortcut(
                 detailed_action_name,
-                trigger.get_abbrev(),
+                Util::get_accel_key_abbrev(trigger),
                 true /* user shortcut */,
                 false /* do not cache action-names */
             )) {
@@ -151,7 +154,7 @@ Shortcuts::add_user_shortcut(Glib::ustring const &detailed_action_name,const Gtk
     }
 
     std::cerr << "Shortcut::add_user_shortcut: Failed to add: " << detailed_action_name.raw()
-              << " with shortcut " << trigger.get_abbrev().raw() << std::endl;
+              << " with shortcut " << Util::get_accel_key_abbrev(trigger).raw() << std::endl;
     return false;
 };
 
@@ -376,7 +379,7 @@ Shortcuts::get_label(const Gtk::AccelKey& shortcut)
     if (!shortcut.is_null()) {
         // ::get_label shows key pad and numeric keys identically.
         // TODO: Results in labels like "Numpad Alt+5"
-        if (shortcut.get_abbrev().find("KP") != Glib::ustring::npos) {
+        if (Util::get_accel_key_abbrev(shortcut).find("KP") != Glib::ustring::npos) {
             label += _("Numpad");
             label += " ";
         }
@@ -398,7 +401,10 @@ get_from_event_impl(unsigned const event_keyval, unsigned const event_keycode,
     auto const initial_modifiers = static_cast<Gdk::ModifierType>(event_state) & default_mod_mask;
 
     auto consumed_modifiers = 0u;
-    auto keyval = Inkscape::UI::Tools::get_latin_keyval_impl(
+    auto keyval = event_keyval;
+    // on macOS leave Shift key and keyval case alone
+#ifndef __APPLE__
+    keyval = Inkscape::UI::Tools::get_latin_keyval_impl(
         event_keyval, event_keycode, event_state, event_group, &consumed_modifiers);
 
     // If a key value is "convertible", i.e. it has different lower case and upper case versions,
@@ -408,7 +414,7 @@ get_from_event_impl(unsigned const event_keyval, unsigned const event_keycode,
         keyval = gdk_keyval_to_lower(keyval);
         consumed_modifiers &= ~static_cast<unsigned>(Gdk::ModifierType::SHIFT_MASK);
     }
-
+#endif
     // The InkscapePreferences dialog returns an event structure where the Shift modifier is not
     // set for keys like '('. This causes '(' to be converted to '9' by get_latin_keyval. It also
     // returns 'Shift-k' for 'K' (instead of 'Shift-K') but this is not a problem.
@@ -935,9 +941,8 @@ bool Shortcuts::_add_shortcut(Glib::ustring const &detailed_action_name, Glib::u
     }
 #endif
 
-    Gtk::AccelKey key(str);
-
-    auto trigger_normalized = key.get_abbrev();
+    Gtk::AccelKey key = Util::parse_accelerator_string(str);
+    auto trigger_normalized = Util::get_accel_key_abbrev(key);
 
     // Check if action actually exists. Need to compare action names without values...
     Glib::ustring action_name;
@@ -963,7 +968,7 @@ bool Shortcuts::_add_shortcut(Glib::ustring const &detailed_action_name, Glib::u
         _remove_shortcuts(detailed_action_name);
     }
 
-    auto const trigger = Gtk::ShortcutTrigger::parse_string(trigger_normalized);
+    auto trigger = Gtk::KeyvalTrigger::create(key.get_key(), key.get_mod());
     g_assert(trigger);
 
     auto const action = Gtk::NamedAction::create(action_name);

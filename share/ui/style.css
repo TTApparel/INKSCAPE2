@@ -1705,6 +1705,144 @@ listview row.top-separator {
     min-height: 2.25em;
 }
 
+#Settings .row { margin: 2px; }
+#Settings .row .label:first-child { margin-right: 0.5em; margin-left: 2px; }
+#Settings .text { margin: 0 4px; }
+#Settings .text.strong { font-weight: 500; }
+#Settings .expander {
+    padding-left: 2px; /* to align with other labels in a panel */
+    font-weight: bold;
+}
+#Settings .expander label {
+    text-transform: uppercase;
+}
+#Settings .checkbox { padding-left: 1px; }
+#Settings .number { min-height: 24px; }
+#Settings .panel {
+    margin-bottom: 4px;
+    padding: 0;
+    border-radius: 3px;
+    border: solid 1px alpha(@theme_fg_color, 0.20);
+}
+#Settings .panel.open {
+    padding-bottom: 4px;
+}
+#Settings .panel.open .header {
+    border-bottom: solid 1px alpha(@theme_fg_color, 0.08);
+}
+#Settings .panel > .group {
+    padding-top: 6px;
+}
+#Settings .panel .panel-shortcut {
+    margin-left: 0.5em;
+    font-weight: 500;
+    opacity: 0.6;
+}
+#Settings .header {
+    min-height: 22px;
+    font-weight: 500;
+    padding: 0;
+    border-radius: 3px;
+    background-color: alpha(@theme_fg_color, 0.08);
+}
+#Settings .open .header {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+#Settings .header .button {
+    padding: 0;
+}
+#Settings .header .icon {
+    margin: 0 6px;
+}
+#Settings .group.indent {
+    margin-left: 26px;
+}
+#Settings #PageSelector {
+    margin: 8px;
+}
+#Settings #PageContent {
+    margin-top: 16px;
+}
+#Settings #Pages {
+    background-color: @theme_bg_color;
+    min-width: 10em;
+}
+#Settings #Pages row {
+    min-height: 2em;
+    border-radius: 2px;
+}
+#Settings .switch.small {
+    margin: 0 14px 0 6px;
+}
+#Settings .switch.small slider {
+    min-width: 10px;
+    min-height: 10px;
+}
+#Settings .switch.small image {
+    -gtk-icon-size: 8px;
+}
+#Settings .error {
+    color: red; /* mark invalid settings, so it's possible to spot them */
+    outline: solid 1px red;
+    outline-offset: 0px;
+}
+#Settings .reset-icon {
+    opacity: 0.6;
+    margin-left: 0.5em;
+}
+#Settings .ruler {
+    opacity: 0.7;
+}
+#Settings .subheader {
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 0;
+    margin: 2px 0 2px 0;
+}
+#Settings .settings-separator {
+    margin: 0.75em 0;
+}
+#Settings .item-separator {
+    margin: 0.5em 0 0 0;
+}
+#Settings .heading {
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-top: 0.2em;
+    margin-bottom: 0.5em;
+}
+#Settings .spin-entry-margin {
+    /* margin-bottom: 4px; */
+}
+#Settings .page-indentation {
+    margin: 0 14px 0 0;
+}
+#Settings .page-indentation-right {
+    /* we need some space on the right, so scrollbar doesn't overlap buttons */
+    margin: 0 5px 0 0;
+}
+#Settings .label-indentation {
+    margin-left: 14px;
+}
+#Settings #PreferenceCheckButton {
+    padding: 2px 0;
+}
+
+.key-pillbox {
+    min-width: 10px;
+    padding: 1px 2.5px;
+    border-radius: 2px;
+    margin: 0 1px;
+    background-color: alpha(@theme_fg_color, 0.04);
+    box-shadow: 1px 1px 2px alpha(black, 0.5);
+}
+
+.dark .key-pillbox {
+    background-color: alpha(@theme_fg_color, 0.15);
+    box-shadow: 1px 1px 2px alpha(black, 0.6);
+}
+
 .border-box {
     border-radius: 2px;
     border: 1px solid @borders;

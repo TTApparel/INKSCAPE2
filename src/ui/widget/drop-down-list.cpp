@@ -13,9 +13,15 @@ DropDownList::DropDownList() {
     _init();
 }
 
-DropDownList::DropDownList(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder):
-    Gtk::DropDown(cobject) {
+DropDownList::DropDownList(GtkWidget* cobject)
+    : Gtk::DropDown(reinterpret_cast<BaseObjectType*>(cobject))
+{
+    _init();
+}
 
+DropDownList::DropDownList(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder):
+    Gtk::DropDown(cobject)
+{
     //TODO: verify if we want/need to set model too
     _init();
 }
@@ -149,3 +155,4 @@ void DropDownList::set_to_string_func(std::function<Glib::ustring(const Glib::Re
 }
 
 } // namespace
+
