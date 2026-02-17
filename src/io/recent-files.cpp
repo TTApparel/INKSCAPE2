@@ -223,8 +223,15 @@ std::map<Glib::ustring, std::string> getShortenedPathMap(std::vector<Glib::RefPt
                     break;
                 }
             }
-            assert(i < max_size); // Paths are assured to always have a difference.
-
+            
+            // If paths are identical (duplicate entries or normalized equivalents), skip
+            if (i >= max_size) {
+                // This can happen when:
+                // 1. XBEL contains exact duplicate entries
+                // 2. Different display URIs normalize to same path (e.g., "foo/bar/x.svg" vs "foo/bar/../bar/x.svg")
+                ++it;
+                continue;
+            }
             // Override map of path to shortened path.
             for (int j = 0; j < 2; j++) {
 
