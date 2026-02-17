@@ -1765,7 +1765,6 @@ void FilterEffectsDialog::FilterModifier::add_filter()
     update_filters();
 
     select_filter(filter);
-
     DocumentUndo::done(doc, RC_("Undo", "Add filter"), INKSCAPE_ICON("dialog-filters"));
 }
 
@@ -1911,6 +1910,7 @@ FilterEffectsDialog::PrimitiveList::PrimitiveList(FilterEffectsDialog& d)
     , _dialog(d)
     , _in_drag(0)
     , _observer(std::make_unique<Inkscape::XML::SignalObserver>())
+    , _reorder_idle_connection()
 {
     _inputs_count = FPInputConverter._length;
 
@@ -1929,10 +1929,15 @@ FilterEffectsDialog::PrimitiveList::PrimitiveList(FilterEffectsDialog& d)
     _model = Gtk::ListStore::create(_columns);
 
     set_reorderable(true);
-
-    auto const drag = Gtk::DragSource::create();
-    drag->signal_drag_end().connect(sigc::mem_fun(*this, &PrimitiveList::on_drag_end));
-    add_controller(drag);
+    // GTK4 row reordering updates the model via delete/insert operations;
+    // there is no reliable drag-end or reorder-finished signal.
+    _model->signal_row_deleted().connect([this](const Gtk::TreePath&){
+        if (!_reorder_idle_connection.connected()) {
+            _reorder_idle_connection = Glib::signal_idle().connect(
+                sigc::mem_fun(*this, &PrimitiveList::on_primitives_reordered)
+            );
+        }
+    });
 
     set_model(_model);
     append_column(_("_Effect"), _columns.type);
@@ -2085,7 +2090,6 @@ void FilterEffectsDialog::PrimitiveList::remove_selected()
         sp_repr_unparent(prim->getRepr());
 
         DocumentUndo::done(_dialog.getDocument(), RC_("Undo", "Remove filter primitive"), INKSCAPE_ICON("dialog-filters"));
-
         update();
     }
 }
@@ -2700,32 +2704,28 @@ void FilterEffectsDialog::PrimitiveList::sanitize_connections(const Gtk::TreeMod
 }
 
 // Reorder the filter primitives to match the list order
-void FilterEffectsDialog::PrimitiveList::on_drag_end(Glib::RefPtr<Gdk::Drag> const &/*&drag*/,
-                                                     bool /*delete_data*/)
+bool FilterEffectsDialog::PrimitiveList::on_primitives_reordered()
 {
     SPFilter* filter = _dialog._filter_modifier.get_selected_filter();
-    g_assert(filter);
-
+    if (!filter) return false;
     int ndx = 0;
     for (auto iter = _model->children().begin(); iter != _model->children().end(); ++iter, ++ndx) {
         SPFilterPrimitive* prim = (*iter)[_columns.primitive];
-        if (prim && prim == _drag_prim) {
+        if (prim) {
             prim->getRepr()->setPosition(ndx);
-            break;
         }
     }
 
     for (auto iter = _model->children().begin(); iter != _model->children().end(); ++iter) {
         SPFilterPrimitive* prim = (*iter)[_columns.primitive];
-        if (prim && prim == _drag_prim) {
+        if (prim) {
             sanitize_connections(iter);
-            get_selection()->select(iter);
-            break;
         }
     }
 
     filter->requestModified(SP_OBJECT_MODIFIED_FLAG);
     DocumentUndo::done(filter->document, RC_("Undo", "Reorder filter primitive"), INKSCAPE_ICON("dialog-filters"));
+    return false;
 }
 
 static void autoscroll(Glib::RefPtr<Gtk::Adjustment> const &a, double const delta)
