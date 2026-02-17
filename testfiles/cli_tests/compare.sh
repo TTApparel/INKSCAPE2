@@ -14,7 +14,9 @@ test -f "${REFERENCE_FILENAME}" || { echo "compare.sh: Second file '${REFERENCE_
 
 sed -i "s/LMSans..-......./'Latin Modern Sans'/" ${OUTPUT_FILENAME}
 
-if ! cmp "${OUTPUT_FILENAME}" "${REFERENCE_FILENAME}"; then
+FILTER='sed -e /inkscape:version/d'
+
+if ! cmp <($FILTER "${OUTPUT_FILENAME}") <($FILTER "${REFERENCE_FILENAME}"); then
     echo "compare.sh: Files '${OUTPUT_FILENAME}' and '${REFERENCE_FILENAME}' are not identical'."
     keep_outputs
     exit 1

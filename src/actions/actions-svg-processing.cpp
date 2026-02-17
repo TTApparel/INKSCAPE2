@@ -730,17 +730,17 @@ void add_actions_processing(SPDocument* doc)
     auto group = doc->getActionGroup();
     // clang-format off
     group->add_action("set-svg-version-2",            [doc]() {
-        auto rdoc = doc->getReprDoc();
-        rdoc->setAttribute("standalone", "no");
-        rdoc->setAttribute("version", "2.0");
+        auto rroot = doc->getReprRoot();
+        rroot->setAttribute("standalone", "no");
+        rroot->setAttribute("version", "2.0");
     });
     group->add_action("set-svg-version-1",            [doc]() {
-        auto rdoc = doc->getReprDoc();
-        rdoc->setAttribute("version", "1.1");
+        auto rroot = doc->getReprRoot();
+        rroot->setAttribute("version", "1.1");
     });
     group->add_action("set-inkscape-version",         [doc]() {
-        auto rdoc = doc->getReprDoc();
-        rdoc->setAttribute("inkscape:version", Inkscape::version_string);
+        auto rroot = doc->getReprRoot();
+        rroot->setAttribute("inkscape:version", Inkscape::version_string);
     });
     group->add_action("prune-inkscape-namespaces",    [doc]() { prune_inkscape_from_node(doc->getReprRoot()); });
     group->add_action("prune-proprietary-namespaces", [doc]() { prune_proprietary_from_node(doc->getReprRoot()); });
