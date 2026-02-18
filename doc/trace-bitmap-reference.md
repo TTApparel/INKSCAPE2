@@ -580,3 +580,65 @@ Persist one golden record per test image and compare within tolerances for node 
 - Stack tooltip clarifies no-gaps cumulative behavior.
 
 Keep these defaults aligned in external recreations to reduce accidental drift during user testing.
+
+---
+
+## 20) Validation against an external implementation summary
+
+If your implementation follows the process below, it is aligned with this reference:
+
+1. Load source image and construct analysis buffer once.
+2. Resolve one trace settings object and keep it fixed for the call.
+3. Apply optional pre-quantization blur only if multiscan smooth is enabled.
+4. Quantize once to `(labels, palette, percentages)`.
+5. Do **not** post-merge, re-sort, or relabel classes after quantization.
+6. Iterate `colorIndex` in ascending order, using one shared cumulative mask for Stack ON.
+7. Trace each pass and append path output in the same index order.
+8. Style each layer with quantizer palette entry `palette[colorIndex]` (CLUT-equivalent).
+9. Return final SVG; keep any non-tracing fallback path separate from parity evaluation.
+
+### Important clarifications/caveats
+
+- **Your summary is correct overall.**
+- The largest remaining parity risks are usually:
+  1. renderer-side reordering after append,
+  2. non-deterministic k-means initialization,
+  3. hidden label remapping during downstream optimization,
+  4. evaluating fallback/preview output instead of traced output.
+
+### Determinism requirements to add explicitly
+
+For repeatable parity from run to run, also lock:
+
+- k-means seed / initialization strategy,
+- color space used for distance computation,
+- blur kernel/radius for pre-quantization smoothing,
+- image resampling policy before quantization (if any).
+
+Even with the same Stack ON tracing logic, differences in those pre-quantization details can change label maps and therefore final path geometry.
+
+### Quick “correctness assertion pack”
+
+Add these checks around your current process:
+
+```cpp
+// labels must remain stable across pipeline stages
+assert(no_post_quantization_relabel == true);
+
+// append order must match index order
+for (int i = 0; i < appended_indices.size(); ++i) {
+    assert(appended_indices[i] == i);
+}
+
+// style must match quantizer palette index
+for (int i = 0; i < layers.size(); ++i) {
+    assert(layers[i].fill == palette[i]);
+}
+
+// Stack ON cumulative mask growth
+for (int i = 1; i < black_counts.size(); ++i) {
+    assert(black_counts[i] >= black_counts[i - 1]);
+}
+```
+
+If these pass and output still differs visually, compare quantizer internals first (seed/space/blur), then renderer paint/compositing order.
